@@ -133,7 +133,7 @@ async function handle(request, env) {
     c.date = isDate(b.date || ''); c.deadline = isDate(b.deadline || ''); c.city = clean(b.city, 40);
     for (const a of ACTS) {
       const x = (b.acts || {})[a] || {};
-      c.acts[a] = { time: isTime(x.time || ''), addr: clean(x.addr, 80) };
+      c.acts[a] = { time: isTime(x.time || ''), addr: clean(x.addr, 120) };
     }
     c.invites = (Array.isArray(b.invites) ? b.invites : []).map((n) => clean(n, 40)).filter(Boolean).slice(0, 300);
     await db.prepare("INSERT INTO kv (k,v) VALUES ('config', ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(JSON.stringify(c)).run();

@@ -85,6 +85,13 @@ textarea.field{height:84px;padding:12px 14px;font-size:16px;resize:none;border-r
 .kick{font-size:13px;font-weight:800}
 .sec-h h2{font-size:23px;font-weight:700;line-height:1.1}
 .sec-b{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.addr{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}.addr span{flex:1;min-width:0;line-height:1.25}
+.route{flex-shrink:0;height:34px;padding:0 14px;border-radius:999px;border:1.5px solid var(--plum);background:#fff;color:var(--plumd);font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer}
+.sheet-bg{position:fixed;inset:0;background:rgba(58,51,80,.38);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fadein .2s}
+.sheet{width:min(430px,100vw);background:var(--cream);border-radius:22px 22px 0 0;padding:18px 20px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;animation:slideup .25s ease-out}
+.sheet h3{font-family:'Fraunces',Georgia,serif;font-size:20px;margin:0 0 2px}.sheet .a{font-size:14px;color:var(--muted);font-weight:700;margin-bottom:4px}
+.sheet a,.sheet button{display:flex;align-items:center;justify-content:center;height:52px;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:17px;text-decoration:none;cursor:pointer}
+@keyframes fadein{from{opacity:0}}@keyframes slideup{from{transform:translateY(40px);opacity:0}}
 .info{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
 .opts{display:flex;gap:8px}
 .opt{flex:1;height:56px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
@@ -274,9 +281,10 @@ function vSondages(){
   h+='<section class="card plus'+(cl?' dim':'')+'"><div class="r"><h2>J\'amène un +1</h2><button class="toggle'+(draft.plus.on?' on':'')+'" data-a="plus" aria-label="Activer le +1" aria-pressed="'+draft.plus.on+'"'+dis+'><i></i></button></div>'+
    (draft.plus.on?'<input id="plusname" class="field sm" type="text" maxlength="40" aria-label="Prénom de ton +1" value="'+esc(draft.plus.name)+'"'+dis+'>':'')+'</section>';
   ACTS.forEach(function(a){
-    var ac=c.acts[a.k]||{};var parts=[];if(ac.time)parts.push(ftime(ac.time));if(ac.addr)parts.push(esc(ac.addr));
+    var ac=c.acts[a.k]||{};
     h+='<section class="card sec'+(cl?' dim':'')+'"><div class="sec-h" style="background:'+a.bg+'"><div class="ico">'+svg(a.icon,'var(--ink)',26)+'</div><div><div class="kick" style="color:'+a.ink+'">'+a.kick+'</div><h2>'+a.title+'</h2></div></div><div class="sec-b">'+
-     (parts.length?'<div class="info">'+svg(I.pin,'var(--muted)',18)+parts.join(' · ')+'</div>':'')+'<div class="opts">';
+     (ac.time?'<div class="info">'+svg(I.clock,'var(--muted)',18)+ftime(ac.time)+'</div>':'')+
+     (ac.addr?'<div class="addr">'+svg(I.pin,'var(--muted)',18)+'<span>'+esc(ac.addr)+'</span><button class="route" data-a="route" data-k="'+a.k+'">Itinéraire</button></div>':'')+'<div class="opts">';
     ORDER.forEach(function(v){var on=draft.votes[a.k]===v;
       h+='<button class="opt'+(on?' on':'')+(on&&pop===a.k?' pop pop-'+v:'')+'" data-a="vote" data-k="'+a.k+'" data-v="'+v+'" aria-pressed="'+on+'"'+dis+'>'+(on?svg(I.check,'#F7E6A8',18):'')+ST[v]+'</button>'});
     h+='</div></div></section>';
@@ -329,7 +337,7 @@ function vOrga(){
      '<div class="dash" style="display:flex;flex-direction:column;gap:10px"><div class="count"><b>'+s.yes.length+'</b><span>présents</span><em>'+s.maybe.length+' peut-être · '+s.no.length+' absent'+(s.no.length>1?'s':'')+'</em></div>'+
      (s.yes.length?'<div class="group" style="gap:6px">'+s.yes.map(function(n){return '<div class="chip sm yes">'+esc(n)+'</div>'}).join('')+'</div>':'')+'</div>'+
      '<label class="l">Heure<input id="o-'+a.k+'-t" class="field sm" type="time" value="'+esc(ac.time||'')+'"></label>'+
-     '<label class="l">Adresse<input id="o-'+a.k+'-a" class="field sm" type="text" maxlength="80" value="'+esc(ac.addr||'')+'"></label></div></section>';
+     '<label class="l">Adresse<input id="o-'+a.k+'-a" class="field sm" type="text" maxlength="120" value="'+esc(ac.addr||'')+'"></label></div></section>';
   });
   var missing=(c.invites||[]).filter(function(n){return !db.guests[key(n)]});
   h+='<section class="card" style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px">Invités</h2>'+
@@ -383,6 +391,19 @@ function render(keep){
 }
 window.addEventListener('hashchange',function(){render(false)});
 
+/* ---------- itinéraire ---------- */
+function openRoute(k){
+  var a=ACTS.filter(function(x){return x.k===k})[0],ac=db.config.acts[k]||{};if(!ac.addr)return;
+  var q=ac.addr;if(db.config.city&&q.toLowerCase().indexOf(db.config.city.toLowerCase())<0)q+=', '+db.config.city;
+  var e=encodeURIComponent(q),ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var links=[];if(ios)links.push(['Plans','https://maps.apple.com/?daddr='+e+'&dirflg=d']);
+  links.push(['Google Maps','https://www.google.com/maps/dir/?api=1&destination='+e]);links.push(['Waze','https://waze.com/ul?q='+e+'&navigate=yes']);
+  var d=document.createElement('div');d.className='sheet-bg';d.setAttribute('data-a','closeroute');
+  d.innerHTML='<div class="sheet" role="dialog" aria-label="Itinéraire"><h3>'+esc(a.title)+'</h3><div class="a">'+esc(ac.addr)+'</div>'+
+    links.map(function(l){return '<a href="'+l[1]+'" target="_blank" rel="noopener" data-a="closeroute">'+l[0]+'</a>'}).join('')+'<button data-a="closeroute">Fermer</button></div>';
+  document.body.appendChild(d);
+}
+
 /* ---------- actions ---------- */
 function flagErr(id){var e=document.getElementById(id);if(e){e.classList.add('err');e.focus()}}
 function csvCell(s){s=String(s==null?'':s);return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
@@ -403,6 +424,8 @@ function pushCfg(){return api('/api/config',{method:'PUT',auth:true,body:db.conf
 
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
+  if(a==='route'){openRoute(b.getAttribute('data-k'));return}
+  if(a==='closeroute'){if(b.tagName==='A'){setTimeout(function(){var s=document.querySelector('.sheet-bg');if(s)s.remove()},50);return}if(e.target===b||b.tagName==='BUTTON'){var s=document.querySelector('.sheet-bg');if(s)s.remove()}return}
   if(a==='enter'){
     var n=document.getElementById('name').value.trim();
     if(!n){flagErr('name');toast('Entre ton prénom');return}
