@@ -90,10 +90,17 @@ textarea.field{height:84px;padding:12px 14px;font-size:16px;resize:none;border-r
 .addr{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}.addr span{flex:1;min-width:0;line-height:1.25}
 .route{flex-shrink:0;height:34px;padding:0 14px;border-radius:999px;border:1.5px solid var(--plum);background:#fff;color:var(--plumd);font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer}
 .sheet-bg{position:fixed;inset:0;background:rgba(58,51,80,.38);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fadein .2s}
-.sheet{width:min(430px,100vw);background:var(--cream);border-radius:22px 22px 0 0;padding:18px 20px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;animation:slideup .25s ease-out}
+.sheet{width:min(430px,100vw);max-height:92vh;overflow-y:auto;background:var(--cream);border-radius:22px 22px 0 0;padding:18px 20px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;animation:slideup .25s ease-out}
 .sheet h3{font-family:'Fraunces',Georgia,serif;font-size:20px;margin:0 0 2px}.sheet .a{font-size:14px;color:var(--muted);font-weight:700;margin-bottom:4px}
 .sheet a,.sheet button{display:flex;align-items:center;justify-content:center;height:52px;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:17px;text-decoration:none;cursor:pointer}
 @keyframes fadein{from{opacity:0}}@keyframes slideup{from{transform:translateY(40px);opacity:0}}
+.prow{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1.5px dashed var(--line)}.prow:first-of-type{border-top:0;padding-top:2px}
+.pn{font-family:'Fraunces',Georgia,serif;font-size:18px}.pn span{font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--muted)}
+.pv{display:flex;gap:6px;flex-wrap:wrap}.pa{display:flex;gap:18px}.pa .link{font-size:15px;padding:0}
+.mini{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;border:1.5px solid var(--line)}.mini.yes{background:var(--mint)}.mini.maybe{background:var(--butter)}.mini.no{background:#ECE7F3;text-decoration:line-through}.mini.none{background:#fff;border-style:dashed;color:var(--muted)}
+.sheet .row3{display:flex;gap:6px}.sheet .row3 button{flex:1;height:42px;font-size:14px;font-family:'Nunito',sans-serif;font-weight:800}.sheet .row3 button.on{background:var(--plum);color:#fff;border-color:var(--plum)}
+.sheet .lbl{font-size:13px;font-weight:800;color:var(--muted);margin-top:4px}.sheet input{height:46px;border-radius:12px;border:1.5px solid var(--line);padding:0 12px;font-size:16px;font-family:'Nunito',sans-serif;background:#fff}
+.sheet .danger{background:var(--err);color:#fff;border-color:var(--err)}.sheet .pri{background:var(--plum);color:#fff;border-color:var(--plum)}
 .info{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
 .opts{display:flex;gap:8px}
 .opt{flex:1;height:56px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
@@ -347,6 +354,14 @@ function vOrga(){
      '<label class="l">Heure<input id="o-'+a.k+'-t" class="field sm" type="time" value="'+esc(ac.time||'')+'"></label>'+
      '<label class="l">Adresse<input id="o-'+a.k+'-a" class="field sm" type="text" maxlength="120" value="'+esc(ac.addr||'')+'"></label></div></section>';
   });
+  var gl=ids.map(function(id){return [id,db.guests[id]]}).sort(function(x,y){return x[1].name.localeCompare(y[1].name,'fr')});
+  var SH={escape:'Escape',resto:'Resto',kpop:'K-pop'};
+  h+='<section class="card" style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Participants · '+gl.length+'</h2>'+
+   (gl.length?gl.map(function(x){var g=x[1];
+     return '<div class="prow"><div class="pn"><b>'+esc(g.name)+'</b>'+(g.plus&&g.plus.on?'<span> +1 '+esc(g.plus.name)+'</span>':'')+'</div>'+
+      '<div class="pv">'+ACTS.map(function(a){var v=(g.votes||{})[a.k];return '<span class="mini '+(v||'none')+'">'+SH[a.k]+'</span>'}).join('')+'</div>'+
+      '<div class="pa"><button class="link" data-a="gedit" data-id="'+esc(x[0])+'">Modifier</button><button class="link muted" data-a="gdel" data-id="'+esc(x[0])+'">Supprimer</button></div></div>'}).join('')
+    :'<div class="info">0</div>')+'</section>';
   var missing=(c.invites||[]).filter(function(n){return !db.guests[key(n)]});
   h+='<section class="card" style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px">Invités</h2>'+
    '<textarea id="o-inv" class="field" aria-label="Invités" style="height:96px;font-size:16px">'+esc((c.invites||[]).join('\n'))+'</textarea>'+
@@ -400,6 +415,20 @@ function render(keep){
 }
 window.addEventListener('hashchange',function(){render(false)});
 
+/* ---------- édition participant (orga) ---------- */
+var ed=null;
+function closeSheet(){var s=document.querySelector('.sheet-bg');if(s)s.remove()}
+function sheetEdit(){
+  closeSheet();var d=document.createElement('div');d.className='sheet-bg';d.setAttribute('data-a','closeroute');
+  var h='<div class="sheet" role="dialog" aria-label="Modifier"><h3>Modifier</h3><div class="lbl">Prénom</div><input id="e-name" maxlength="40" value="'+esc(ed.name)+'">'+
+   '<div class="lbl">+1</div><div class="row3"><button data-a="eplus" data-v="0" class="'+(ed.plus.on?'':'on')+'">Sans</button><button data-a="eplus" data-v="1" class="'+(ed.plus.on?'on':'')+'">Avec</button></div>'+
+   (ed.plus.on?'<input id="e-plus" maxlength="40" aria-label="Prénom du +1" value="'+esc(ed.plus.name)+'">':'');
+  ACTS.forEach(function(a){h+='<div class="lbl">'+esc(a.title)+'</div><div class="row3">'+ORDER.map(function(v){return '<button data-a="evote" data-k="'+a.k+'" data-v="'+v+'" class="'+(ed.votes[a.k]===v?'on':'')+'">'+ST[v]+'</button>'}).join('')+'</div>'});
+  h+='<button class="pri" data-a="esave" style="margin-top:8px">Enregistrer</button><button data-a="closeroute">Annuler</button></div>';
+  d.innerHTML=h;document.body.appendChild(d);
+}
+function edSync(){var n=document.getElementById('e-name');if(n)ed.name=n.value;var p=document.getElementById('e-plus');if(p)ed.plus.name=p.value}
+
 /* ---------- itinéraire ---------- */
 function openRoute(k){
   var a=ACTS.filter(function(x){return x.k===k})[0],ac=db.config.acts[k]||{};if(!ac.addr)return;
@@ -433,6 +462,24 @@ function pushCfg(){return api('/api/config',{method:'PUT',auth:true,body:db.conf
 
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
+  if(a==='gedit'){var id=b.getAttribute('data-id'),g=db.guests[id];if(!g)return;readOrga();
+    ed={id:id,name:g.name,votes:JSON.parse(JSON.stringify(g.votes||{})),plus:{on:!!(g.plus&&g.plus.on),name:(g.plus&&g.plus.name)||''}};sheetEdit();return}
+  if(a==='eplus'){edSync();ed.plus.on=b.getAttribute('data-v')==='1';sheetEdit();return}
+  if(a==='evote'){edSync();var vk=b.getAttribute('data-k'),vv=b.getAttribute('data-v');if(ed.votes[vk]===vv)delete ed.votes[vk];else ed.votes[vk]=vv;sheetEdit();return}
+  if(a==='esave'){edSync();
+    if(!ed.name.trim()){toast('Prénom manquant');return}
+    if(ed.plus.on&&!ed.plus.name.trim()){toast('Prénom du +1 manquant');return}
+    b.disabled=true;
+    api('/api/guests',{method:'PATCH',auth:true,body:{id:ed.id,name:ed.name.trim(),votes:ed.votes,plus:{on:ed.plus.on,name:ed.plus.name.trim()}}})
+      .then(function(){closeSheet();return refresh()}).then(function(){toast('Modifié');render(true)})
+      .catch(function(er){b.disabled=false;toast(er&&er.code==='exists'?'Ce prénom existe déjà':errMsg(er))});return}
+  if(a==='gdel'){var id2=b.getAttribute('data-id'),g2=db.guests[id2];if(!g2)return;readOrga();closeSheet();
+    var dd=document.createElement('div');dd.className='sheet-bg';dd.setAttribute('data-a','closeroute');
+    dd.innerHTML='<div class="sheet" role="dialog" aria-label="Supprimer"><h3>Supprimer '+esc(g2.name)+' ?</h3><div class="a">Ses réponses seront effacées.</div><button class="danger" data-a="gdelok" data-id="'+esc(id2)+'">Supprimer</button><button data-a="closeroute">Annuler</button></div>';
+    document.body.appendChild(dd);return}
+  if(a==='gdelok'){b.disabled=true;
+    api('/api/guests',{method:'DELETE',auth:true,body:{id:b.getAttribute('data-id')}}).then(function(){closeSheet();return refresh()}).then(function(){toast('Supprimé');render(true)})
+      .catch(function(er){b.disabled=false;toast(errMsg(er))});return}
   if(a==='route'){openRoute(b.getAttribute('data-k'));return}
   if(a==='closeroute'){if(b.tagName==='A'){setTimeout(function(){var s=document.querySelector('.sheet-bg');if(s)s.remove()},50);return}if(e.target===b||b.tagName==='BUTTON'){var s=document.querySelector('.sheet-bg');if(s)s.remove()}return}
   if(a==='enter'){

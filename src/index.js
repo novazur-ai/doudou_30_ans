@@ -162,6 +162,40 @@ async function handle(request, env) {
     return json({ ok: true });
   }
 
+  // Modifier / supprimer un participant (espace organisateur)
+  if (path === '/api/guests' && (method === 'PATCH' || method === 'DELETE')) {
+    const r = await checkOrga(request, env);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    let b;
+    try { b = await request.json(); } catch (_) { return fail('json'); }
+    const id = clean(b.id, 40).toLowerCase();
+    const old = await db.prepare('SELECT * FROM guests WHERE id=?').bind(id).first();
+    if (!old) return fail('missing', 404);
+    if (method === 'DELETE') {
+      await db.prepare('DELETE FROM guests WHERE id=?').bind(id).run();
+      return json({ ok: true });
+    }
+    const name = clean(b.name, 40);
+    if (!name) return fail('name');
+    const nid = keyOf(name);
+    if (nid !== id) {
+      const clash = await db.prepare('SELECT id FROM guests WHERE id=?').bind(nid).first();
+      if (clash) return fail('exists', 409);
+    }
+    const votes = {};
+    for (const a of ACTS) if (VOTES.includes((b.votes || {})[a])) votes[a] = b.votes[a];
+    const plusOn = b.plus && b.plus.on ? 1 : 0;
+    const plusName = plusOn ? clean(b.plus.name, 40) : '';
+    if (plusOn && !plusName) return fail('plus');
+    await db.batch([
+      db.prepare('DELETE FROM guests WHERE id=?').bind(id),
+      db.prepare('INSERT INTO guests (id, name, votes, plus_on, plus_name, msg, updated_at) VALUES (?,?,?,?,?,?,?)')
+        .bind(nid, name, JSON.stringify(votes), plusOn, plusName, old.msg, old.updated_at),
+    ]);
+    return json({ ok: true, id: nid });
+  }
+
   // Menu admin caché (code à 4 chiffres). Le code admin ouvre aussi l'espace organisateur.
   if (path === '/api/admin/check' && method === 'POST') {
     const r = await checkOrga(request, env, true);
