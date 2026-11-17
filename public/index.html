@@ -52,6 +52,8 @@ a{color:inherit}
 .tape{position:absolute;height:26px;opacity:.92}
 .t1{left:50%;margin-left:-69px;top:40px;width:96px;background:var(--butter);transform:rotate(-8deg)}
 .t2{left:50%;margin-left:35px;top:46px;width:80px;background:var(--mint);transform:rotate(12deg)}
+img.em{text-shadow:none;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 5px 7px rgba(90,70,140,.2))}
+.hrt{height:auto}
 .em{position:absolute;left:50%;line-height:1;text-shadow:3px 0 0 #fff,-3px 0 0 #fff,0 3px 0 #fff,0 -3px 0 #fff,2px 2px 0 #fff,-2px -2px 0 #fff,2px -2px 0 #fff,-2px 2px 0 #fff,0 6px 10px rgba(90,70,140,.2);pointer-events:none;user-select:none}
 .heart{overflow:visible;position:absolute;left:50%;margin-left:-174px;top:314px;transform:rotate(-14deg)}
 .field{width:100%;height:54px;border-radius:14px;border:1.5px solid var(--line);padding:0 16px;font-size:18px;font-weight:700;background:var(--cream);outline:none}
@@ -260,7 +262,7 @@ function vLanding(){
   var chips=(c.date?'<div class="pill" style="transform:rotate(-2deg)">'+esc(fdate(c.date,true))+'</div>':'')+(c.city?'<div class="pill" style="transform:rotate(2deg)">'+esc(c.city)+'</div>':'');
   return '<div class="land"><div class="pol"><img src="'+PHOTO+'" alt="Alessia"><div class="cap">Alessia, 30 ans !</div></div>'+
    '<i class="tape t1"></i><i class="tape t2"></i>'+
-   '<span class="em" aria-hidden="true" style="margin-left:-175px;top:92px;font-size:38px;transform:rotate(-20deg)">🫰</span><span class="em" aria-hidden="true" style="margin-left:123px;top:60px;font-size:34px;transform:rotate(16deg)">🫰</span><span class="em" aria-hidden="true" style="margin-left:110px;top:320px;font-size:54px;transform:rotate(12deg)">🫰</span><span class="em" aria-hidden="true" style="margin-left:-169px;top:388px;font-size:30px;transform:rotate(-12deg)">🫰</span><span class="em" aria-hidden="true" style="margin-left:143px;top:392px;font-size:36px;transform:rotate(20deg)">🫰</span><span class="em" aria-hidden="true" style="margin-left:-11px;top:372px;font-size:26px;transform:rotate(8deg)">🫰</span>'+
+   '<img class="em" src="/hand.png" alt="" aria-hidden="true" style="margin-left:-175px;top:92px;width:38px;height:38px;transform:rotate(-20deg)"><img class="em" src="/hand.png" alt="" aria-hidden="true" style="margin-left:123px;top:60px;width:34px;height:34px;transform:rotate(16deg)"><img class="em" src="/hand.png" alt="" aria-hidden="true" style="margin-left:110px;top:320px;width:54px;height:54px;transform:rotate(12deg)"><img class="em" src="/hand.png" alt="" aria-hidden="true" style="margin-left:-169px;top:388px;width:30px;height:30px;transform:rotate(-12deg)"><img class="em" src="/hand.png" alt="" aria-hidden="true" style="margin-left:143px;top:392px;width:36px;height:36px;transform:rotate(20deg)"><img class="em" src="/hand.png" alt="" aria-hidden="true" style="margin-left:-11px;top:372px;width:26px;height:26px;transform:rotate(8deg)">'+
    '<svg class="heart" width="56" height="56" viewBox="-1 -2 26 26" overflow="visible" aria-hidden="true"><path d="M12 21C5 15 1 11 1 6.5A5.5 5.5 0 0 1 12 4a5.5 5.5 0 0 1 11 2.5C23 11 19 15 12 21z" fill="#fff" stroke="#6B5B9A" stroke-width="1.4"/></svg></div>'+
    (chips?'<div class="chips" style="justify-content:center;margin:-10px 20px 18px">'+chips+'</div>':'')+
    '<div class="entry"><h2>'+(m?'Bon retour !':'Ton prénom')+'</h2>'+
@@ -366,8 +368,8 @@ function burst(k,v){var b=document.querySelector('.opt.pop[data-k="'+k+'"]');if(
     for(var j=0;j<14;j++){var f=document.createElement('i');f.className='rain';f.textContent='🤞';f.style.cssText='left:'+(Math.random()*(w-24))+'px;animation-delay:'+(Math.random()*.55)+'s;font-size:'+(16+Math.random()*10)+'px';card.appendChild(f);(function(x){setTimeout(function(){x.remove()},1800)})(f)}
     setTimeout(function(){card.style.overflow=''},1800);return}
   if(v==='yes'){var c3=b.closest('.card')||b.parentNode;c3.style.position='relative';c3.style.overflow='hidden';var b3=b.getBoundingClientRect(),r3=c3.getBoundingClientRect();
-    for(var h=0;h<9;h++){var hh=document.createElement('i');hh.className='hrt';hh.textContent='🩵';
-      hh.style.cssText='left:'+(b3.left-r3.left+8+Math.random()*(b3.width-30))+'px;top:'+(b3.top-r3.top+b3.height*.3)+'px;font-size:'+(12+Math.random()*10)+'px;animation-delay:'+(.1+Math.random()*1)+'s;animation-duration:'+(1.4+Math.random()*.8)+'s;--sw:'+((Math.random()-.5)*36)+'px';
+    for(var h=0;h<9;h++){var hh=document.createElement('img');hh.className='hrt';hh.src='/heart.png';hh.alt='';
+      hh.style.cssText='left:'+(b3.left-r3.left+8+Math.random()*(b3.width-30))+'px;top:'+(b3.top-r3.top+b3.height*.3)+'px;width:'+(14+Math.random()*10)+'px;height:auto;animation-delay:'+(.1+Math.random()*1)+'s;animation-duration:'+(1.4+Math.random()*.8)+'s;--sw:'+((Math.random()-.5)*36)+'px';
       c3.appendChild(hh);(function(x){setTimeout(function(){x.remove()},3000)})(hh)}
     setTimeout(function(){c3.style.overflow=''},3000)}
   var cs=['#F4C6D3','#F7E6A8','#BFE3D4','#F8D3BE','#D9CEF0'];
