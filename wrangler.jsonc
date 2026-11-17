@@ -1,0 +1,17 @@
+{
+  "name": "doudou-30-ans",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "doudou-30-ans",
+      "database_id": "96a5aded-e02d-407f-956d-c5201955eea2"
+    }
+  ]
+}

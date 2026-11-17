@@ -1,0 +1,10 @@
+{
+  "name": "Les 30 ans d'Alessia",
+  "short_name": "Alessia 30",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF7F2",
+  "theme_color": "#D9CEF0",
+  "lang": "fr",
+  "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" }]
+}

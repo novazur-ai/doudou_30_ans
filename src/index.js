@@ -1,0 +1,169 @@
+// API des 30 ans d'Alessia — Cloudflare Worker + D1
+const ACTS = ['escape', 'resto', 'kpop'];
+const VOTES = ['yes', 'maybe', 'no'];
+const MAX_GUESTS = 200;
+const SALT = 'a30|doudou|';
+
+const EMPTY_CFG = () => ({
+  deadline: '', date: '', city: '',
+  acts: { escape: { time: '', addr: '' }, resto: { time: '', addr: '' }, kpop: { time: '', addr: '' } },
+  invites: [],
+});
+
+const json = (data, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+  });
+const fail = (error, status = 400) => json({ error }, status);
+
+const clean = (s, max) => String(s == null ? '' : s).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max);
+const keyOf = (n) => n.trim().toLowerCase();
+const parisToday = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Paris' });
+
+async function sha256(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function getConfig(db) {
+  const row = await db.prepare("SELECT v FROM kv WHERE k='config'").first();
+  const base = EMPTY_CFG();
+  if (!row) return base;
+  try {
+    const c = JSON.parse(row.v);
+    for (const a of ACTS) base.acts[a] = { ...base.acts[a], ...((c.acts || {})[a] || {}) };
+    base.deadline = c.deadline || ''; base.date = c.date || ''; base.city = c.city || '';
+    base.invites = Array.isArray(c.invites) ? c.invites : [];
+  } catch (_) {}
+  return base;
+}
+
+// Vérifie le code organisateur (6 chiffres) avec limitation des essais par IP.
+async function checkOrga(request, env) {
+  const code = request.headers.get('x-code') || '';
+  const ip = request.headers.get('cf-connecting-ip') || 'x';
+  const now = Date.now();
+  await env.DB.prepare('DELETE FROM attempts WHERE ts < ?').bind(now - 3600e3).run();
+  const n = await env.DB.prepare('SELECT COUNT(*) AS n FROM attempts WHERE ip=?').bind(ip).first();
+  if (n && n.n >= 10) return 'locked';
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k='code_hash'").first();
+  const ok = /^[0-9]{6}$/.test(code) && row && (await sha256(SALT + code)) === row.v;
+  if (!ok) {
+    await env.DB.prepare('INSERT INTO attempts (ip, ts) VALUES (?, ?)').bind(ip, now).run();
+    return 'bad';
+  }
+  return 'ok';
+}
+
+async function readGuests(db, withMsg) {
+  const { results } = await db.prepare('SELECT * FROM guests ORDER BY updated_at').all();
+  const guests = {};
+  for (const r of results) {
+    let votes = {};
+    try { votes = JSON.parse(r.votes); } catch (_) {}
+    const g = { name: r.name, votes, plus: { on: !!r.plus_on, name: r.plus_name } };
+    if (withMsg) g.msg = r.msg;
+    guests[r.id] = g;
+  }
+  return guests;
+}
+
+async function handle(request, env) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  const method = request.method;
+  const db = env.DB;
+
+  if (path === '/api/state' && method === 'GET') {
+    const hasCode = !!request.headers.get('x-code');
+    let orga = false;
+    if (hasCode) {
+      const r = await checkOrga(request, env);
+      if (r === 'locked') return fail('locked', 429);
+      if (r === 'bad') return fail('code', 401);
+      orga = true;
+    }
+    const config = await getConfig(db);
+    if (!orga) delete config.invites;
+    return json({ guests: await readGuests(db, orga), config });
+  }
+
+  if (path === '/api/guest' && method === 'PUT') {
+    let b;
+    try { b = await request.json(); } catch (_) { return fail('json'); }
+    const name = clean(b.name, 40);
+    if (!name) return fail('name');
+    const config = await getConfig(db);
+    if (config.deadline && parisToday() > config.deadline) return fail('closed', 403);
+    const id = keyOf(name);
+    const existing = await db.prepare('SELECT * FROM guests WHERE id=?').bind(id).first();
+    if (!existing) {
+      const c = await db.prepare('SELECT COUNT(*) AS n FROM guests').first();
+      if (c.n >= MAX_GUESTS) return fail('full', 403);
+    }
+    let votes = {};
+    if (b.votes !== undefined) {
+      for (const a of ACTS) if (VOTES.includes((b.votes || {})[a])) votes[a] = b.votes[a];
+    } else if (existing) { try { votes = JSON.parse(existing.votes); } catch (_) {} }
+    const plusOn = b.plus !== undefined ? (b.plus && b.plus.on ? 1 : 0) : existing ? existing.plus_on : 0;
+    const plusName = b.plus !== undefined ? (plusOn ? clean(b.plus.name, 40) : '') : existing ? existing.plus_name : '';
+    if (plusOn && !plusName) return fail('plus');
+    const msg = b.msg !== undefined ? clean(b.msg, 300) : existing ? existing.msg : '';
+    await db
+      .prepare(
+        `INSERT INTO guests (id, name, votes, plus_on, plus_name, msg, updated_at) VALUES (?,?,?,?,?,?,?)
+         ON CONFLICT(id) DO UPDATE SET votes=excluded.votes, plus_on=excluded.plus_on,
+         plus_name=excluded.plus_name, msg=excluded.msg, updated_at=excluded.updated_at`
+      )
+      .bind(id, existing ? existing.name : name, JSON.stringify(votes), plusOn, plusName, msg, Date.now())
+      .run();
+    return json({ ok: true });
+  }
+
+  if (path === '/api/config' && method === 'PUT') {
+    const r = await checkOrga(request, env);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    let b;
+    try { b = await request.json(); } catch (_) { return fail('json'); }
+    const c = EMPTY_CFG();
+    const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+    const isTime = (s) => /^\d{2}:\d{2}$/.test(s) ? s : '';
+    c.date = isDate(b.date || ''); c.deadline = isDate(b.deadline || ''); c.city = clean(b.city, 40);
+    for (const a of ACTS) {
+      const x = (b.acts || {})[a] || {};
+      c.acts[a] = { time: isTime(x.time || ''), addr: clean(x.addr, 80) };
+    }
+    c.invites = (Array.isArray(b.invites) ? b.invites : []).map((n) => clean(n, 40)).filter(Boolean).slice(0, 300);
+    await db.prepare("INSERT INTO kv (k,v) VALUES ('config', ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(JSON.stringify(c)).run();
+    return json({ ok: true, config: c });
+  }
+
+  if (path === '/api/reset' && method === 'POST') {
+    const r = await checkOrga(request, env);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    await db.batch([db.prepare('DELETE FROM guests'), db.prepare("DELETE FROM kv WHERE k='config'")]);
+    return json({ ok: true });
+  }
+
+  if (path === '/api/orga/check' && method === 'POST') {
+    const r = await checkOrga(request, env);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    return json({ ok: true });
+  }
+
+  return fail('not_found', 404);
+}
+
+export default {
+  async fetch(request, env) {
+    try {
+      return await handle(request, env);
+    } catch (e) {
+      return fail('server', 500);
+    }
+  },
+};
