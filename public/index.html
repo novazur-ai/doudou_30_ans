@@ -181,7 +181,7 @@ var sess={
   set:function(k,v){try{sessionStorage.setItem(k,v)}catch(e){mem['s'+k]=v}},
   del:function(k){try{sessionStorage.removeItem(k)}catch(e){delete mem['s'+k]}}
 };
-var K='alessia30.db',KM='alessia30.me',KA='alessia30.orga',KC='alessia30.code';
+var K='alessia30.db',KM='alessia30.me',KA='alessia30.orga',KC='alessia30.code',KD='alessia30.admin';
 
 
 var ACTS=[
@@ -322,13 +322,19 @@ function vResultats(){
 function vOrgaAcces(){
   return '<div class="bar" style="flex-direction:row;align-items:center;justify-content:space-between"><h1>Organisateur</h1><a class="link" href="#">Retour</a></div>'+
    '<div style="padding:32px 20px 0"><div class="card" style="padding:22px 20px;display:flex;flex-direction:column;gap:14px"><label class="serif" for="code" style="font-weight:600;font-size:24px">Code</label>'+
-   '<input id="code" class="field code" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off">'+
+   '<input id="code" class="field code" type="password" inputmode="numeric" pattern="[0-9]{4,6}" minlength="4" maxlength="6" autocomplete="off">'+
    '<button class="btn primary" data-a="login">Entrer</button></div></div>';
 }
 
+function vAdmin(){
+  return '<div class="bar" style="flex-direction:row;align-items:center;justify-content:space-between"><h1>Admin</h1><button class="link" data-a="quit">Quitter</button></div>'+
+   '<div class="stack" style="gap:22px">'+
+   '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:6px"><h2 style="font-size:22px">Jeu de groupe</h2><div class="info" style="margin-top:2px">À construire ensemble</div></section>'+
+   '<a class="btn primary" href="#orga">Organisation</a></div>';
+}
 function vOrga(){
   var c=db.config;var S=stats();var ids=Object.keys(db.guests);
-  var h='<div class="bar" style="flex-direction:row;align-items:center;justify-content:space-between"><h1>Organisation</h1><button class="link" data-a="quit">Quitter</button></div><div class="stack" style="gap:22px">';
+  var h='<div class="bar" style="flex-direction:row;align-items:center;justify-content:space-between"><h1>Organisation</h1>'+(sess.get(KD)==='1'?'<a class="link" href="#admin">Admin</a>':'<button class="link" data-a="quit">Quitter</button>')+'</div><div class="stack" style="gap:22px">';
   h+='<section class="card" style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Fête</h2>'+
    '<label class="l">Date<input id="o-date" class="field sm" type="date" value="'+esc(c.date)+'"></label>'+
    '<label class="l">Ville<input id="o-city" class="field sm" type="text" maxlength="40" value="'+esc(c.city)+'"></label></section>';
@@ -382,11 +388,12 @@ function render(keep){
   if((r==='sondages'||r==='merci')&&!me()){go('');return}
   if(r==='merci'&&!db.guests[key(me())]){go('sondages');return}
   if(r==='orga'&&sess.get(KA)!=='1'){go('orga-acces');return}
+  if(r==='admin'&&sess.get(KD)!=='1'){go('');return}
   if(r==='sondages'&&(!draft||draft.who!==key(me()))){
     var g=db.guests[key(me())];
     draft={who:key(me()),votes:g?JSON.parse(JSON.stringify(g.votes)):{},plus:g&&g.plus?JSON.parse(JSON.stringify(g.plus)):{on:false,name:''}};
   }
-  var v={'':vLanding,sondages:vSondages,merci:vMerci,resultats:vResultats,'orga-acces':vOrgaAcces,orga:vOrga}[r]||vLanding;
+  var v={'':vLanding,sondages:vSondages,merci:vMerci,resultats:vResultats,'orga-acces':vOrgaAcces,orga:vOrga,admin:vAdmin}[r]||vLanding;
   app.innerHTML=v();
   window.scrollTo(0,keep?y:0);
   if(r==='orga-acces'){var ci=document.getElementById('code');if(ci)ci.focus()}
@@ -446,12 +453,13 @@ document.addEventListener('click',function(e){
   }else if(a==='back'){go(last||'')}
   else if(a==='login'){
     var ci=document.getElementById('code');var v=ci.value;
-    if(!/^[0-9]{6}$/.test(v)){ci.classList.add('err');ci.focus();toast('Code incorrect');return}
+    var adm=/^[0-9]{4}$/.test(v);
+    if(!adm&&!/^[0-9]{6}$/.test(v)){ci.classList.add('err');ci.focus();toast('Code incorrect');return}
     sess.set(KC,v);
-    api('/api/orga/check',{method:'POST',auth:true}).then(function(){sess.set(KA,'1');return refresh()}).then(function(){go('orga')}).catch(function(er){
+    api(adm?'/api/admin/check':'/api/orga/check',{method:'POST',auth:true}).then(function(){sess.set(KA,'1');if(adm)sess.set(KD,'1');return refresh()}).then(function(){go(adm?'admin':'orga')}).catch(function(er){
       sess.del(KC);ci.classList.add('err');ci.value='';ci.focus();toast(er&&er.status===401?'Code incorrect':errMsg(er))});
   }
-  else if(a==='quit'){sess.del(KA);sess.del(KC);refresh().then(function(){go('')})}
+  else if(a==='quit'){sess.del(KA);sess.del(KC);sess.del(KD);refresh().then(function(){go('')})}
   else if(a==='saveorga'){readOrga();pushCfg().then(function(){toast('Enregistré');render(true)}).catch(function(er){toast(errMsg(er))})}
   else if(a==='copy'){
     readOrga();pushCfg().catch(function(){});var c=db.config;

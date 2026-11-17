@@ -3,6 +3,7 @@ const ACTS = ['escape', 'resto', 'kpop'];
 const VOTES = ['yes', 'maybe', 'no'];
 const MAX_GUESTS = 200;
 const SALT = 'a30|doudou|';
+const SALT_ADMIN = 'a30|admin|';
 
 const EMPTY_CFG = () => ({
   deadline: '', date: '', city: '',
@@ -40,15 +41,21 @@ async function getConfig(db) {
 }
 
 // Vérifie le code organisateur (6 chiffres) avec limitation des essais par IP.
-async function checkOrga(request, env) {
+async function checkOrga(request, env, adminOnly) {
   const code = request.headers.get('x-code') || '';
   const ip = request.headers.get('cf-connecting-ip') || 'x';
   const now = Date.now();
   await env.DB.prepare('DELETE FROM attempts WHERE ts < ?').bind(now - 3600e3).run();
   const n = await env.DB.prepare('SELECT COUNT(*) AS n FROM attempts WHERE ip=?').bind(ip).first();
   if (n && n.n >= 10) return 'locked';
-  const row = await env.DB.prepare("SELECT v FROM kv WHERE k='code_hash'").first();
-  const ok = /^[0-9]{6}$/.test(code) && row && (await sha256(SALT + code)) === row.v;
+  let ok = false;
+  if (/^[0-9]{4}$/.test(code)) {
+    const row = await env.DB.prepare("SELECT v FROM kv WHERE k='admin_hash'").first();
+    ok = !!row && (await sha256(SALT_ADMIN + code)) === row.v;
+  } else if (!adminOnly && /^[0-9]{6}$/.test(code)) {
+    const row = await env.DB.prepare("SELECT v FROM kv WHERE k='code_hash'").first();
+    ok = !!row && (await sha256(SALT + code)) === row.v;
+  }
   if (!ok) {
     await env.DB.prepare('INSERT INTO attempts (ip, ts) VALUES (?, ?)').bind(ip, now).run();
     return 'bad';
@@ -150,6 +157,14 @@ async function handle(request, env) {
 
   if (path === '/api/orga/check' && method === 'POST') {
     const r = await checkOrga(request, env);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    return json({ ok: true });
+  }
+
+  // Menu admin caché (code à 4 chiffres). Le code admin ouvre aussi l'espace organisateur.
+  if (path === '/api/admin/check' && method === 'POST') {
+    const r = await checkOrga(request, env, true);
     if (r === 'locked') return fail('locked', 429);
     if (r !== 'ok') return fail('code', 401);
     return json({ ok: true });
