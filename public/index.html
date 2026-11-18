@@ -213,7 +213,7 @@ function api(path,o){
 function refresh(){
   return api('/api/state',{auth:sess.get(KA)==='1'}).then(function(s){
     var mine=db.guests[key(me())];
-    db={guests:s.guests||{},config:Object.assign(emptyCfg(),s.config||{})};
+    db={guests:s.guests||{},config:Object.assign(emptyCfg(),s.config||{}),gameOn:!!s.game_on};
     var m=db.guests[key(me())];if(m&&mine&&mine.msg&&m.msg===undefined)m.msg=mine.msg;
     ready=true;return true;
   }).catch(function(er){
@@ -272,6 +272,7 @@ function vLanding(){
    '<img class="em" src="/hand.png?v=2" alt="" aria-hidden="true" style="margin-left:-175px;top:92px;width:38px;height:38px;transform:rotate(-20deg)"><img class="em" src="/hand.png?v=2" alt="" aria-hidden="true" style="margin-left:123px;top:60px;width:34px;height:34px;transform:rotate(16deg)"><img class="em" src="/hand.png?v=2" alt="" aria-hidden="true" style="margin-left:110px;top:320px;width:54px;height:54px;transform:rotate(12deg)"><img class="em" src="/hand.png?v=2" alt="" aria-hidden="true" style="margin-left:-169px;top:388px;width:30px;height:30px;transform:rotate(-12deg)"><img class="em" src="/hand.png?v=2" alt="" aria-hidden="true" style="margin-left:143px;top:392px;width:36px;height:36px;transform:rotate(20deg)"><img class="em" src="/hand.png?v=2" alt="" aria-hidden="true" style="margin-left:-11px;top:372px;width:26px;height:26px;transform:rotate(8deg)">'+
    '<svg class="heart" width="56" height="56" viewBox="-1 -2 26 26" overflow="visible" aria-hidden="true"><path d="M12 21C5 15 1 11 1 6.5A5.5 5.5 0 0 1 12 4a5.5 5.5 0 0 1 11 2.5C23 11 19 15 12 21z" fill="#fff" stroke="#6B5B9A" stroke-width="1.4"/></svg></div>'+
    (chips?'<div class="chips" style="justify-content:center;margin:-10px 20px 18px">'+chips+'</div>':'')+
+   (db.gameOn?'<div style="margin:0 20px 18px;display:flex"><a class="btn primary" href="#jeu" style="flex:1;justify-content:center">Rejoindre le jeu</a></div>':'')+
    '<div class="entry"><h2>'+(m?'Bon retour !':'Ton prénom')+'</h2>'+
    '<input id="name" class="field" type="text" maxlength="40" autocomplete="given-name" aria-label="Ton prénom" value="'+esc(m)+'">'+
    '<button class="btn primary" data-a="enter">'+(m?'Continuer':'Entrer')+svg(I.arrow,'#fff')+'</button>'+
@@ -336,7 +337,9 @@ function vOrgaAcces(){
 function vAdmin(){
   return '<div class="bar" style="flex-direction:row;align-items:center;justify-content:space-between"><h1>Admin</h1><button class="link" data-a="quit">Quitter</button></div>'+
    '<div class="stack" style="gap:22px">'+
-   '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:6px"><h2 style="font-size:22px">Jeu de groupe</h2><div class="info" style="margin-top:2px">À construire ensemble</div></section>'+
+   '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Jeu de groupe</h2>'+
+   '<a class="btn primary" href="#mj">Console du maître du jeu</a><a class="btn" href="#ecran">Écran de projection</a>'+
+   '<div class="info">'+(db.gameOn?'Le jeu est visible par les invités':'Le jeu est invisible pour les invités')+'</div></section>'+
    '<a class="btn primary" href="#orga">Organisation</a></div>';
 }
 function vOrga(){
@@ -404,6 +407,10 @@ function render(keep){
   if(r==='merci'&&!db.guests[key(me())]){go('sondages');return}
   if(r==='orga'&&sess.get(KA)!=='1'){go('orga-acces');return}
   if(r==='admin'&&sess.get(KD)!=='1'){go('');return}
+  if(window.A30G&&A30G.routes[r]){
+    if(r!=='jeu'&&sess.get(KD)!=='1'){go('orga-acces');return}
+    app.innerHTML='';A30G.show(r);return;
+  }else if(window.A30G){A30G.hide()}
   if(r==='sondages'&&(!draft||draft.who!==key(me()))){
     var g=db.guests[key(me())];
     draft={who:key(me()),votes:g?JSON.parse(JSON.stringify(g.votes)):{},plus:g&&g.plus?JSON.parse(JSON.stringify(g.plus)):{on:false,name:''}};
@@ -537,6 +544,9 @@ document.addEventListener('keydown',function(e){
   else if(t.id==='code'){e.preventDefault();document.querySelector('[data-a="login"]').click()}
 });
 
+/* ---------- pont vers le jeu ---------- */
+window.A30={api:api,sess:sess,KC:KC,KD:KD,KM:KM,store:store,me:me,esc:esc,toast:toast,go:go,errMsg:errMsg};
+
 /* ---------- installation ---------- */
 try{if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js')}catch(e){}
 
@@ -548,5 +558,6 @@ render(false);
 refresh().then(function(ok){if(!ok){ready=true;toast('Connexion impossible, réessaie')}render(false)});
 })();
 </script>
+<script src="/jeu.js?v=1"></script>
 </body>
 </html>

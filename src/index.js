@@ -1,4 +1,5 @@
 // API des 30 ans d'Alessia — Cloudflare Worker + D1
+import { playerView, fullView, playerAct, mjAct } from './game.js';
 const ACTS = ['escape', 'resto', 'kpop'];
 const VOTES = ['yes', 'maybe', 'no'];
 const MAX_GUESTS = 200;
@@ -93,7 +94,10 @@ async function handle(request, env) {
     }
     const config = await getConfig(db);
     if (!orga) delete config.invites;
-    return json({ guests: await readGuests(db, orga), config });
+    const gr = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
+    let gameOn = false;
+    try { gameOn = !!(gr && JSON.parse(gr.v).on); } catch (_) {}
+    return json({ guests: await readGuests(db, orga), config, game_on: gameOn });
   }
 
   if (path === '/api/guest' && method === 'PUT') {
@@ -194,6 +198,51 @@ async function handle(request, env) {
         .bind(nid, name, JSON.stringify(votes), plusOn, plusName, old.msg, old.updated_at),
     ]);
     return json({ ok: true, id: nid });
+  }
+
+  // ---- Jeu de groupe ----
+  if (path === '/api/game' && method === 'GET') {
+    return json(await playerView(db, url.searchParams.get('me') || '', Date.now()));
+  }
+  const pm = path.match(/^\/api\/game\/(join|seq|vote|tap)$/);
+  if (pm && method === 'POST') {
+    let b;
+    try { b = await request.json(); } catch (_) { return fail('json'); }
+    const r = await playerAct(db, pm[1], b, Date.now());
+    return r.error ? fail(r.error, r.error === 'off' || r.error === 'closed' ? 403 : 400) : json(r);
+  }
+  if (path.startsWith('/api/game/')) {
+    const r = await checkOrga(request, env, true);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    if (path === '/api/game/full' && method === 'GET') return json(await fullView(db, Date.now()));
+    if (path === '/api/game/act' && method === 'POST') {
+      let b;
+      try { b = await request.json(); } catch (_) { return fail('json'); }
+      const res = await mjAct(db, b, Date.now());
+      return res.error ? fail(res.error) : json(await fullView(db, Date.now()));
+    }
+    if (path === '/api/game/photo' && method === 'POST') {
+      const type = request.headers.get('content-type') || '';
+      if (!/^image\/(jpeg|png|webp)$/.test(type)) return fail('type');
+      const buf = await request.arrayBuffer();
+      if (buf.byteLength > 1900000) return fail('size', 413);
+      const c = await db.prepare('SELECT COUNT(*) AS n FROM photos').first();
+      if (c.n >= 150) return fail('full', 403);
+      await db.prepare('INSERT INTO photos (mime, data, created) VALUES (?,?,?)').bind(type, buf, Date.now()).run();
+      return json({ ok: true });
+    }
+    if (path === '/api/game/photo' && method === 'GET') {
+      const row = await db.prepare('SELECT mime, data FROM photos WHERE id=?').bind(parseInt(url.searchParams.get('id'), 10) || 0).first();
+      if (!row) return fail('missing', 404);
+      const body = row.data instanceof ArrayBuffer ? row.data : new Uint8Array(row.data);
+      return new Response(body, { headers: { 'content-type': row.mime, 'cache-control': 'private, max-age=3600' } });
+    }
+    if (path === '/api/game/photo' && method === 'DELETE') {
+      await db.prepare('DELETE FROM photos WHERE id=?').bind(parseInt(url.searchParams.get('id'), 10) || 0).run();
+      return json({ ok: true });
+    }
+    return fail('not_found', 404);
   }
 
   // Menu admin caché (code à 4 chiffres). Le code admin ouvre aussi l'espace organisateur.
