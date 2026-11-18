@@ -1,0 +1,2 @@
+Ces images sont tirées de Noto Color Emoji (Google), sous licence Apache 2.0 :
+https://github.com/googlefonts/noto-emoji — https://www.apache.org/licenses/LICENSE-2.0

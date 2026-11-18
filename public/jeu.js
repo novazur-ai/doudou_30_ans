@@ -120,7 +120,7 @@
   var N = [0, 0, 20, 10, -20, -10, 14, 6, -14, -6];
   var POSES = {
     heart: { d: 1.1, p: [[0, 0, 40, -40, -105, -105, 14, 6, -14, -6], [-2, -3, 40, -40, -122, -140, 14, 6, -14, -6]] },
-    bigheart: { d: 1.3, p: [[0, -5, 150, 205, 210, 155, 14, 6, -14, -6], [-2, 5, 150, 205, 210, 155, 16, 4, -12, -8]] },
+    bigheart: { d: 1.3, back: 1, p: [[0, -5, 150, 205, 210, 155, 14, 6, -14, -6], [-2, 5, 150, 205, 210, 155, 16, 4, -12, -8]] },
     horse: { d: 0.5, p: [[0, 0, 15, -95, -15, 95, 55, -5, -8, -4], [-5, 0, 15, -95, -15, 95, 8, 4, -55, 5]] },
     tt: { d: 0.9, p: [[0, -4, 75, 195, -75, 165, 14, 6, -14, -6], [-2, 4, 72, 190, -72, 170, 14, 6, -14, -6]] },
     shimmy: { d: 0.28, p: [[0, -10, 75, 25, -65, -15, 16, 6, -16, -6], [-2, 10, 65, 15, -75, -25, 16, 6, -16, -6]] },
@@ -134,7 +134,8 @@
   function rel(a) { return [a[0], a[1], a[2] - a[1], a[3] - a[2], a[4] - a[1], a[5] - a[4], a[6], a[7] - a[6], a[8], a[9] - a[8]]; }
   N = rel(N);
   Object.keys(POSES).forEach(function (k) { POSES[k].p = POSES[k].p.map(rel); });
-  var J = [['bd', 0, 0], ['to', 30, 50], ['a1', 0, -21], ['a1f', 0, 13], ['a2', 0, -21], ['a2f', 0, 13], ['l1', 30, 50], ['l1f', 0, 14], ['l2', 30, 50], ['l2f', 0, 14]];
+  // Version chibi : grosse tête, membres courts, mains et pieds ronds.
+  var J = [['bd', 0, 0], ['to', 30, 58], ['a1', 0, -17], ['a1f', 0, 11], ['a2', 0, -17], ['a2f', 0, 11], ['l1', 30, 58], ['l1f', 0, 11], ['l2', 30, 58], ['l2f', 0, 11]];
   function jt(i, v) { return J[i][0] === 'bd' ? 'translate(0px,' + v + 'px)' : 'translate(' + J[i][1] + 'px,' + J[i][2] + 'px) rotate(' + v + 'deg)'; }
   (function () {
     var s = '.fig g{transform-box:view-box;transform-origin:0 0}';
@@ -147,15 +148,20 @@
     });
     var st2 = document.createElement('style'); st2.textContent = s; document.head.appendChild(st2);
   })();
-  function fig(k, size, clan) {
+  function fig(k, size, clan, noBubble) {
     size = size || 40;
-    var c = clan ? CK[clan] : null, ink = c ? c.ink : '#2B2540', band = c ? c.bg : '#F4C6D3', P = (POSES[k] || { p: [N] }).p[0];
+    var c = clan ? CK[clan] : null, ink = c ? c.ink : '#3A3350', band = c ? c.bg : '#F4C6D3', skin = '#FDE7DA', P = (POSES[k] || { p: [N] }).p[0];
     var g = function (i, inner) { return '<g class="j-' + J[i][0] + '" style="transform:' + jt(i, P[i]) + '">' + inner + '</g>'; };
-    var seg = function (L) { return '<line x1="0" y1="0" x2="0" y2="' + L + '"/>'; };
-    var arm = function (a, f) { return g(a, seg(13) + g(f, seg(12))); };
-    var leg = function (a, f) { return g(a, seg(14) + g(f, seg(14))); };
-    return '<svg class="fig mv-' + k + '" width="' + size + '" height="' + Math.round(size * 4 / 3) + '" viewBox="0 0 60 80" fill="none" stroke="' + ink + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;overflow:visible">' +
-      g(0, leg(6, 7) + leg(8, 9) + g(1, '<line x1="0" y1="0" x2="0" y2="-22"/>' + arm(2, 3) + arm(4, 5) + '<circle cx="0" cy="-33" r="8" fill="' + ink + '" stroke="none"/><path d="M-8.4 -35.5 H8.4" stroke="' + band + '" stroke-width="3.2" stroke-linecap="butt"/><path d="M7.5 -35.5 l7 -3 M7.5 -35.5 l6.5 2.5" stroke="' + ink + '" stroke-width="2.2"/>')) + '</svg>';
+    var seg = function (L, w) { return '<line x1="0" y1="0" x2="0" y2="' + L + '" stroke-width="' + w + '"/>'; };
+    var hand = '<circle cx="0" cy="11" r="4.6" fill="' + skin + '" stroke="' + ink + '" stroke-width="2"/>';
+    var arm = function (a, f) { return g(a, seg(11, 6) + g(f, seg(10, 6) + hand)); };
+    var leg = function (a, f) { return g(a, seg(11, 7) + g(f, seg(11, 7) + '<circle cx="0" cy="11" r="4" fill="' + ink + '" stroke="none"/>')); };
+    var head = '<g transform="translate(0,-31)"><circle r="13" fill="' + skin + '" stroke="' + ink + '" stroke-width="2.5"/><path d="M-12.6 -4 H12.6" stroke="' + band + '" stroke-width="6"/>' +
+      '<rect x="-5" y="-7" width="10" height="6" rx="1.5" fill="#B9BDC8" stroke="' + ink + '" stroke-width="1"/><path d="M12 -5 l6 -3 M12 -3 l6 2" stroke="' + band + '" stroke-width="2.4"/>' +
+      '<circle cx="-4.5" cy="3" r="1.6" fill="' + ink + '" stroke="none"/><circle cx="4.5" cy="3" r="1.6" fill="' + ink + '" stroke="none"/><path d="M-3 7.5 q3 2.5 6 0" stroke-width="1.4"/></g>';
+    var bubble = noBubble ? '' : '<g><circle cx="51" cy="13" r="15" fill="#fff" stroke="#D9CEF0" stroke-width="1.4"/><image href="/vendor/em/' + k + '.png" x="39.5" y="1.5" width="23" height="23"/></g>';
+    return '<svg class="fig mv-' + k + '" width="' + size + '" height="' + Math.round(size * 1.4) + '" viewBox="0 0 60 84" fill="none" stroke="' + ink + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;overflow:visible">' +
+      g(0, leg(6, 7) + leg(8, 9) + g(1, seg(-17, 9) + ((POSES[k] || {}).back ? arm(2, 3) + arm(4, 5) + head : head + arm(2, 3) + arm(4, 5)))) + bubble + '</svg>';
   }
   function star(on, size) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="' + (on ? '#F2B53A' : 'none') + '" stroke="' + (on ? '#C98A12' : '#B7AECB') + '" stroke-width="1.6" stroke-linejoin="round"/></svg>'; }
   function stars(avg, size) { var h = ''; for (var i = 1; i <= 5; i++) h += star(avg >= i - 0.5, size); return h; }
@@ -317,7 +323,7 @@
     var grid = MOVES.map(function (m) {
       var used = seq.indexOf(m.k) >= 0;
       if (lock && !used) return '';
-      return '<button data-g="seq" data-k="' + m.k + '"' + (lock ? ' disabled' : '') + ' style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:76px;border-radius:14px;text-align:left;' + (used ? 'background:#E9E3F6;border:2px solid #6B5B9A' : 'background:#fff;border:1.5px solid #E2D9EE') + (full && !used ? ';opacity:.5' : '') + '">' + fig(m.k, 42, c.k) +
+      return '<button data-g="seq" data-k="' + m.k + '"' + (lock ? ' disabled' : '') + ' style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:76px;border-radius:14px;text-align:left;' + (used ? 'background:#E9E3F6;border:2px solid #6B5B9A' : 'background:#fff;border:1.5px solid #E2D9EE') + (full && !used ? ';opacity:.5' : '') + '">' + fig(m.k, 60, c.k) +
         '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="ser" style="font-size:15px;line-height:1.1">' + esc(m.t) + '</span><span style="font-size:11.5px;font-weight:700;color:#6A6280;line-height:1.2">' + esc(m.d) + '</span></span></button>';
     }).join('');
     return h + (lock ? '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;font-weight:800">Chorégraphie verrouillée, place au spectacle !</div>' : '<div class="muted">Choisissez 4 mouvements dans l’ordre, 2 temps chacun. Le clan partage la même chorégraphie.' + (ry.lockAt ? ' Elle se verrouille à la fin du chrono.' : '') + '</div>') +
@@ -671,7 +677,7 @@
         return '<div data-rr="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw;transition:transform .4s,opacity .4s;' + (cur ? 'transform:scale(1.04);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.45' : '') + '"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
           (cur ? '<div class="ser" style="text-align:center;background:#3A3350;color:#fff;border-radius:1vw;padding:.5vw;font-size:1.7vw">' + (ry.stage === 'vote' ? 'Vote du public · ' + (st.rateCount || 0) : 'En piste !') + '</div>' : '') +
           (r ? '<div style="display:flex;flex-direction:column;align-items:center;gap:.3vw;background:#fff;border-radius:1.2vw;padding:.8vw"><span class="row" style="gap:.2vw">' + stars(r.avg, 34) + '</span><span class="ser" style="font-size:2vw">' + String(r.avg).replace('.', ',') + ' / 5 · +' + r.pts + (r.joker ? ' (x2)' : '') + '</span></div>' : '') +
-          (q.length ? q.map(function (k, i) { return '<div class="row" style="gap:1vw;background:#fff;border-radius:1.2vw;padding:.4vw 1vw;color:#3A3350">' + fig(k, 44, c.k) + '<span class="ser" style="font-size:1.7vw">' + (i + 1) + '. ' + esc(MK[k].t) + '</span></div>'; }).join('') : '<div style="font-weight:800;font-size:1.6vw;color:#6A6280">Chorégraphie en préparation…</div>') + '</div>';
+          (q.length ? q.map(function (k, i) { return '<div class="row" style="gap:1vw;background:#fff;border-radius:1.2vw;padding:.4vw 1vw;color:#3A3350">' + fig(k, 62, c.k) + '<span class="ser" style="font-size:1.7vw">' + (i + 1) + '. ' + esc(MK[k].t) + '</span></div>'; }).join('') : '<div style="font-weight:800;font-size:1.6vw;color:#6A6280">Chorégraphie en préparation…</div>') + '</div>';
       }).join('') + '</div>';
     } else if (s === 2) {
       var sv = st.savoir, q = sv.list[sv.idx];
