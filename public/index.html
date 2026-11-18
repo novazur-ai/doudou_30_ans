@@ -188,7 +188,7 @@ var sess={
   set:function(k,v){try{sessionStorage.setItem(k,v)}catch(e){mem['s'+k]=v}},
   del:function(k){try{sessionStorage.removeItem(k)}catch(e){delete mem['s'+k]}}
 };
-var K='alessia30.db',KM='alessia30.me',KA='alessia30.orga',KC='alessia30.code',KD='alessia30.admin';
+var K='alessia30.db',KM='alessia30.me',KA='alessia30.orga',KC='alessia30.code',KD='alessia30.admin',KX='alessia30.demo';
 
 
 var ACTS=[
@@ -207,6 +207,7 @@ var ready=false;
 function api(path,o){
   o=o||{};var h={};if(o.body)h['content-type']='application/json';
   if(o.auth){var c=sess.get(KC);if(c)h['x-code']=c}
+  if(path.indexOf('/api/game')===0&&sess.get(KX)==='1'){h['x-demo']='1';var c2=sess.get(KC);if(c2)h['x-code']=c2}
   return fetch(path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){
     return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.error||'http');er.code=j.error;er.status=r.status;throw er}return j})});
 }
@@ -338,7 +339,8 @@ function vAdmin(){
   return '<div class="bar" style="flex-direction:row;align-items:center;justify-content:space-between"><h1>Admin</h1><button class="link" data-a="quit">Quitter</button></div>'+
    '<div class="stack" style="gap:22px">'+
    '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Jeu de groupe</h2>'+
-   '<a class="btn primary" href="#mj">Console du maître du jeu</a><a class="btn" href="#ecran">Écran de projection</a>'+
+   '<button class="btn primary" data-a="gmode" data-r="mj">Console du maître du jeu</button><button class="btn" data-a="gmode" data-r="ecran">Écran de projection</button>'+
+   '<button class="btn" data-a="gmode" data-r="mj" data-d="1">Mode démo</button><div class="info">Le mode démo est une partie fictive, séparée de la vraie : personne d’autre ne la voit.</div>'+
    '<div class="info">'+(db.gameOn?'Le jeu est visible par les invités':'Le jeu est invisible pour les invités')+'</div></section>'+
    '<a class="btn primary" href="#orga">Organisation</a></div>';
 }
@@ -513,7 +515,8 @@ document.addEventListener('click',function(e){
     api(adm?'/api/admin/check':'/api/orga/check',{method:'POST',auth:true}).then(function(){sess.set(KA,'1');if(adm)sess.set(KD,'1');return refresh()}).then(function(){go(adm?'admin':'orga')}).catch(function(er){
       sess.del(KC);ci.classList.add('err');ci.value='';ci.focus();toast(er&&er.status===401?'Code incorrect':errMsg(er))});
   }
-  else if(a==='quit'){sess.del(KA);sess.del(KC);sess.del(KD);refresh().then(function(){go('')})}
+  else if(a==='gmode'){if(b.getAttribute('data-d')==='1')sess.set(KX,'1');else sess.del(KX);go(b.getAttribute('data-r'))}
+  else if(a==='quit'){sess.del(KA);sess.del(KC);sess.del(KD);sess.del(KX);refresh().then(function(){go('')})}
   else if(a==='saveorga'){readOrga();pushCfg().then(function(){toast('Enregistré');render(true)}).catch(function(er){toast(errMsg(er))})}
   else if(a==='copy'){
     readOrga();pushCfg().catch(function(){});var c=db.config;
@@ -545,7 +548,7 @@ document.addEventListener('keydown',function(e){
 });
 
 /* ---------- pont vers le jeu ---------- */
-window.A30={api:api,sess:sess,KC:KC,KD:KD,KM:KM,store:store,me:me,esc:esc,toast:toast,go:go,errMsg:errMsg};
+window.A30={api:api,sess:sess,KC:KC,KD:KD,KX:KX,KM:KM,store:store,me:me,esc:esc,toast:toast,go:go,errMsg:errMsg};
 
 /* ---------- installation ---------- */
 try{if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js')}catch(e){}
@@ -558,6 +561,6 @@ render(false);
 refresh().then(function(ok){if(!ok){ready=true;toast('Connexion impossible, réessaie')}render(false)});
 })();
 </script>
-<script src="/jeu.js?v=6"></script>
+<script src="/jeu.js?v=7"></script>
 </body>
 </html>

@@ -108,6 +108,8 @@
   var photoUrls = {}, slideIdx = 0, slideAt = 0;
 
   function now() { return Date.now() + off; }
+  function demo() { return A.sess.get(A.KX) === '1'; }
+  function myName() { return A.me() || (demo() ? 'Théo' : ''); }
   function ico(c, size, stroke) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + (stroke || c.ink) + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + c.p + '"/></svg>'; }
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   function cd(end, cls, style) { return '<span data-cd="' + end + '" class="' + (cls || '') + '" style="' + (style || '') + '">' + mmss(end - now()) + '</span>'; }
@@ -206,7 +208,7 @@
   function poll() {
     if (busy || !mode) return;
     busy = true;
-    var p = mode === 'jeu' ? req('/api/game?me=' + encodeURIComponent(A.me())) : req('/api/game/full', { auth: true });
+    var p = mode === 'jeu' ? req('/api/game?me=' + encodeURIComponent(myName())) : req('/api/game/full', { auth: true });
     p.then(function (s) { busy = false; setState(s); })
       .catch(function (er) { busy = false; if (er && er.status === 401) { A.go('orga-acces'); } });
   }
@@ -214,9 +216,9 @@
     if (!s || !mode) return;
     if (s.now) off = s.now - Date.now();
     st = s;
-    if (mode === 'jeu' && s.on && A.me() && pl.joined !== A.me()) {
-      pl.joined = A.me();
-      req('/api/game/join', { method: 'POST', body: { name: A.me() } }).then(poll).catch(function () { pl.joined = ''; });
+    if (mode === 'jeu' && s.on && myName() && pl.joined !== myName()) {
+      pl.joined = myName();
+      req('/api/game/join', { method: 'POST', body: { name: myName() } }).then(poll).catch(function () { pl.joined = ''; });
     }
     draw();
   }
@@ -224,6 +226,9 @@
     if (!root || !mode) return;
     if (mode === 'ecran' && revealing() && root.getAttribute('data-reveal') === String(st.ouv.drawAt)) return;
     var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
+    if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#3A3350;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
+      '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
+      '<button data-g="demoquit" style="border:0;background:#fff;color:#3A3350;border-radius:999px;height:26px;padding:0 10px;font:800 12px Nunito,sans-serif">Quitter</button></div>';
     root.className = r.cls || 'peach';
     if (r.html === lastHtml) return;
     // conserve la saisie en cours
@@ -265,13 +270,13 @@
 
   /* ---------- JOUEUR ---------- */
   function myClan() { return st && st.clan ? CK[st.clan] : null; }
-  function wrap(inner, cls) { return { html: '<div class="w">' + inner + '</div>', cls: cls || 'peach' }; }
+  function wrap(inner, cls) { return { html: '<div class="w"' + (demo() ? ' style="padding-top:calc(52px + env(safe-area-inset-top))"' : '') + '>' + inner + '</div>', cls: cls || 'peach' }; }
   function vPlayer() {
-    if (!A.me()) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><label class="lab" for="g-name">Ton prénom</label><input id="g-name" maxlength="40" autocomplete="given-name"><button class="btn" data-g="pname">Entrer</button></section>');
+    if (!myName()) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><label class="lab" for="g-name">Ton prénom</label><input id="g-name" maxlength="40" autocomplete="given-name"><button class="btn" data-g="pname">Entrer</button></section>');
     if (!st) return wrap('<h1>…</h1>');
     if (!st.on) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><div class="ser" style="font-size:20px">Le jeu n’a pas encore commencé</div><div class="muted">Garde cette page ouverte, elle se mettra à jour toute seule.</div></section><button class="btn2" data-g="home">Retour à l’accueil</button>');
     var c = myClan();
-    if (!c) return wrap('<h1>Salut ' + esc(A.me()) + ' !</h1><section class="card" style="align-items:center;text-align:center;padding:26px 16px"><div class="ser" style="font-size:22px">Le maître du jeu forme les clans</div><div class="muted">Ton clan apparaîtra ici dans un instant.</div></section>');
+    if (!c) return wrap('<h1>Salut ' + esc(myName()) + ' !</h1><section class="card" style="align-items:center;text-align:center;padding:26px 16px"><div class="ser" style="font-size:22px">Le maître du jeu forme les clans</div><div class="muted">Ton clan apparaîtra ici dans un instant.</div></section>');
     var s = st.step;
     if (s === 3) return pOmbre(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
@@ -392,9 +397,9 @@
     return '<section class="card" style="align-items:center;text-align:center;padding:26px 16px;gap:8px"><div style="font-family:Caveat,cursive;font-size:52px;font-weight:700;line-height:1">Alessia est Hokage !</div><div class="ser" style="font-size:18px">Regardez l’écran, place aux souvenirs</div></section>';
   }
   function flushTaps() {
-    if (pl.taps > pl.tapSent && A.me()) {
+    if (pl.taps > pl.tapSent && myName()) {
       var n = pl.taps; pl.tapSent = n;
-      req('/api/game/tap', { method: 'POST', body: { name: A.me(), n: n } }).catch(function () {});
+      req('/api/game/tap', { method: 'POST', body: { name: myName(), n: n } }).catch(function () {});
     }
   }
 
@@ -402,9 +407,9 @@
   function vMJ() {
     if (!st) return wrap('<h1>…</h1>');
     var s = st.step;
-    var h = '<div class="hd"><h1>Maître du jeu</h1><div class="row" style="gap:14px"><a href="#ecran" style="font-weight:800;color:#5B4B8A;text-decoration:none">Écran</a><a href="#admin" style="font-weight:800;color:#5B4B8A;text-decoration:none">Admin</a></div></div>';
+    var h = '<div class="hd"><h1>' + (st.demo ? 'Démo' : 'Maître du jeu') + '</h1><div class="row" style="gap:14px"><a href="#ecran" style="font-weight:800;color:#5B4B8A;text-decoration:none">Écran</a><a href="#admin" style="font-weight:800;color:#5B4B8A;text-decoration:none">Admin</a></div></div>';
     h += '<div class="scroll">' + STEPN.map(function (n, i) { return '<button class="chip' + (i === s ? ' on' : '') + '" data-g="step" data-i="' + i + '">' + (i + 1) + '. ' + esc(n) + '</button>'; }).join('') + '</div>';
-    if (!st.on) h += '<div class="card" style="background:#FFF6D9;border-color:#F7E3A0;flex-direction:row;align-items:center;gap:10px"><span style="flex:1;font-weight:800">Le jeu est invisible pour les joueurs</span><button class="chip on" data-g="on" data-v="1">Ouvrir</button></div>';
+    if (!st.on && !st.demo) h += '<div class="card" style="background:#FFF6D9;border-color:#F7E3A0;flex-direction:row;align-items:center;gap:10px"><span style="flex:1;font-weight:800">Le jeu est invisible pour les joueurs</span><button class="chip on" data-g="on" data-v="1">Ouvrir</button></div>';
     // scores
     h += '<section class="card"><div class="lab">Scores</div><div class="grid3">' + CL.map(function (c) {
       return '<div style="background:' + c.bg + ';border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px">' + ico(c, 18) + '<b class="ser" style="font-size:26px">' + st.scores[c.k] + '</b>' +
@@ -440,8 +445,8 @@
         '<button class="chip" data-g="delp" data-id="' + esc(id) + '" aria-label="Retirer ' + esc(p.name) + '">×</button></div>';
     }).join('') : '<div class="muted">Les joueurs apparaissent quand ils ouvrent le jeu. Ajoute ceux sans téléphone ci-dessous.</div>';
     h += '<div class="row"><input id="g-add" maxlength="40" placeholder="Prénom" aria-label="Prénom à ajouter"><button class="chip on" style="height:44px" data-g="addp">Ajouter</button></div>' +
-      '<div class="grid2"><button class="btn2" data-g="draw">Tirer les clans</button><button class="btn2" data-g="drawRest">Placer les nouveaux</button></div><div class="muted" style="font-size:12px">Touche le clan d’un joueur pour le changer (par exemple pour placer Alessia).</div></section>';
-    h += '<section class="card"><div class="lab">Partie</div><div class="grid2"><button class="btn2" data-g="on" data-v="' + (st.on ? 0 : 1) + '">' + (st.on ? 'Masquer le jeu' : 'Ouvrir le jeu') + '</button><button class="btn2" data-g="reset" style="color:#A63A55">' + (mj.resetArm ? 'Confirmer ?' : 'Réinitialiser') + '</button></div><div class="muted" style="font-size:12px">Réinitialiser efface clans, scores et votes (les questions et les photos restent).</div></section>';
+      (st.demo ? '<button class="btn2" data-g="demofake">Ajouter 8 joueurs fictifs + toi</button>' : '') + '<div class="grid2"><button class="btn2" data-g="draw">Tirer les clans</button><button class="btn2" data-g="drawRest">Placer les nouveaux</button></div><div class="muted" style="font-size:12px">Touche le clan d’un joueur pour le changer (par exemple pour placer Alessia).</div></section>';
+    h += '<section class="card"><div class="lab">Partie</div><div class="grid2">' + (st.demo ? '' : '<button class="btn2" data-g="on" data-v="' + (st.on ? 0 : 1) + '">' + (st.on ? 'Masquer le jeu' : 'Ouvrir le jeu') + '</button>') + '<button class="btn2" data-g="reset" style="color:#A63A55">' + (mj.resetArm ? 'Confirmer ?' : 'Réinitialiser') + '</button></div><div class="muted" style="font-size:12px">Réinitialiser efface clans, scores et votes (les questions et les photos restent).</div></section>';
     return h + nextBtn();
   }
   function nextBtn() { return st.step < 6 ? '<button class="btn" data-g="step" data-i="' + (st.step + 1) + '">Épreuve suivante : ' + esc(STEPN[st.step + 1]) + '</button>' : ''; }
@@ -765,22 +770,24 @@
     var g = b.getAttribute('data-g'), d = function (k) { return b.getAttribute('data-' + k); };
     if (g === 'tap') return;
     if (g === 'home') { A.go(''); return; }
+    if (g === 'demoquit') { A.sess.del(A.KX); A.go('admin'); return; }
+    if (g === 'demofake') { act('demoFake', { me: myName() }); return; }
     if (g === 'pname') { var v = (document.getElementById('g-name') || {}).value || ''; v = v.trim(); if (!v) { A.toast('Prénom manquant'); return; } A.store.set(A.KM, v); lastHtml = ''; poll(); draw(); return; }
     if (g === 'seq') {
       var s = curSeq().slice(); if (s.indexOf(d('k')) >= 0 || s.length >= 4) return; s.push(d('k'));
       pl.seq = s; pl.seqAt = Date.now(); lastHtml = ''; draw();
-      req('/api/game/seq', { method: 'POST', body: { name: A.me(), seq: s } }).catch(function (er) { A.toast(A.errMsg(er)); });
+      req('/api/game/seq', { method: 'POST', body: { name: myName(), seq: s } }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
     if (g === 'unseq') {
       var s2 = curSeq().slice(), i = +d('i'); if (i >= s2.length) return; s2.splice(i, 1);
       pl.seq = s2; pl.seqAt = Date.now(); lastHtml = ''; draw();
-      req('/api/game/seq', { method: 'POST', body: { name: A.me(), seq: s2 } }).catch(function (er) { A.toast(A.errMsg(er)); });
+      req('/api/game/seq', { method: 'POST', body: { name: myName(), seq: s2 } }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
     if (g === 'rate') {
       pl.rate = +d('n'); pl.rateAt = Date.now(); lastHtml = ''; draw();
-      req('/api/game/rate', { method: 'POST', body: { name: A.me(), n: +d('n') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });
+      req('/api/game/rate', { method: 'POST', body: { name: myName(), n: +d('n') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
     if (g === 'runlock') { act('rUnlock'); return; }
@@ -799,14 +806,14 @@
       var ci = document.getElementById('g-cri'), tx = ci ? ci.value.trim() : '';
       if (!tx) { A.toast('Cri vide'); return; }
       ci.value = '';
-      req('/api/game/cri', { method: 'POST', body: { name: A.me(), text: tx } }).then(function () { A.toast('Cri enregistré'); poll(); }).catch(function (er) { A.toast(A.errMsg(er)); });
+      req('/api/game/cri', { method: 'POST', body: { name: myName(), text: tx } }).then(function () { A.toast('Cri enregistré'); poll(); }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
     if (g === 'ouv') { act('ouvView', { v: d('v'), replay: d('r') === '1' }); return; }
     if (g === 'spot') { act('criSpot', { clan: d('c') }); return; }
     if (g === 'vote') {
       pl.vote = d('k'); pl.voteAt = Date.now(); lastHtml = ''; draw();
-      req('/api/game/vote', { method: 'POST', body: { name: A.me(), opt: d('k') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });
+      req('/api/game/vote', { method: 'POST', body: { name: myName(), opt: d('k') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
     // MJ

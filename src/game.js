@@ -2,6 +2,13 @@
 // État MJ dans kv('game') ; écritures des joueurs dans la table gplay (pas de conflit avec le MJ).
 
 export const CLANS = ['feu', 'foudre', 'vent'];
+
+// Mode démo : même logique, mais sur une partie séparée (kv 'game_demo' + table gplay_demo).
+export function demoDb(db) {
+  const tr = (sql) => sql.replace(/\bgplay\b/g, 'gplay_demo').replace("k='game'", "k='game_demo'").replace("('game',", "('game_demo',");
+  return { demo: true, prepare: (sql) => db.prepare(tr(sql)), batch: (a) => db.batch(a) };
+}
+const FAKE = ['Léa', 'Marc', 'Tom', 'Zoé', 'Paul', 'Inès', 'Hugo', 'Alessia'];
 const STEPS = 7; // 0 ouverture, 1 rythme, 2 savoir, 3 ombre, 4 destin, 5 boss, 6 hokage
 const MOVES = ['heart', 'bigheart', 'horse', 'tt', 'shimmy', 'wave', 'point', 'flip', 'mudra', 'run'];
 const BOSS_HP = 2026;
@@ -142,7 +149,7 @@ function ombreState(g, clan, now) {
 // ---- Vue publique (joueur) ----
 export async function playerView(db, name, now) {
   const g = await load(db);
-  if (!g.on) return { on: false };
+  if (!g.on && !db.demo) return { on: false };
   const id = (name || '').trim().toLowerCase();
   const r = await roster(db, g);
   const clan = id && r[id] ? r[id].clan : null;
@@ -186,13 +193,14 @@ export async function fullView(db, now) {
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
   const ph = await db.prepare('SELECT id FROM photos ORDER BY id').all();
   out.photos = ph.results.map((x) => x.id);
+  out.demo = !!db.demo;
   return out;
 }
 
 // ---- Actions des joueurs ----
 export async function playerAct(db, path, b, now) {
   const g = await load(db);
-  if (!g.on) return { error: 'off' };
+  if (!g.on && !db.demo) return { error: 'off' };
   const name = String(b.name || '').trim().slice(0, 40);
   const id = name.toLowerCase();
   if (!id) return { error: 'name' };
@@ -248,6 +256,13 @@ export async function mjAct(db, b, now) {
 
   switch (t) {
     case 'on': g.on = !!b.v; break;
+    case 'demoFake': {
+      if (!db.demo) break;
+      await fold();
+      const me = String(b.me || '').trim().slice(0, 40);
+      for (const n of me ? FAKE.concat(me) : FAKE) if (!g.roster[n.toLowerCase()]) g.roster[n.toLowerCase()] = { name: n, clan: null };
+      break;
+    }
     case 'reset': {
       const keep = g.savoir.list;
       g = fresh(); g.savoir.list = keep;
@@ -283,7 +298,8 @@ export async function mjAct(db, b, now) {
     case 'rReveal': {
       const c = g.rythme.cur;
       if (!c || g.rythme.stage !== 'vote') break;
-      const v = await rateVotes(db, c);
+      let v = await rateVotes(db, c);
+      if (db.demo && !v.length) v = [3, 4, 4, 5, 5].map((x) => Math.max(1, Math.min(5, x - Math.floor(Math.random() * 2))));
       const avg = v.length ? v.reduce((a, x) => a + x, 0) / v.length : 0;
       const base = Math.round(avg);
       const prev = g.rythme.results[c];
@@ -410,7 +426,7 @@ export async function mjAct(db, b, now) {
     case 'bossP2Close': {
       const p2 = g.boss.p2;
       if (!p2 || p2.done) break;
-      p2.dmg = await tapsTotal(db); p2.done = true; p2.at = now;
+      p2.dmg = await tapsTotal(db) + (db.demo ? 40 * Object.keys(await roster(db, g)).length + Math.floor(Math.random() * 60) : 0); p2.done = true; p2.at = now;
       g.boss.hp = Math.max(1, g.boss.hp - p2.dmg);
       break;
     }

@@ -1,5 +1,5 @@
 // API des 30 ans d'Alessia — Cloudflare Worker + D1
-import { playerView, fullView, playerAct, mjAct } from './game.js';
+import { playerView, fullView, playerAct, mjAct, demoDb } from './game.js';
 const ACTS = ['escape', 'resto', 'kpop'];
 const VOTES = ['yes', 'maybe', 'no'];
 const MAX_GUESTS = 200;
@@ -201,26 +201,33 @@ async function handle(request, env) {
   }
 
   // ---- Jeu de groupe ----
+  let gdb = db;
+  if (path.startsWith('/api/game') && request.headers.get('x-demo') === '1') {
+    const r = await checkOrga(request, env, true); // la démo est réservée au code admin
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    gdb = demoDb(db);
+  }
   if (path === '/api/game' && method === 'GET') {
-    return json(await playerView(db, url.searchParams.get('me') || '', Date.now()));
+    return json(await playerView(gdb, url.searchParams.get('me') || '', Date.now()));
   }
   const pm = path.match(/^\/api\/game\/(join|seq|vote|tap|cri|rate)$/);
   if (pm && method === 'POST') {
     let b;
     try { b = await request.json(); } catch (_) { return fail('json'); }
-    const r = await playerAct(db, pm[1], b, Date.now());
+    const r = await playerAct(gdb, pm[1], b, Date.now());
     return r.error ? fail(r.error, r.error === 'off' || r.error === 'closed' ? 403 : 400) : json(r);
   }
   if (path.startsWith('/api/game/')) {
     const r = await checkOrga(request, env, true);
     if (r === 'locked') return fail('locked', 429);
     if (r !== 'ok') return fail('code', 401);
-    if (path === '/api/game/full' && method === 'GET') return json(await fullView(db, Date.now()));
+    if (path === '/api/game/full' && method === 'GET') return json(await fullView(gdb, Date.now()));
     if (path === '/api/game/act' && method === 'POST') {
       let b;
       try { b = await request.json(); } catch (_) { return fail('json'); }
-      const res = await mjAct(db, b, Date.now());
-      return res.error ? fail(res.error) : json(await fullView(db, Date.now()));
+      const res = await mjAct(gdb, b, Date.now());
+      return res.error ? fail(res.error) : json(await fullView(gdb, Date.now()));
     }
     if (path === '/api/game/photo' && method === 'POST') {
       const type = request.headers.get('content-type') || '';
