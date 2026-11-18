@@ -11,8 +11,8 @@
     { k: 'vent', n: 'Vent', bg: '#BFE3D4', ink: '#2F6F5E', p: 'M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h7', j: ['Fûton : Contre-vent', 'Fûton : Tornade', 'Fûton : Murmure'] },
   ];
   var CK = {}; CL.forEach(function (c) { CK[c.k] = c; });
-  var JK = ['relance', 'vol', 'indice'];
-  var JD = ['Relancer un dé ou une épreuve', 'Voler 2 points à un clan', 'Indice ou réponse d’un coéquipier en plus'];
+  var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (Rythme, Savoir, Ombre ou Destin). Annoncez-le au maître du jeu avant le début de l’épreuve.';
+  function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === st.step ? 'on' : 'used'; }
   var STEPN = ['Ouverture', 'Rythme', 'Savoir', 'Ombre', 'Destin', 'Sanjûbi', 'Hokage'];
   var MOVES = [
     { k: 'heart', t: 'Cœur des doigts', d: 'Pouce et index croisés, bras tendu' },
@@ -234,20 +234,24 @@
     if (s === 3) return pOmbre(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
     var head = '<div class="hd"><h1>' + esc(STEPN[s]) + '</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + ico(c, 16) + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>';
+    if (jk(c.k) === 'on' && s >= 1 && s <= 4) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#3A3350;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
+    else if (jk(c.k) === 'free' && s >= 1 && s <= 4) head += '<div class="muted" style="font-size:13px">Joker x2 encore disponible : annoncez-le avant l’épreuve.</div>';
     if (st.timer && now() < st.timer.end + 1000) head += '<div class="row" style="gap:10px">' + cdBar(st.timer.end, st.timer.dur * 1000) + cd(st.timer.end, 'ser', 'font-size:20px;min-width:52px;text-align:right') + '</div>';
     var body = s === 0 ? pClan(c) : s === 1 ? pRythme(c) : s === 2 ? pSavoir() : s === 4 ? pDestin(c) : pHokage();
     return wrap(head + body);
   }
   function pClan(c) {
-    var j = st.jutsu[c.k];
     return '<section style="background:' + c.bg + ';border-radius:24px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid #fff;box-shadow:0 8px 20px rgba(58,51,80,.12)">' +
       '<div style="animation:breathe 1.6s ease-in-out infinite">' + ico(c, 60) + '</div><div class="lab" style="color:' + c.ink + '">Tu es dans le</div><div class="ser" style="font-size:32px">Clan du ' + esc(c.n) + '</div>' +
       '<div style="font-weight:700;color:' + c.ink + '">' + st.members[c.k].map(esc).join(' · ') + '</div></section>' +
-      '<section class="card"><div class="lab">Vos jutsus · 1 fois chacun</div>' + JK.map(function (k, i) {
-        var used = j[k];
-        return '<div class="row" style="gap:12px;' + (used ? 'opacity:.45' : '') + '"><div style="width:40px;height:40px;border-radius:12px;background:' + (used ? '#ECE7F3' : c.bg) + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' + ico(c, 20, used ? '#6A6280' : c.ink) + '</div>' +
-          '<div><div class="ser" style="font-size:17px;' + (used ? 'text-decoration:line-through' : '') + '">' + esc(c.j[i]) + '</div><div class="muted" style="font-size:13px">' + (used ? 'Utilisé' : JD[i]) + '</div></div></div>';
-      }).join('') + '<div class="muted" style="font-size:13px">Lève la main : le maître du jeu active le jutsu</div></section>' + pCri(c);
+      jokerCard(c) + pCri(c);
+  }
+  function jokerCard(c) {
+    var s = jk(c.k), j = st.joker[c.k];
+    return '<section class="card" style="flex-direction:row;align-items:center;gap:14px;' + (s === 'on' ? 'background:#3A3350;color:#fff;border-color:#3A3350' : s === 'used' ? 'opacity:.55' : '') + '">' +
+      '<div class="ser" style="width:56px;height:56px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;' + (s === 'on' ? 'background:#F7E6A8;color:#3A3350;animation:breathe 1.2s ease-in-out infinite' : 'background:' + c.bg + ';color:' + c.ink) + '">x2</div>' +
+      '<div style="display:flex;flex-direction:column;gap:3px"><div class="ser" style="font-size:18px">' + (s === 'on' ? 'Joker x2 activé !' : s === 'used' ? 'Joker utilisé · ' + esc(STEPN[j.step]) : 'Votre joker x2') + '</div>' +
+      '<div style="font-size:13px;font-weight:700;' + (s === 'on' ? 'color:#D9CEF0' : 'color:#6A6280') + '">' + (s === 'on' ? 'Vos points comptent double sur cette épreuve' : s === 'used' ? 'Il a déjà servi' : JOKER_TXT) + '</div></div></section>';
   }
   function pCri(c) {
     var cur = st.ouv ? st.ouv.cri : '';
@@ -279,7 +283,7 @@
     var bg = stt === 'green' ? '#2F7D64' : stt === 'red' ? '#B8445F' : '#6B5B9A';
     var big = stt === 'green' ? 'À vous !' : stt === 'red' ? 'Attends' : 'Prochain mime…';
     var line = stt === 'green' ? 'Votre négociateur peut lever la main' : stt === 'red' ? 'Mauvaise réponse : attends que les autres clans tentent leur chance' : (o.mimeur ? 'Mimeur : clan du ' + esc(CK[o.mimeur].n) : 'Le maître du jeu prépare le mime');
-    return { cls: 'dark', html: '<div class="full" style="background:' + bg + '"><div class="lab" style="color:rgba(255,255,255,.85)">Clan du ' + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</div>' +
+    return { cls: 'dark', html: '<div class="full" style="background:' + bg + '"><div class="lab" style="color:rgba(255,255,255,.85)">Clan du ' + esc(c.n) + ' · ' + st.scores[c.k] + ' pts' + (jk(c.k) === 'on' ? ' · Joker x2' : '') + '</div>' +
       '<div style="font-family:Caveat,cursive;font-weight:700;font-size:84px;line-height:1;animation:breathe 1.6s ease-in-out infinite">' + big + '</div><div class="ser" style="font-size:22px;max-width:300px;line-height:1.25">' + line + '</div>' +
       (stt !== 'wait' && o.end ? '<div class="ser" style="font-size:30px">' + cd(o.end) + '</div>' : '') +
       '<div style="margin-top:30px;font-size:14px;font-weight:800;opacity:.85;max-width:280px">Les mimes sont des actions mais aussi des personnages</div></div>' };
@@ -302,7 +306,7 @@
         var r = d.results[k.k];
         return '<section class="card" style="flex-direction:row;align-items:center;gap:12px;background:' + k.bg + ';border-color:' + (k.k === c.k ? '#3A3350' : 'transparent') + '">' +
           '<span class="ser ' + (rolling ? 'rolling' : '') + '" style="width:50px;height:50px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">' + (rolling ? '?' : r.die) + '</span>' +
-          '<div style="flex:1"><div class="ser" style="font-size:17px">' + esc(k.n) + ' · choix ' + r.opt + '</div><div style="font-weight:800;font-size:14px">' + (rolling ? 'Les dés roulent…' : esc(r.text) + ' ' + (r.pts > 0 ? '+' : '') + r.pts + (r.gage ? ' · Gage : ' + esc(r.gage) : '')) + '</div></div></section>';
+          '<div style="flex:1"><div class="ser" style="font-size:17px">' + esc(k.n) + ' · choix ' + r.opt + '</div><div style="font-weight:800;font-size:14px">' + (rolling ? 'Les dés roulent…' : esc(r.text) + ' ' + (r.pts > 0 ? '+' : '') + r.pts + (r.joker ? ' (joker x2)' : '') + (r.gage ? ' · Gage : ' + esc(r.gage) : '')) + '</div></div></section>';
       }).join('');
     }
     return h;
@@ -348,13 +352,18 @@
     h += '<section class="card"><div class="lab">Scores</div><div class="grid3">' + CL.map(function (c) {
       return '<div style="background:' + c.bg + ';border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px">' + ico(c, 18) + '<b class="ser" style="font-size:26px">' + st.scores[c.k] + '</b>' +
         '<div class="row" style="gap:4px"><button class="chip" style="height:32px;padding:0 10px" data-g="pts" data-c="' + c.k + '" data-d="-1" aria-label="Moins 1 ' + c.n + '">−1</button><button class="chip" style="height:32px;padding:0 10px" data-g="pts" data-c="' + c.k + '" data-d="1" aria-label="Plus 1 ' + c.n + '">+1</button></div>' +
-        '<div class="row" style="gap:4px">' + JK.map(function (k, i) { var u = st.jutsu[c.k][k]; return '<button data-g="jutsu" data-c="' + c.k + '" data-k="' + k + '" title="' + esc(c.j[i]) + '" aria-label="' + esc(c.j[i]) + (u ? ' utilisé' : '') + '" style="width:26px;height:26px;border-radius:50%;border:2px solid ' + c.ink + ';background:' + (u ? 'transparent' : c.ink) + ';padding:0"></button>'; }).join('') + '</div></div>';
-    }).join('') + '</div><div class="muted" style="font-size:12px">Ronds pleins = jutsus disponibles (relance, vol, indice). Touche pour marquer utilisé.</div></section>';
+        jokerBtn(c) + '</div>';
+    }).join('') + '</div><div class="muted" style="font-size:12px">Joker x2 : touche pour l’activer sur l’épreuve en cours (Rythme à Destin), retouche pour annuler. Les gains comptent double automatiquement.</div></section>';
     // chrono
     h += '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chrono</span>' + (st.timer && now() < st.timer.end ? cd(st.timer.end, 'ser', 'font-size:22px') : '<span class="muted">—</span>') + '</div><div class="row" style="flex-wrap:wrap">' +
       [[30, '0:30'], [45, '0:45'], [90, '1:30'], [600, '10 min']].map(function (x) { return '<button class="chip" data-g="timer" data-s="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '<button class="chip" data-g="timerStop">Stop</button></div></section>';
     h += [mOuverture, mRythme, mSavoir, mOmbre, mDestin, mBoss, mHokage][s]();
     return wrap(h);
+  }
+  function jokerBtn(c) {
+    var s = jk(c.k), j = st.joker[c.k], ok = st.step >= 1 && st.step <= 4;
+    if (s === 'used') return '<span style="font-size:11px;font-weight:800;color:' + c.ink + ';text-align:center">Joker : ' + esc(STEPN[j.step]) + '</span>';
+    return '<button class="chip' + (s === 'on' ? ' on' : '') + '" data-g="joker" data-c="' + c.k + '"' + (ok ? '' : ' disabled') + ' style="height:30px;padding:0 10px;' + (s === 'on' ? '' : 'border-color:' + c.ink + ';color:' + c.ink) + (ok ? '' : ';opacity:.45') + '">' + (s === 'on' ? 'x2 actif' : 'Joker x2') + '</button>';
   }
   function mOuverture() {
     var r = st.roster || {}, ids = Object.keys(r).sort(function (a, b) { return r[a].name.localeCompare(r[b].name, 'fr'); });
@@ -493,7 +502,19 @@
   var fired = { drawAt: 0, spotAt: 0 };
   function revealing() { return !!(st && st.step === 0 && st.ouv && st.ouv.view === 'clans' && st.ouv.drawAt && now() - st.ouv.drawAt < revealDur()); }
   function revealDur() { return ((st.ouv.order || []).length * 900) + 2500; }
+  var firedJk = {};
+  function fxJoker() {
+    if (!st || !st.joker) return;
+    CL.forEach(function (c) {
+      var j = st.joker[c.k];
+      if (j && j.at && j.step === st.step && firedJk[c.k] !== j.at && now() - j.at < 4000) {
+        firedJk[c.k] = j.at;
+        setTimeout(function () { var el = root && root.querySelector('[data-jk="' + c.k + '"]'); fx(el, 'burst', { r: 70 }); fx(el, 'don', { size: 120, dy: 60 }); }, 200);
+      }
+    });
+  }
   function fxHook() {
+    fxJoker();
     if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
     var o = st.ouv;
     if (o.view === 'clans' && revealing()) {
@@ -546,11 +567,11 @@
   /* ---------- PROJECTION ---------- */
   function pScores(big) {
     return '<div class="grid3" style="gap:2vw;' + (big ? 'flex:1' : '') + '">' + CL.map(function (c) {
-      var j = st.jutsu[c.k];
+      var js = jk(c.k);
       return '<div style="background:' + c.bg + ';border:.25vw solid #fff;border-radius:2.4vw;display:flex;' + (big ? 'flex-direction:column;justify-content:center' : 'flex-direction:row;justify-content:space-between;padding:1vw 2vw') + ';align-items:center;gap:.6vw;box-shadow:0 1vw 2vw rgba(58,51,80,.12)">' +
         '<div class="row" style="gap:.8vw">' + ico(c, big ? '64' : '36') + '<span class="ser" style="font-size:' + (big ? '2.8vw' : '2vw') + ';color:' + c.ink + '">' + esc(c.n) + '</span></div>' +
         '<span class="ser" style="font-size:' + (big ? '8.5vw' : '3.6vw') + ';line-height:1">' + st.scores[c.k] + '</span>' +
-        (big ? '<div class="row" style="gap:.6vw">' + JK.map(function (k) { return '<span style="width:1.1vw;height:1.1vw;border-radius:50%;box-sizing:border-box;border:.2vw solid ' + c.ink + ';background:' + (j[k] ? 'transparent' : c.ink) + '"></span>'; }).join('') + '</div>' : '') + '</div>';
+        (js === 'on' ? '<span data-jk="' + c.k + '" class="ser" style="background:#3A3350;color:#F7E6A8;border-radius:1vw;padding:.3vw 1vw;font-size:' + (big ? '2.4vw' : '1.8vw') + '">x2</span>' : '') + '</div>';
     }).join('') + '</div>';
   }
   function pHeader(title, kicker, right) {
@@ -686,7 +707,7 @@
     if (g === 'step') { mj.sel = null; act('step', { i: +d('i') }); return; }
     if (g === 'on') { act('on', { v: d('v') === '1' }); return; }
     if (g === 'pts') { act('pts', { clan: d('c'), d: +d('d') }); return; }
-    if (g === 'jutsu') { act('jutsu', { clan: d('c'), k: d('k') }); return; }
+    if (g === 'joker') { act('joker', { clan: d('c') }); return; }
     if (g === 'timer') { act('timer', { sec: +d('s') }); return; }
     if (g === 'timerStop') { act('timerStop'); return; }
     if (g === 'addp') { var inp = document.getElementById('g-add'); var n = inp ? inp.value.trim() : ''; if (!n) return; inp.value = ''; act('addp', { name: n }); return; }

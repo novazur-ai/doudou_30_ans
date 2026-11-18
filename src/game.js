@@ -42,6 +42,11 @@ const GAGES = [
   'Danser 10 secondes de K-pop',
 ];
 
+// Ajoute des points ; un gain compte double si le joker du clan est posé sur l'épreuve en cours.
+function addPts(g, clan, n) {
+  const j = g.joker && g.joker[clan];
+  g.scores[clan] += n > 0 && j && j.step === g.step ? n * 2 : n;
+}
 const die = () => 1 + Math.floor(Math.random() * 6);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -52,7 +57,7 @@ function fresh() {
     on: false, step: 0, rev: 0,
     roster: {}, // id -> { name, clan }
     scores: per(() => 0),
-    jutsu: per(() => ({ relance: false, vol: false, indice: false })),
+    joker: per(() => ({ step: null, at: 0 })), // joker x2 : une épreuve par clan (Rythme à Destin)
     timer: null, // { end, dur }
     ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
     savoir: { list: [], idx: 0 },
@@ -67,7 +72,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) } }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -136,7 +141,7 @@ export async function playerView(db, name, now) {
   const r = await roster(db, g);
   const clan = id && r[id] ? r[id].clan : null;
   const out = {
-    on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, jutsu: g.jutsu, timer: g.timer,
+    on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, joker: g.joker, timer: g.timer,
   };
   if (g.step === 0) out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '' };
   if (g.step === 1) out.seq = clan ? (await seqs(db))[clan] || [] : [];
@@ -228,8 +233,14 @@ export async function mjAct(db, b, now) {
       break;
     }
     case 'step': g.step = Math.max(0, Math.min(STEPS - 1, b.i | 0)); g.timer = null; break;
-    case 'pts': if (okClan(b.clan)) g.scores[b.clan] += Math.max(-20, Math.min(20, b.d | 0)); break;
-    case 'jutsu': if (okClan(b.clan) && ['relance', 'vol', 'indice'].includes(b.k)) g.jutsu[b.clan][b.k] = !g.jutsu[b.clan][b.k]; break;
+    case 'pts': if (okClan(b.clan)) addPts(g, b.clan, Math.max(-20, Math.min(20, b.d | 0))); break;
+    case 'joker': {
+      if (!okClan(b.clan) || g.step < 1 || g.step > 4) break;
+      const j = g.joker[b.clan];
+      if (j.step === null) { j.step = g.step; j.at = now; }
+      else if (j.step === g.step) { j.step = null; j.at = 0; }
+      break;
+    }
     case 'timer': { const s = Math.max(5, Math.min(900, b.sec | 0)); g.timer = { end: now + s * 1000, dur: s }; break; }
     case 'timerStop': g.timer = null; break;
 
@@ -290,8 +301,8 @@ export async function mjAct(db, b, now) {
       const c = g.ombre.cur;
       if (!c || c.done || c.mime === null || !okClan(b.clan) || c.red[b.clan]) break;
       if (b.ok) {
-        if (b.clan === c.clan) g.scores[c.clan] += 2;
-        else { g.scores[c.clan] += 1; g.scores[b.clan] += 1; }
+        if (b.clan === c.clan) addPts(g, c.clan, 2);
+        else { addPts(g, c.clan, 1); addPts(g, b.clan, 1); }
         c.done = true; c.winner = b.clan;
       } else {
         c.red[b.clan] = true;
@@ -314,8 +325,10 @@ export async function mjAct(db, b, now) {
         else if (opt === 'B') { pts = d >= 3 ? 3 : 0; text = d >= 3 ? 'Audace payante !' : 'Raté de peu'; }
         else if (d >= 5) { pts = 6; text = 'Coup de génie !'; }
         else { pts = -1; text = 'Catastrophe…'; gage = pick(GAGES); }
-        g.scores[clan] += pts;
-        res[clan] = { opt, die: d, pts, text, gage, voted: !!v[clan] };
+        const jk = g.joker[clan].step === g.step && pts > 0;
+        addPts(g, clan, pts);
+        if (jk) pts *= 2;
+        res[clan] = { opt, die: d, pts, joker: jk, text, gage, voted: !!v[clan] };
       }
       g.destin.results = res; g.destin.stage = 'reveal'; g.destin.at = now;
       break;
