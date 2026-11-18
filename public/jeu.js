@@ -27,6 +27,31 @@
     { k: 'run', t: 'Course Naruto', d: 'Penché, bras tendus en arrière' },
   ];
   var MK = {}; MOVES.forEach(function (m) { MK[m.k] = m; });
+  var INTRO = [
+    'Il y a 30 ans, au village caché de la Feuille, naissait une kunoichi hors du commun : Alessia, l’élève de Kakashi.',
+    'Aujourd’hui, pour devenir Hokage, il lui reste une dernière épreuve.',
+    'Sanjûbi, le démon à 30 queues, s’est réveillé. Il a volé ses 30 bougies et veut lui voler sa jeunesse.',
+    'Seuls les trois grands clans du village peuvent l’arrêter : le Feu, la Foudre et le Vent.',
+    'Rythme, savoir, ombre et destin : chaque épreuve renforcera votre chakra pour le combat final.',
+    'Ninjas, formez vos clans !',
+  ];
+
+  /* ---------- effets Sakuga VFX (MIT, finktheartist/sakuga-vfx) ---------- */
+  function loadFx() {
+    if (window.SakugaFX || document.getElementById('sk-core')) return;
+    var s = document.createElement('script'); s.id = 'sk-core'; s.src = '/vendor/sakuga-core.js'; document.head.appendChild(s);
+  }
+  function fx(el, kind, o) {
+    var F = window.SakugaFX; if (!F || !el || !el.isConnected) return;
+    o = o || {};
+    try {
+      var c = F.at(el), big = (o.big ? 1.6 : 1) * (mode === 'ecran' ? Math.max(1, Math.min(2.2, innerWidth / 640)) : 1);
+      if (kind === 'pop') { F.puff(c.x, c.y, { n: 5, size: 11 * big, vy: -16, life: 0.8 }); F.puff(c.x - c.w / 2, c.y, { n: 3, size: 8 * big, vx: -24, vy: -8, life: 0.6 }); F.puff(c.x + c.w / 2, c.y, { n: 3, size: 8 * big, vx: 24, vy: -8, life: 0.6 }); }
+      if (kind === 'pon') F.sfx('pon', c.x + c.w / 2 + 20, c.y - 30 * big, { size: 70 * big, rot: 0.06, life: 0.8, col: '#ffffff', edge: '#1d1a4a' });
+      if (kind === 'burst') F.burst(c.x, c.y, { r: (o.r || 90) * big, spikes: 17, life: 0.5 });
+      if (kind === 'don') F.sfx('don', c.x + (o.dx || 0), c.y - (o.dy || 80) * big, { size: (o.size || 170) * big, rot: -0.12, life: 1.05 });
+    } catch (_) {}
+  }
 
   /* ---------- styles ---------- */
   var css = document.createElement('style');
@@ -128,7 +153,7 @@
       root.addEventListener('click', onClick); root.addEventListener('pointerdown', onDown);
       root.addEventListener('change', onChange);
     }
-    lastHtml = ''; draw(); poll();
+    loadFx(); lastHtml = ''; draw(); poll();
     clearInterval(pollT); pollT = setInterval(function () { if (!document.hidden) poll(); }, r === 'ecran' ? 1000 : 1500);
     clearInterval(tickT); tickT = setInterval(tick, 250);
   }
@@ -155,6 +180,7 @@
   }
   function draw() {
     if (!root || !mode) return;
+    if (mode === 'ecran' && revealing() && root.getAttribute('data-reveal') === String(st.ouv.drawAt)) return;
     var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
     root.className = r.cls || 'peach';
     if (r.html === lastHtml) return;
@@ -166,6 +192,7 @@
     Object.keys(keep).forEach(function (id) { var e = document.getElementById(id); if (e && e.type !== 'file') e.value = keep[id]; });
     if (active) { var e = document.getElementById(active); if (e) e.focus(); }
     root.scrollTop = y;
+    if (mode === 'ecran') fxHook();
   }
   function tick() {
     if (!root) return;
@@ -220,7 +247,12 @@
         var used = j[k];
         return '<div class="row" style="gap:12px;' + (used ? 'opacity:.45' : '') + '"><div style="width:40px;height:40px;border-radius:12px;background:' + (used ? '#ECE7F3' : c.bg) + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' + ico(c, 20, used ? '#6A6280' : c.ink) + '</div>' +
           '<div><div class="ser" style="font-size:17px;' + (used ? 'text-decoration:line-through' : '') + '">' + esc(c.j[i]) + '</div><div class="muted" style="font-size:13px">' + (used ? 'Utilisé' : JD[i]) + '</div></div></div>';
-      }).join('') + '<div class="muted" style="font-size:13px">Lève la main : le maître du jeu active le jutsu</div></section>';
+      }).join('') + '<div class="muted" style="font-size:13px">Lève la main : le maître du jeu active le jutsu</div></section>' + pCri(c);
+  }
+  function pCri(c) {
+    var cur = st.ouv ? st.ouv.cri : '';
+    return '<section class="card"><label class="lab" for="g-cri">Cri de guerre du clan</label>' + (cur ? '<div style="font-family:Caveat,cursive;font-weight:700;font-size:30px;line-height:1.1;color:' + c.ink + '">« ' + esc(cur) + ' »</div>' : '<div class="muted">Inventez votre cri, un seul par clan : il s’affichera en grand sur l’écran.</div>') +
+      '<div class="row"><input id="g-cri" maxlength="60" placeholder="' + (cur ? 'Modifier le cri' : 'Votre cri') + '" aria-label="Cri de guerre"><button class="chip on" style="height:44px" data-g="cri">Valider</button></div></section>';
   }
   function curSeq() { return pl.seq && Date.now() - pl.seqAt < 5000 ? pl.seq : (st.seq || []); }
   function pRythme(c) {
@@ -327,7 +359,14 @@
   function mOuverture() {
     var r = st.roster || {}, ids = Object.keys(r).sort(function (a, b) { return r[a].name.localeCompare(r[b].name, 'fr'); });
     var cnt = { feu: 0, foudre: 0, vent: 0 }; ids.forEach(function (id) { if (r[id].clan) cnt[r[id].clan]++; });
-    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Joueurs · ' + ids.length + '</span><span class="muted" style="font-size:13px">Feu ' + cnt.feu + ' · Foudre ' + cnt.foudre + ' · Vent ' + cnt.vent + '</span></div>';
+    var ov = st.ouv || { view: 'intro' };
+    var hp = '<section class="card"><div class="lab">Sur l’écran de projection</div><div class="row" style="flex-wrap:wrap">' +
+      [['intro', '1. Intro'], ['clans', '2. Clans'], ['cris', '3. Cris de guerre']].map(function (x) { return '<button class="chip' + (ov.view === x[0] ? ' on' : '') + '" data-g="ouv" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') +
+      (ov.order && ov.order.length ? '<button class="chip" data-g="ouv" data-v="clans" data-r="1">Rejouer la révélation</button>' : '') + '</div>';
+    if (ov.view === 'intro') hp += '<div style="background:#FBF7F2;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px"><div class="lab">À lire à voix haute</div>' + INTRO.map(function (s) { return '<div style="font-weight:700;line-height:1.4">' + esc(s) + '</div>'; }).join('') + '</div>';
+    if (ov.view === 'cris') hp += CL.map(function (c) { var cr = (st.cris || {})[c.k]; return '<div class="row" style="background:' + c.bg + ';border-radius:12px;padding:8px 10px"><span style="flex:1;font-weight:800;color:' + c.ink + '">' + esc(c.n) + ' · ' + (cr ? '« ' + esc(cr) + ' »' : 'pas encore de cri') + '</span><button class="chip' + (ov.spot === c.k ? ' on' : '') + '" data-g="spot" data-c="' + c.k + '">Afficher</button></div>'; }).join('');
+    hp += '<div class="muted" style="font-size:12px">« Tirer les clans » lance automatiquement la révélation animée sur l’écran.</div></section>';
+    var h = hp + '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Joueurs · ' + ids.length + '</span><span class="muted" style="font-size:13px">Feu ' + cnt.feu + ' · Foudre ' + cnt.foudre + ' · Vent ' + cnt.vent + '</span></div>';
     h += ids.length ? ids.map(function (id) {
       var p = r[id], c = p.clan ? CK[p.clan] : null;
       return '<div class="row" style="gap:8px;border-top:1.5px dashed #EEE7F5;padding-top:8px"><span style="flex:1;font-weight:800">' + esc(p.name) + (p.phone ? ' <span class="muted" style="font-size:12px">· tél.</span>' : '') + '</span>' +
@@ -450,6 +489,60 @@
     chain.then(function () { mj.upl = 0; if (fails) A.toast(fails + ' photo' + (fails > 1 ? 's' : '') + ' non envoyée' + (fails > 1 ? 's' : '')); else A.toast('Photos ajoutées'); poll(); });
   }
 
+  /* ---------- PROJECTION : Ouverture ---------- */
+  var fired = { drawAt: 0, spotAt: 0 };
+  function revealing() { return !!(st && st.step === 0 && st.ouv && st.ouv.view === 'clans' && st.ouv.drawAt && now() - st.ouv.drawAt < revealDur()); }
+  function revealDur() { return ((st.ouv.order || []).length * 900) + 2500; }
+  function fxHook() {
+    if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
+    var o = st.ouv;
+    if (o.view === 'clans' && revealing()) {
+      root.setAttribute('data-reveal', String(o.drawAt));
+      if (fired.drawAt !== o.drawAt) {
+        fired.drawAt = o.drawAt;
+        var el0 = now() - o.drawAt;
+        (o.order || []).forEach(function (id, i) {
+          var at = 1200 + i * 900 - el0; if (at < 0) return;
+          var last = i === o.order.length - 1 && id === 'alessia';
+          setTimeout(function () {
+            var el = root && root.querySelector('[data-rid="' + CSS.escape(id) + '"]');
+            fx(el, 'pop', { big: last }); fx(el, last ? 'don' : 'pon', last ? { size: 150, dy: 70 } : {}); if (last) fx(el, 'burst', { r: 110 });
+          }, at);
+        });
+      }
+    } else root.removeAttribute('data-reveal');
+    if (o.view === 'cris' && o.spot && o.spotAt && fired.spotAt !== o.spotAt && now() - o.spotAt < 3000) {
+      fired.spotAt = o.spotAt;
+      setTimeout(function () { var el = root && root.querySelector('[data-spot="' + o.spot + '"]'); fx(el, 'burst', { r: 140 }); fx(el, 'don', { size: 190, dy: 120 }); }, 350);
+    }
+  }
+  function projOuverture() {
+    var o = st.ouv || { view: 'intro' };
+    if (o.view === 'intro') {
+      return '<div class="pw" style="justify-content:center;gap:2vw;padding:4vw 8vw"><div class="pk" style="animation:rise .8s ease-out both">La Quête des 30 ans</div>' +
+        INTRO.map(function (s, i) { var last = i === INTRO.length - 1; return '<div class="ser" style="font-size:' + (last ? '4.4vw' : '2.5vw') + ';line-height:1.3;font-weight:' + (last ? 700 : 600) + ';' + (last ? 'font-family:Caveat,cursive;' : '') + 'animation:rise 1s ' + (0.6 + i * 2.2) + 's ease-out both">' + esc(s) + '</div>'; }).join('') + '</div>';
+    }
+    if (o.view === 'cris') {
+      return '<div class="pw">' + pHeader('Cris de guerre', 'Ouverture', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
+        var cri = (st.cris || {})[c.k], spot = o.spot === c.k, dim = o.spot && !spot;
+        return '<div data-spot="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center;transition:transform .4s,opacity .4s;' + (spot ? 'transform:scale(1.08);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.4' : '') + '">' + ico(c, '64') + '<div class="ser" style="font-size:2.6vw;color:' + c.ink + '">Clan du ' + esc(c.n) + '</div>' +
+          '<div style="font-family:Caveat,cursive;font-weight:700;font-size:' + (spot ? '4.6vw' : '3.2vw') + ';line-height:1.05">' + (cri ? '« ' + esc(cri) + ' »' : '…') + '</div></div>';
+      }).join('') + '</div></div>';
+    }
+    // clans + révélation
+    var rev = revealing(), order = o.order || [], el0 = now() - (o.drawAt || 0), r = st.roster || {};
+    var cols = { feu: [], foudre: [], vent: [] };
+    var ids = rev ? order : Object.keys(r).filter(function (id) { return r[id].clan; }).sort(function (a, b) { return r[a].name.localeCompare(r[b].name, 'fr'); });
+    ids.forEach(function (id) { if (r[id] && r[id].clan) cols[r[id].clan].push(id); });
+    return '<div class="pw">' + pHeader('Les clans', 'Ouverture · La Quête des 30 ans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
+      return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;gap:1vw;text-align:center">' + ico(c, '72') + '<div class="ser" style="font-size:3vw">Clan du ' + esc(c.n) + '</div>' +
+        cols[c.k].map(function (id) {
+          var i = order.indexOf(id), d = rev ? (1200 + i * 900 - el0) / 1000 : 0, al = id === 'alessia';
+          return '<div data-rid="' + esc(id) + '" style="font-weight:800;font-size:' + (al ? '3vw' : '2.2vw') + ';line-height:1.35;' + (al ? 'font-family:Caveat,cursive;color:#3A3350;' : '') + (rev ? 'animation:pop .55s ' + d.toFixed(2) + 's cubic-bezier(.3,1.6,.5,1) both' : '') + '">' + esc(r[id].name) + '</div>';
+        }).join('') + '</div>';
+    }).join('') + '</div></div>';
+  }
+
   /* ---------- PROJECTION ---------- */
   function pScores(big) {
     return '<div class="grid3" style="gap:2vw;' + (big ? 'flex:1' : '') + '">' + CL.map(function (c) {
@@ -469,10 +562,8 @@
     var s = st.step, h = '', cls = 'peach proj';
     if (s === 6) return projHokage();
     if (s === 5) return projBoss();
-    if (s === 0) {
-      h = pHeader('La Quête des 30 ans', 'L’élève de Kakashi deviendra Hokage', timerRight()) +
-        '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) { return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;gap:1vw;text-align:center">' + ico(c, '72') + '<div class="ser" style="font-size:3vw">Clan du ' + esc(c.n) + '</div><div style="font-weight:800;font-size:1.7vw;line-height:1.5">' + (st.members[c.k].map(esc).join('<br>') || '…') + '</div></div>'; }).join('') + '</div>';
-    } else if (s === 1) {
+    if (s === 0) return { html: projOuverture(), cls: cls };
+    if (s === 1) {
       h = pHeader('Rythme', 'Épreuve 1 / 5', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var q = (st.seqs || {})[c.k] || [];
         return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
@@ -577,6 +668,15 @@
       req('/api/game/seq', { method: 'POST', body: { name: A.me(), seq: s2 } }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
+    if (g === 'cri') {
+      var ci = document.getElementById('g-cri'), tx = ci ? ci.value.trim() : '';
+      if (!tx) { A.toast('Cri vide'); return; }
+      ci.value = '';
+      req('/api/game/cri', { method: 'POST', body: { name: A.me(), text: tx } }).then(function () { A.toast('Cri enregistré'); poll(); }).catch(function (er) { A.toast(A.errMsg(er)); });
+      return;
+    }
+    if (g === 'ouv') { act('ouvView', { v: d('v'), replay: d('r') === '1' }); return; }
+    if (g === 'spot') { act('criSpot', { clan: d('c') }); return; }
     if (g === 'vote') {
       pl.vote = d('k'); pl.voteAt = Date.now(); lastHtml = ''; draw();
       req('/api/game/vote', { method: 'POST', body: { name: A.me(), opt: d('k') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });

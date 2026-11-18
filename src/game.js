@@ -54,6 +54,7 @@ function fresh() {
     scores: per(() => 0),
     jutsu: per(() => ({ relance: false, vol: false, indice: false })),
     timer: null, // { end, dur }
+    ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
     savoir: { list: [], idx: 0 },
     ombre: { used: [], turn: 0, cur: null },
     destin: { c: 0, stage: 'vote', mjVotes: {}, results: null, at: 0 },
@@ -66,7 +67,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { return { ...g, ...JSON.parse(row.v) }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) } }; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -97,6 +98,21 @@ async function seqs(db) {
   for (const row of await playRows(db, 'seq:')) { try { out[row.k.slice(4)] = JSON.parse(row.v); } catch (_) {} }
   return out;
 }
+async function cris(db) {
+  const out = {};
+  for (const row of await playRows(db, 'cri:')) out[row.k.slice(4)] = row.v;
+  return out;
+}
+// Ordre de révélation : clans en alternance, Alessia en dernier.
+function revealOrder(r) {
+  const by = { feu: [], foudre: [], vent: [] };
+  for (const id of shuffle(Object.keys(r))) if (r[id].clan && id !== 'alessia') by[r[id].clan].push(id);
+  const order = [];
+  const cl = shuffle(CLANS);
+  for (let i = 0; order.length < by.feu.length + by.foudre.length + by.vent.length; i++) for (const c of cl) if (by[c][i]) order.push(by[c][i]);
+  if (r.alessia && r.alessia.clan) order.push('alessia');
+  return order;
+}
 async function votes(db, g) {
   const out = {};
   for (const row of await playRows(db, 'vote:' + g.destin.c + ':')) out[row.k.split(':')[2]] = row.v;
@@ -122,6 +138,7 @@ export async function playerView(db, name, now) {
   const out = {
     on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, jutsu: g.jutsu, timer: g.timer,
   };
+  if (g.step === 0) out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '' };
   if (g.step === 1) out.seq = clan ? (await seqs(db))[clan] || [] : [];
   if (g.step === 2) { const q = g.savoir.list[g.savoir.idx]; out.savoir = { idx: g.savoir.idx, total: g.savoir.list.length, q: q ? q.q : '' }; }
   if (g.step === 3) out.ombre = { state: clan ? ombreState(g, clan, now) : 'wait', mimeur: g.ombre.cur ? g.ombre.cur.clan : null, end: g.ombre.cur ? g.ombre.cur.end : 0 };
@@ -145,6 +162,7 @@ export async function fullView(db, now) {
   const r = await roster(db, g);
   const out = { ...g, now, roster: r, members: members(r), mimes: MIMES, destinScenes: DESTIN.map((d) => ({ ...d, risk: RISK })) };
   out.seqs = await seqs(db);
+  out.cris = await cris(db);
   if (g.step === 4) out.destinVotes = await votes(db, g);
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
   const ph = await db.prepare('SELECT id FROM photos ORDER BY id').all();
@@ -173,6 +191,13 @@ export async function playerAct(db, path, b, now) {
     return { ok: true };
   }
   if (!clan) return { error: 'noclan' };
+  if (path === 'cri') {
+    if (g.step !== 0) return { error: 'closed' };
+    const txt = String(b.text || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 60);
+    if (txt) await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('cri:' + clan, txt).run();
+    else await db.prepare('DELETE FROM gplay WHERE k=?').bind('cri:' + clan).run();
+    return { ok: true };
+  }
   if (path === 'seq') {
     if (g.step !== 1) return { error: 'closed' };
     const s = (Array.isArray(b.seq) ? b.seq : []).filter((k) => MOVES.includes(k)).slice(0, 4);
@@ -221,6 +246,7 @@ export async function mjAct(db, b, now) {
       const ids = shuffle(Object.keys(g.roster));
       const start = Math.floor(Math.random() * 3);
       ids.forEach((id, i) => { g.roster[id].clan = CLANS[(start + i) % 3]; });
+      g.ouv.order = revealOrder(g.roster); g.ouv.drawAt = now; g.ouv.view = 'clans';
       break;
     }
     case 'drawRest': {
@@ -235,6 +261,8 @@ export async function mjAct(db, b, now) {
       break;
     }
 
+    case 'ouvView': if (['intro', 'clans', 'cris'].includes(b.v)) { g.ouv.view = b.v; if (b.v === 'clans' && b.replay) g.ouv.drawAt = now; } break;
+    case 'criSpot': g.ouv.spot = okClan(b.clan) ? b.clan : null; g.ouv.spotAt = now; break;
     case 'savoirSet': {
       const lines = String(b.text || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 30);
       g.savoir.list = lines.map((l) => { const i = l.indexOf('|'); return i < 0 ? { q: l, a: '' } : { q: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; });
