@@ -82,19 +82,6 @@
     '#g.dark .gbar{background:rgba(255,255,255,.14)}#g .hp>i{background:#C0506A}',
     '#g .full{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;color:#fff;transition:background .3s}',
     '#g .scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}#g .scroll::-webkit-scrollbar{display:none}',
-    /* mouvements */
-    '.fig *{transform-box:view-box}.fig .la,.fig .ra{transform-origin:20px 17px}.fig .bd{transform-origin:20px 44px}.fig .hdd{transform-origin:20px 13px}',
-    '@keyframes heartR{0%,100%{transform:rotate(0)}50%{transform:rotate(-75deg)}}@keyframes upL{0%,100%{transform:rotate(95deg)}50%{transform:rotate(120deg)}}@keyframes upR{0%,100%{transform:rotate(-95deg)}50%{transform:rotate(-120deg)}}',
-    '@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes ttL{0%,100%{transform:rotate(140deg)}50%{transform:rotate(150deg)}}@keyframes ttR{0%,100%{transform:rotate(-140deg)}50%{transform:rotate(-150deg)}}',
-    '@keyframes shim{0%,100%{transform:translateX(-1.5px)}50%{transform:translateX(1.5px)}}@keyframes wave{0%,100%{transform:skewX(-10deg)}50%{transform:skewX(10deg)}}',
-    '@keyframes ptR{0%,45%{transform:rotate(-60deg)}55%,100%{transform:rotate(0)}}@keyframes ptL{0%,45%{transform:rotate(0)}55%,100%{transform:rotate(60deg)}}',
-    '@keyframes flip{0%,60%,100%{transform:rotate(0)}75%{transform:rotate(-35deg)}}@keyframes mudL{0%,100%{transform:rotate(-50deg)}50%{transform:rotate(-30deg)}}@keyframes mudR{0%,100%{transform:rotate(50deg)}50%{transform:rotate(30deg)}}',
-    '@keyframes run{0%,100%{transform:rotate(18deg) translateY(0)}50%{transform:rotate(18deg) translateY(-3px)}}',
-    '.m-heart .ra{animation:heartR 1.2s ease-in-out infinite}.m-bigheart .la{animation:upL 1.4s ease-in-out infinite}.m-bigheart .ra{animation:upR 1.4s ease-in-out infinite}',
-    '.m-horse .bd{animation:hop .5s ease-in-out infinite}.m-horse .la{transform:rotate(-40deg)}.m-horse .ra{transform:rotate(40deg)}',
-    '.m-tt .la{animation:ttL 1s ease-in-out infinite}.m-tt .ra{animation:ttR 1s ease-in-out infinite}.m-shimmy .bd{animation:shim .25s linear infinite}.m-wave .bd{animation:wave 1.4s ease-in-out infinite}',
-    '.m-point .ra{animation:ptR 1.6s ease-in-out infinite}.m-point .la{animation:ptL 1.6s ease-in-out infinite}.m-flip .hdd{animation:flip 1.4s ease-in-out infinite}',
-    '.m-mudra .la{animation:mudL .5s ease-in-out infinite}.m-mudra .ra{animation:mudR .5s ease-in-out infinite}.m-run .bd{animation:run .4s ease-in-out infinite}.m-run .la{transform:rotate(-70deg)}.m-run .ra{transform:rotate(70deg)}',
     /* animations */
     '@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes spin{to{transform:rotate(360deg)}}',
     '@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(244,198,211,.9),0 8px 0 #4E4178}50%{box-shadow:0 0 0 22px rgba(244,198,211,0),0 8px 0 #4E4178}}',
@@ -116,7 +103,7 @@
 
   /* ---------- helpers ---------- */
   var st = null, mode = null, root = null, pollT = null, tickT = null, off = 0, busy = false, lastHtml = '';
-  var pl = { seq: null, seqAt: 0, vote: null, voteAt: 0, taps: 0, tapSent: 0, p2: null, joined: '' };
+  var pl = { rate: 0, rateAt: 0, seq: null, seqAt: 0, vote: null, voteAt: 0, taps: 0, tapSent: 0, p2: null, joined: '' };
   var mj = { sel: null, resetArm: false, upl: 0 };
   var photoUrls = {}, slideIdx = 0, slideAt = 0;
 
@@ -125,9 +112,58 @@
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   function cd(end, cls, style) { return '<span data-cd="' + end + '" class="' + (cls || '') + '" style="' + (style || '') + '">' + mmss(end - now()) + '</span>'; }
   function cdBar(end, dur, cls) { return '<div class="gbar ' + (cls || '') + '"><i data-cdbar="' + end + '" data-dur="' + dur + '" style="width:' + Math.max(0, Math.min(100, (end - now()) / dur * 100)) + '%"></i></div>'; }
-  function fig(k, size) {
+  /* ---------- pictogrammes de danse ----------
+     Bonhomme plein (style pictogramme) : tête ronde, membres épais à 2 segments.
+     Angles en degrés : 0 = vers le bas, 90 = vers la gauche de l'écran, -90 = vers la droite, 180 = vers le haut.
+     [corps y, buste, bras G haut, bras G bas, bras D haut, bras D bas, jambe G haut, jambe G bas, jambe D haut, jambe D bas] */
+  // Angles ABSOLUS à l'écran (convertis plus bas en angles relatifs pour les articulations).
+  var N = [0, 0, 20, 10, -20, -10, 14, 6, -14, -6];
+  var POSES = {
+    heart: { d: 1.1, p: [[0, 0, 40, -40, -105, -105, 14, 6, -14, -6], [-2, -3, 40, -40, -122, -140, 14, 6, -14, -6]] },
+    bigheart: { d: 1.3, p: [[0, -5, 150, 205, 210, 155, 14, 6, -14, -6], [-2, 5, 150, 205, 210, 155, 16, 4, -12, -8]] },
+    horse: { d: 0.5, p: [[0, 0, 15, -95, -15, 95, 55, -5, -8, -4], [-5, 0, 15, -95, -15, 95, 8, 4, -55, 5]] },
+    tt: { d: 0.9, p: [[0, -4, 75, 195, -75, 165, 14, 6, -14, -6], [-2, 4, 72, 190, -72, 170, 14, 6, -14, -6]] },
+    shimmy: { d: 0.28, p: [[0, -10, 75, 25, -65, -15, 16, 6, -16, -6], [-2, 10, 65, 15, -75, -25, 16, 6, -16, -6]] },
+    wave: { d: 1.2, p: [[0, -12, 125, 165, -50, -20, 10, 4, -18, -8], [-3, 12, 50, 20, -125, -165, 18, 8, -10, -4]] },
+    point: { d: 1.4, p: [[0, 4, 92, 92, -40, 40, 10, 4, -20, -8], [0, -4, 40, -40, -92, -92, 20, 8, -10, -4]] },
+    flip: { d: 1.3, p: [[0, 0, 40, -40, -160, 110, 14, 6, -14, -6], [-2, -22, 40, -40, -175, 95, 18, 8, -10, -4]] },
+    mudra: { d: 0.45, p: [[3, 0, 95, -78, -95, 78, 28, -8, -28, 8], [1, 0, 112, -60, -112, 60, 20, -4, -20, 4]] },
+    run: { d: 0.42, p: [[0, 25, 58, 58, 46, 46, -45, 15, 40, 85], [-4, 25, 54, 54, 50, 50, 40, 85, -45, 15]] },
+  };
+  // absolus -> relatifs : bras = absolu - buste, avant-bras = absolu - bras, tibia = absolu - cuisse
+  function rel(a) { return [a[0], a[1], a[2] - a[1], a[3] - a[2], a[4] - a[1], a[5] - a[4], a[6], a[7] - a[6], a[8], a[9] - a[8]]; }
+  N = rel(N);
+  Object.keys(POSES).forEach(function (k) { POSES[k].p = POSES[k].p.map(rel); });
+  var J = [['bd', 0, 0], ['to', 30, 50], ['a1', 0, -21], ['a1f', 0, 13], ['a2', 0, -21], ['a2f', 0, 13], ['l1', 30, 50], ['l1f', 0, 14], ['l2', 30, 50], ['l2f', 0, 14]];
+  function jt(i, v) { return J[i][0] === 'bd' ? 'translate(0px,' + v + 'px)' : 'translate(' + J[i][1] + 'px,' + J[i][2] + 'px) rotate(' + v + 'deg)'; }
+  (function () {
+    var s = '.fig g{transform-box:view-box;transform-origin:0 0}';
+    Object.keys(POSES).forEach(function (k) {
+      var m = POSES[k], A0 = m.p[0], B0 = m.p[1];
+      J.forEach(function (j, i) {
+        s += '@keyframes p-' + k + '-' + j[0] + '{0%,100%{transform:' + jt(i, A0[i]) + '}50%{transform:' + jt(i, B0[i]) + '}}';
+        s += '.mv-' + k + ' .j-' + j[0] + '{animation:p-' + k + '-' + j[0] + ' ' + m.d + 's ease-in-out infinite}';
+      });
+    });
+    var st2 = document.createElement('style'); st2.textContent = s; document.head.appendChild(st2);
+  })();
+  function fig(k, size, clan) {
     size = size || 40;
-    return '<svg class="fig m-' + k + '" width="' + size + '" height="' + Math.round(size * 1.2) + '" viewBox="0 0 40 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex-shrink:0"><g class="bd"><g class="hdd"><circle cx="20" cy="8" r="5"/></g><line x1="20" y1="13" x2="20" y2="30"/><line class="la" x1="20" y1="17" x2="10" y2="25"/><line class="ra" x1="20" y1="17" x2="30" y2="25"/><line x1="20" y1="30" x2="13" y2="44"/><line x1="20" y1="30" x2="27" y2="44"/></g></svg>';
+    var c = clan ? CK[clan] : null, ink = c ? c.ink : '#2B2540', band = c ? c.bg : '#F4C6D3', P = (POSES[k] || { p: [N] }).p[0];
+    var g = function (i, inner) { return '<g class="j-' + J[i][0] + '" style="transform:' + jt(i, P[i]) + '">' + inner + '</g>'; };
+    var seg = function (L) { return '<line x1="0" y1="0" x2="0" y2="' + L + '"/>'; };
+    var arm = function (a, f) { return g(a, seg(13) + g(f, seg(12))); };
+    var leg = function (a, f) { return g(a, seg(14) + g(f, seg(14))); };
+    return '<svg class="fig mv-' + k + '" width="' + size + '" height="' + Math.round(size * 4 / 3) + '" viewBox="0 0 60 80" fill="none" stroke="' + ink + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;overflow:visible">' +
+      g(0, leg(6, 7) + leg(8, 9) + g(1, '<line x1="0" y1="0" x2="0" y2="-22"/>' + arm(2, 3) + arm(4, 5) + '<circle cx="0" cy="-33" r="8" fill="' + ink + '" stroke="none"/><path d="M-8.4 -35.5 H8.4" stroke="' + band + '" stroke-width="3.2" stroke-linecap="butt"/><path d="M7.5 -35.5 l7 -3 M7.5 -35.5 l6.5 2.5" stroke="' + ink + '" stroke-width="2.2"/>')) + '</svg>';
+  }
+  function star(on, size) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="' + (on ? '#F2B53A' : 'none') + '" stroke="' + (on ? '#C98A12' : '#B7AECB') + '" stroke-width="1.6" stroke-linejoin="round"/></svg>'; }
+  function stars(avg, size) { var h = ''; for (var i = 1; i <= 5; i++) h += star(avg >= i - 0.5, size); return h; }
+  function yt(u) {
+    u = String(u || ''); var m = u.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/); if (!m) return null;
+    var tt = u.match(/[?&](?:t|start)=([0-9hms]+)/), s = 0;
+    if (tt) { var v = tt[1]; if (/^\d+$/.test(v)) s = +v; else { var hh = v.match(/(\d+)h/), mm = v.match(/(\d+)m/), ss = v.match(/(\d+)s/); s = (hh ? +hh[1] * 3600 : 0) + (mm ? +mm[1] * 60 : 0) + (ss ? +ss[1] : 0); } }
+    return { id: m[1], start: s };
   }
   function code() { return A.sess.get(A.KC) || ''; }
   function req(path, o) { o = o || {}; return A.api(path, { method: o.method, body: o.body, auth: !!o.auth }); }
@@ -158,7 +194,7 @@
     clearInterval(tickT); tickT = setInterval(tick, 250);
   }
   function hide() {
-    mode = null; clearInterval(pollT); clearInterval(tickT);
+    mode = null; clearInterval(pollT); clearInterval(tickT); musicKey = ''; var mb = document.getElementById('gmusic'); if (mb) mb.remove();
     if (root) { root.remove(); root = null; }
   }
   function poll() {
@@ -260,18 +296,33 @@
   }
   function curSeq() { return pl.seq && Date.now() - pl.seqAt < 5000 ? pl.seq : (st.seq || []); }
   function pRythme(c) {
-    var seq = curSeq(), full = seq.length >= 4;
+    var ry = st.rythme || {}, seq = curSeq(), full = seq.length >= 4, lock = ry.locked;
+    var res = ry.results || {}, h = '';
+    if (ry.cur) {
+      var dc = CK[ry.cur];
+      if (ry.cur === c.k) h += '<section class="card" style="align-items:center;text-align:center;gap:8px;background:' + c.bg + ';border:2px solid #fff;padding:24px 16px"><div style="font-family:Caveat,cursive;font-size:54px;font-weight:700;line-height:1">C’est à vous !</div><div class="ser" style="font-size:19px">' + (ry.stage === 'vote' ? 'Le public vous note…' : 'Montrez votre chorégraphie') + '</div></section>';
+      else if (ry.stage === 'vote') {
+        var mine = pl.rate && Date.now() - pl.rateAt < 4000 ? pl.rate : ry.myRate;
+        h += '<section class="card" style="align-items:center;text-align:center;gap:12px;padding:22px 14px"><div class="lab">Note la danse du clan</div><div class="ser" style="font-size:26px;color:' + dc.ink + '">' + esc(dc.n) + '</div><div class="row" style="gap:4px;justify-content:center">' +
+          [1, 2, 3, 4, 5].map(function (n) { return '<button data-g="rate" data-n="' + n + '" aria-label="' + n + ' sur 5" style="border:0;background:none;padding:2px">' + star(mine >= n, 52) + '</button>'; }).join('') + '</div><div class="muted">' + (mine ? 'Ta note : ' + mine + ' / 5 · tu peux encore changer' : 'Touche une étoile') + '</div></section>';
+      } else h += '<section class="card" style="align-items:center;text-align:center;gap:6px;padding:22px 14px"><div class="lab">En piste</div><div class="ser" style="font-size:26px;color:' + dc.ink + '">Le clan du ' + esc(dc.n) + ' danse !</div><div class="muted">Prépare-toi à le noter.</div></section>';
+    }
+    var done = CL.filter(function (k) { return res[k.k]; });
+    if (done.length) h += '<section class="card"><div class="lab">Notes du public</div>' + done.map(function (k) { var r = res[k.k]; return '<div class="row" style="justify-content:space-between"><span class="ser" style="color:' + k.ink + '">' + esc(k.n) + '</span><span class="row" style="gap:2px">' + stars(r.avg, 18) + '</span><b>' + String(r.avg).replace('.', ',') + ' · +' + r.pts + '</b></div>'; }).join('') + '</section>';
+    if (ry.cur) return h;
     var slots = [0, 1, 2, 3].map(function (i) {
       var m = MK[seq[i]];
-      return '<button data-g="unseq" data-i="' + i + '" style="height:64px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;' + (m ? 'background:#fff;border:2px solid #6B5B9A' : 'background:rgba(255,255,255,.5);border:2px dashed #D9CEF0') + '"><span style="font-size:11px;font-weight:800;color:#6A6280">' + (i + 1) + '</span><span class="ser" style="font-size:13px;line-height:1.1">' + (m ? esc(m.t) : '—') + '</span></button>';
+      return '<button data-g="unseq" data-i="' + i + '"' + (lock ? ' disabled' : '') + ' style="height:64px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;' + (m ? 'background:#fff;border:2px solid #6B5B9A' : 'background:rgba(255,255,255,.5);border:2px dashed #D9CEF0') + '"><span style="font-size:11px;font-weight:800;color:#6A6280">' + (i + 1) + '</span><span class="ser" style="font-size:13px;line-height:1.1">' + (m ? esc(m.t) : '—') + '</span></button>';
     }).join('');
     var grid = MOVES.map(function (m) {
       var used = seq.indexOf(m.k) >= 0;
-      return '<button data-g="seq" data-k="' + m.k + '" style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:70px;border-radius:14px;text-align:left;' + (used ? 'background:#E9E3F6;border:2px solid #6B5B9A' : 'background:#fff;border:1.5px solid #E2D9EE') + (full && !used ? ';opacity:.5' : '') + '">' + fig(m.k, 36) +
+      if (lock && !used) return '';
+      return '<button data-g="seq" data-k="' + m.k + '"' + (lock ? ' disabled' : '') + ' style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:76px;border-radius:14px;text-align:left;' + (used ? 'background:#E9E3F6;border:2px solid #6B5B9A' : 'background:#fff;border:1.5px solid #E2D9EE') + (full && !used ? ';opacity:.5' : '') + '">' + fig(m.k, 42, c.k) +
         '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="ser" style="font-size:15px;line-height:1.1">' + esc(m.t) + '</span><span style="font-size:11.5px;font-weight:700;color:#6A6280;line-height:1.2">' + esc(m.d) + '</span></span></button>';
     }).join('');
-    return '<div class="muted">Choisissez 4 mouvements dans l’ordre, 2 temps chacun. Le clan partage la même chorégraphie.</div><div class="grid3" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + slots + '</div><div class="grid2">' + grid + '</div>' +
-      (full ? '<div class="card" style="align-items:center;background:#E3F3EC;border-color:#BFE3D4;color:#2F6F5E;font-weight:800">Chorégraphie prête, répétez !</div>' : '');
+    return h + (lock ? '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;font-weight:800">Chorégraphie verrouillée, place au spectacle !</div>' : '<div class="muted">Choisissez 4 mouvements dans l’ordre, 2 temps chacun. Le clan partage la même chorégraphie.' + (ry.lockAt ? ' Elle se verrouille à la fin du chrono.' : '') + '</div>') +
+      '<div class="grid3" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + slots + '</div><div class="grid2">' + grid + '</div>' +
+      (full && !lock ? '<div class="card" style="align-items:center;background:#E3F3EC;border-color:#BFE3D4;color:#2F6F5E;font-weight:800">Chorégraphie prête, répétez !</div>' : '');
   }
   function pSavoir() {
     var sv = st.savoir || {};
@@ -389,10 +440,16 @@
   }
   function nextBtn() { return st.step < 6 ? '<button class="btn" data-g="step" data-i="' + (st.step + 1) + '">Épreuve suivante : ' + esc(STEPN[st.step + 1]) + '</button>' : ''; }
   function mRythme() {
-    var h = '<section class="card"><div class="lab">Chorégraphies</div>' + CL.map(function (c) {
-      var s = (st.seqs || {})[c.k] || [];
-      return '<div style="background:' + c.bg + ';border-radius:14px;padding:10px 12px"><div class="ser" style="font-size:16px;color:' + c.ink + '">' + esc(c.n) + '</div><div style="font-weight:700;font-size:14px">' + (s.length ? s.map(function (k, i) { return (i + 1) + '. ' + esc(MK[k].t); }).join(' · ') : 'Pas encore choisie') + '</div></div>';
-    }).join('') + '<div class="muted" style="font-size:12px">Lance 1:30 de répétition, puis chaque clan danse. Ajoute les notes des autres clans avec les +1.</div></section>';
+    var ry = st.rythme || {}, res = ry.results || {}, songs = ry.songs || {};
+    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chorégraphies</span>' + (st.rLocked ? '<button class="chip" data-g="runlock">Déverrouiller</button>' : '<span class="muted" style="font-size:12px">' + (ry.lockAt ? 'Verrouillage à la fin du chrono' : 'Lance 1:30 : verrouillage à la fin') + '</span>') + '</div>';
+    h += CL.map(function (c) {
+      var s = (st.seqs || {})[c.k] || [], r = res[c.k], cur = ry.cur === c.k, other = ry.cur && !cur;
+      var btn = cur ? (ry.stage === 'dance' ? '<button class="chip on" data-g="rvote">Ouvrir le vote</button>' : '<button class="chip on" data-g="rreveal">Révéler · ' + (st.rateCount || 0) + ' vote' + ((st.rateCount || 0) > 1 ? 's' : '') + '</button>') : '<button class="chip" data-g="rstage" data-c="' + c.k + '"' + (other ? ' disabled style="opacity:.45"' : '') + '>' + (r ? 'Redanser' : 'En piste') + '</button>';
+      return '<div style="background:' + c.bg + ';border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;' + (cur ? 'box-shadow:0 0 0 3px #3A3350' : '') + '"><div class="row" style="justify-content:space-between"><span class="ser" style="font-size:16px;color:' + c.ink + '">' + esc(c.n) + (r ? ' · ' + String(r.avg).replace('.', ',') + '/5 · +' + r.pts : '') + '</span>' + btn + '</div>' +
+        '<div style="font-weight:700;font-size:14px">' + (s.length ? s.map(function (k, i) { return (i + 1) + '. ' + esc(MK[k].t); }).join(' · ') : 'Pas encore choisie') + '</div>' +
+        (songs[c.k] ? '<div class="row" style="gap:6px">' + (ry.music && ry.music.clan === c.k ? '<button class="chip" data-g="music" data-c="' + c.k + '" data-on="0">Couper la musique</button>' : '<button class="chip" data-g="music" data-c="' + c.k + '" data-on="1">Musique</button>') + '</div>' : '') + '</div>';
+    }).join('') + '<div class="muted" style="font-size:12px">En piste : la musique du clan démarre sur l’écran. Après la danse, ouvre le vote : les 2 autres clans notent sur 5 depuis leurs téléphones, la moyenne arrondie devient leurs points.</div></section>';
+    h += '<section class="card"><div class="lab">Musiques · lien YouTube avec le minutage (?t=)</div>' + CL.map(function (c) { return '<label class="muted" for="g-song-' + c.k + '" style="font-size:13px;color:' + c.ink + '">' + esc(c.n) + '</label><input id="g-song-' + c.k + '" inputmode="url" placeholder="https://youtu.be/…?t=60" value="' + esc(songs[c.k] || '') + '">'; }).join('') + '<button class="btn2" data-g="songs">Enregistrer les musiques</button></section>';
     return h + nextBtn();
   }
   function mSavoir() {
@@ -513,8 +570,31 @@
       }
     });
   }
+  var firedR = {}, musicKey = '';
+  function fxRythme() {
+    var ry = st && st.rythme; if (!ry) return;
+    CL.forEach(function (c) {
+      var r = ry.results && ry.results[c.k];
+      if (r && r.at && firedR[c.k] !== r.at && now() - r.at < 4000) {
+        firedR[c.k] = r.at;
+        setTimeout(function () { var el = root && root.querySelector('[data-rr="' + c.k + '"]'); fx(el, 'burst', { r: 120 }); fx(el, 'don', { size: 170, dy: 90 }); }, 250);
+      }
+    });
+  }
+  function musicSync() {
+    var ry = st && st.rythme, m = st && st.step === 1 && ry && ry.music, v = m ? yt(ry.songs[m.clan]) : null;
+    var key = v ? m.clan + m.at : '', box = document.getElementById('gmusic');
+    if (key === musicKey) return;
+    musicKey = key;
+    if (box) box.remove();
+    if (!v || mode !== 'ecran') return;
+    box = document.createElement('div'); box.id = 'gmusic';
+    box.style.cssText = 'position:fixed;right:1.4vw;bottom:1.4vw;width:20vw;aspect-ratio:16/9;z-index:40;border-radius:1vw;overflow:hidden;box-shadow:0 1vw 2vw rgba(0,0,0,.25);background:#000';
+    box.innerHTML = '<iframe src="https://www.youtube.com/embed/' + v.id + '?autoplay=1&start=' + v.start + '&rel=0&playsinline=1" title="Musique" allow="autoplay; encrypted-media" style="width:100%;height:100%;border:0"></iframe>';
+    document.body.appendChild(box);
+  }
   function fxHook() {
-    fxJoker();
+    fxJoker(); fxRythme(); musicSync();
     if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
     var o = st.ouv;
     if (o.view === 'clans' && revealing()) {
@@ -585,10 +665,13 @@
     if (s === 5) return projBoss();
     if (s === 0) return { html: projOuverture(), cls: cls };
     if (s === 1) {
+      var ry = st.rythme || {}, res = ry.results || {};
       h = pHeader('Rythme', 'Épreuve 1 / 5', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
-        var q = (st.seqs || {})[c.k] || [];
-        return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
-          (q.length ? q.map(function (k, i) { return '<div class="row" style="gap:1vw;background:#fff;border-radius:1.2vw;padding:.6vw 1vw;color:#3A3350">' + fig(k, 44) + '<span class="ser" style="font-size:1.7vw">' + (i + 1) + '. ' + esc(MK[k].t) + '</span></div>'; }).join('') : '<div style="font-weight:800;font-size:1.6vw;color:#6A6280">Chorégraphie en préparation…</div>') + '</div>';
+        var q = (st.seqs || {})[c.k] || [], cur = ry.cur === c.k, r = res[c.k], dim = ry.cur && !cur;
+        return '<div data-rr="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw;transition:transform .4s,opacity .4s;' + (cur ? 'transform:scale(1.04);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.45' : '') + '"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
+          (cur ? '<div class="ser" style="text-align:center;background:#3A3350;color:#fff;border-radius:1vw;padding:.5vw;font-size:1.7vw">' + (ry.stage === 'vote' ? 'Vote du public · ' + (st.rateCount || 0) : 'En piste !') + '</div>' : '') +
+          (r ? '<div style="display:flex;flex-direction:column;align-items:center;gap:.3vw;background:#fff;border-radius:1.2vw;padding:.8vw"><span class="row" style="gap:.2vw">' + stars(r.avg, 34) + '</span><span class="ser" style="font-size:2vw">' + String(r.avg).replace('.', ',') + ' / 5 · +' + r.pts + (r.joker ? ' (x2)' : '') + '</span></div>' : '') +
+          (q.length ? q.map(function (k, i) { return '<div class="row" style="gap:1vw;background:#fff;border-radius:1.2vw;padding:.4vw 1vw;color:#3A3350">' + fig(k, 44, c.k) + '<span class="ser" style="font-size:1.7vw">' + (i + 1) + '. ' + esc(MK[k].t) + '</span></div>'; }).join('') : '<div style="font-weight:800;font-size:1.6vw;color:#6A6280">Chorégraphie en préparation…</div>') + '</div>';
       }).join('') + '</div>';
     } else if (s === 2) {
       var sv = st.savoir, q = sv.list[sv.idx];
@@ -689,6 +772,23 @@
       req('/api/game/seq', { method: 'POST', body: { name: A.me(), seq: s2 } }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
+    if (g === 'rate') {
+      pl.rate = +d('n'); pl.rateAt = Date.now(); lastHtml = ''; draw();
+      req('/api/game/rate', { method: 'POST', body: { name: A.me(), n: +d('n') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });
+      return;
+    }
+    if (g === 'runlock') { act('rUnlock'); return; }
+    if (g === 'rstage') { act('rStage', { clan: d('c') }); return; }
+    if (g === 'rvote') { act('rVote'); return; }
+    if (g === 'rreveal') { act('rReveal'); return; }
+    if (g === 'music') { act('music', { clan: d('c'), on: d('on') === '1' }); return; }
+    if (g === 'songs') {
+      var so = {}; CL.forEach(function (c) { var e = document.getElementById('g-song-' + c.k); so[c.k] = e ? e.value.trim() : ''; });
+      var bad = CL.filter(function (c) { return so[c.k] && !yt(so[c.k]); });
+      if (bad.length) { A.toast('Lien YouTube invalide : ' + bad.map(function (c) { return c.n; }).join(', ')); return; }
+      act('rSongs', { songs: so }).then(function () { A.toast('Musiques enregistrées'); });
+      return;
+    }
     if (g === 'cri') {
       var ci = document.getElementById('g-cri'), tx = ci ? ci.value.trim() : '';
       if (!tx) { A.toast('Cri vide'); return; }
@@ -734,5 +834,5 @@
     if (g === 'pdel') { fetch('/api/game/photo?id=' + d('id'), { method: 'DELETE', headers: { 'x-code': code() } }).then(poll); return; }
   }
 
-  window.A30G = { routes: { jeu: 1, mj: 1, ecran: 1 }, show: show, hide: hide };
+  window.A30G = { routes: { jeu: 1, mj: 1, ecran: 1 }, show: show, hide: hide, fig: fig, moves: MOVES };
 })();

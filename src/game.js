@@ -63,6 +63,7 @@ function fresh() {
     savoir: { list: [], idx: 0 },
     ombre: { used: [], turn: 0, cur: null },
     destin: { c: 0, stage: 'vote', mjVotes: {}, results: null, at: 0 },
+    rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: '', foudre: '', vent: '' }, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
     hokage: { slide: false, at: 0 },
   };
@@ -72,7 +73,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -103,6 +104,11 @@ async function seqs(db) {
   for (const row of await playRows(db, 'seq:')) { try { out[row.k.slice(4)] = JSON.parse(row.v); } catch (_) {} }
   return out;
 }
+async function rateVotes(db, clan) {
+  const { results } = await db.prepare('SELECT v FROM gplay WHERE k LIKE ?').bind('rv:' + clan + ':%').all();
+  return results.map((r) => +r.v).filter((n) => n >= 1 && n <= 5);
+}
+function rLocked(g, now) { return !!(g.rythme.cur || (g.rythme.lockAt && now > g.rythme.lockAt)); }
 async function cris(db) {
   const out = {};
   for (const row of await playRows(db, 'cri:')) out[row.k.slice(4)] = row.v;
@@ -144,7 +150,13 @@ export async function playerView(db, name, now) {
     on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, joker: g.joker, timer: g.timer,
   };
   if (g.step === 0) out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '' };
-  if (g.step === 1) out.seq = clan ? (await seqs(db))[clan] || [] : [];
+  if (g.step === 1) {
+    out.seq = clan ? (await seqs(db))[clan] || [] : [];
+    const ry = g.rythme;
+    let myRate = 0;
+    if (ry.cur && id) { const v = await db.prepare('SELECT v FROM gplay WHERE k=?').bind('rv:' + ry.cur + ':' + id).first(); myRate = v ? +v.v : 0; }
+    out.rythme = { locked: rLocked(g, now), lockAt: ry.lockAt, cur: ry.cur, stage: ry.stage, results: ry.results, myRate };
+  }
   if (g.step === 2) { const q = g.savoir.list[g.savoir.idx]; out.savoir = { idx: g.savoir.idx, total: g.savoir.list.length, q: q ? q.q : '' }; }
   if (g.step === 3) out.ombre = { state: clan ? ombreState(g, clan, now) : 'wait', mimeur: g.ombre.cur ? g.ombre.cur.clan : null, end: g.ombre.cur ? g.ombre.cur.end : 0 };
   if (g.step === 4) {
@@ -167,6 +179,8 @@ export async function fullView(db, now) {
   const r = await roster(db, g);
   const out = { ...g, now, roster: r, members: members(r), mimes: MIMES, destinScenes: DESTIN.map((d) => ({ ...d, risk: RISK })) };
   out.seqs = await seqs(db);
+  if (g.step === 1 && g.rythme.cur) { const v = await rateVotes(db, g.rythme.cur); out.rateCount = v.length; }
+  out.rLocked = rLocked(g, now);
   out.cris = await cris(db);
   if (g.step === 4) out.destinVotes = await votes(db, g);
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
@@ -203,8 +217,16 @@ export async function playerAct(db, path, b, now) {
     else await db.prepare('DELETE FROM gplay WHERE k=?').bind('cri:' + clan).run();
     return { ok: true };
   }
+  if (path === 'rate') {
+    const ry = g.rythme;
+    if (g.step !== 1 || !ry.cur || ry.stage !== 'vote' || clan === ry.cur) return { error: 'closed' };
+    const n = parseInt(b.n, 10);
+    if (!(n >= 1 && n <= 5)) return { error: 'n' };
+    await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('rv:' + ry.cur + ':' + id, String(n)).run();
+    return { ok: true };
+  }
   if (path === 'seq') {
-    if (g.step !== 1) return { error: 'closed' };
+    if (g.step !== 1 || rLocked(g, now)) return { error: 'closed' };
     const s = (Array.isArray(b.seq) ? b.seq : []).filter((k) => MOVES.includes(k)).slice(0, 4);
     await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('seq:' + clan, JSON.stringify(s)).run();
     return { ok: true };
@@ -241,7 +263,37 @@ export async function mjAct(db, b, now) {
       else if (j.step === g.step) { j.step = null; j.at = 0; }
       break;
     }
-    case 'timer': { const s = Math.max(5, Math.min(900, b.sec | 0)); g.timer = { end: now + s * 1000, dur: s }; break; }
+    case 'timer': {
+      const s = Math.max(5, Math.min(900, b.sec | 0));
+      g.timer = { end: now + s * 1000, dur: s };
+      if (g.step === 1 && !g.rythme.cur && !Object.keys(g.rythme.results).length) g.rythme.lockAt = g.timer.end; // fin de répétition = verrouillage
+      break;
+    }
+    case 'rUnlock': g.rythme.lockAt = 0; break;
+    case 'rSongs': for (const c of CLANS) g.rythme.songs[c] = String((b.songs || {})[c] || '').trim().slice(0, 200); break;
+    case 'rStage': { // un clan entre en piste
+      if (!okClan(b.clan)) break;
+      g.rythme.cur = b.clan; g.rythme.stage = 'dance';
+      await db.prepare('DELETE FROM gplay WHERE k LIKE ?').bind('rv:' + b.clan + ':%').run();
+      if (g.rythme.songs[b.clan]) g.rythme.music = { clan: b.clan, at: now };
+      break;
+    }
+    case 'music': g.rythme.music = b.on && okClan(b.clan) && g.rythme.songs[b.clan] ? { clan: b.clan, at: now } : null; break;
+    case 'rVote': if (g.rythme.cur) { g.rythme.stage = 'vote'; g.rythme.music = null; } break;
+    case 'rReveal': {
+      const c = g.rythme.cur;
+      if (!c || g.rythme.stage !== 'vote') break;
+      const v = await rateVotes(db, c);
+      const avg = v.length ? v.reduce((a, x) => a + x, 0) / v.length : 0;
+      const base = Math.round(avg);
+      const prev = g.rythme.results[c];
+      if (prev) g.scores[c] -= prev.pts; // nouveau passage : on remplace l'ancienne note
+      const jk = g.joker[c].step === g.step && base > 0;
+      addPts(g, c, base);
+      g.rythme.results[c] = { avg: Math.round(avg * 10) / 10, n: v.length, pts: jk ? base * 2 : base, joker: jk, at: now };
+      g.rythme.cur = null; g.rythme.stage = null; g.rythme.music = null;
+      break;
+    }
     case 'timerStop': g.timer = null; break;
 
     case 'addp': {
