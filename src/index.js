@@ -211,7 +211,7 @@ async function handle(request, env) {
   if (path === '/api/game' && method === 'GET') {
     return json(await playerView(gdb, url.searchParams.get('me') || '', Date.now()));
   }
-  const pm = path.match(/^\/api\/game\/(join|seq|vote|tap|cri|rate)$/);
+  const pm = path.match(/^\/api\/game\/(join|seq|vote|tap|cri|rate|opick)$/);
   if (pm && method === 'POST') {
     let b;
     try { b = await request.json(); } catch (_) { return fail('json'); }

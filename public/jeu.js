@@ -49,6 +49,7 @@
       if (kind === 'pop') { F.puff(c.x, c.y, { n: 5, size: 11 * big, vy: -16, life: 0.8 }); F.puff(c.x - c.w / 2, c.y, { n: 3, size: 8 * big, vx: -24, vy: -8, life: 0.6 }); F.puff(c.x + c.w / 2, c.y, { n: 3, size: 8 * big, vx: 24, vy: -8, life: 0.6 }); }
       if (kind === 'pon') F.sfx('pon', c.x + c.w / 2 + 20, c.y - 30 * big, { size: 70 * big, rot: 0.06, life: 0.8, col: '#ffffff', edge: '#1d1a4a' });
       if (kind === 'burst') F.burst(c.x, c.y, { r: (o.r || 90) * big, spikes: 17, life: 0.5 });
+      if (kind === 'zuza' || kind === 'kachi') F.sfx(kind, c.x + c.w / 3, c.y - 40 * big, { size: 130 * big, rot: -0.1, life: 1 });
       if (kind === 'don') F.sfx('don', c.x + (o.dx || 0), c.y - (o.dy || 80) * big, { size: (o.size || 170) * big, rot: -0.12, life: 1.05 });
     } catch (_) {}
   }
@@ -91,6 +92,7 @@
     '@keyframes flash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}@keyframes pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}',
     '@keyframes drop{0%{transform:translateY(-40vh) rotate(-12deg);opacity:0}70%{transform:translateY(8px) rotate(3deg);opacity:1}100%{transform:translateY(0) rotate(-4deg)}}',
     '@keyframes rise{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}@keyframes fadein{from{opacity:0}to{opacity:1}}',
+    '@keyframes upulse{from{transform:scale(1)}to{transform:scale(1.12)}}.urg{animation:upulse .5s ease-in-out infinite alternate;display:inline-block}#g.proj .urg{color:#fff;background:#C0506A!important}',
     '.rolling{animation:roll .45s linear infinite}.boss{animation:sway 3s ease-in-out infinite;transform-origin:50% 80%}.boss.hit{animation:hit .5s ease-in-out}.boss.boom{animation:boom 1.6s ease-in forwards}',
     '@media (prefers-reduced-motion:reduce){#g *,.fig *{animation:none!important}}',
     /* projection */
@@ -112,6 +114,7 @@
   function myName() { return A.me() || (demo() ? 'Théo' : ''); }
   function ico(c, size, stroke) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + (stroke || c.ink) + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + c.p + '"/></svg>'; }
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  function cdu(end, cls, style) { return '<span data-cd="' + end + '" data-urg="1" class="' + (cls || '') + (end - now() <= 10000 && end > now() ? ' urg' : '') + '" style="' + (style || '') + '">' + mmss(end - now()) + '</span>'; }
   function cd(end, cls, style) { return '<span data-cd="' + end + '" class="' + (cls || '') + '" style="' + (style || '') + '">' + mmss(end - now()) + '</span>'; }
   function cdBar(end, dur, cls) { return '<div class="gbar ' + (cls || '') + '"><i data-cdbar="' + end + '" data-dur="' + dur + '" style="width:' + Math.max(0, Math.min(100, (end - now()) / dur * 100)) + '%"></i></div>'; }
   /* ---------- pictogrammes de danse ----------
@@ -244,7 +247,7 @@
   function tick() {
     if (!root) return;
     var t = now();
-    root.querySelectorAll('[data-cd]').forEach(function (e) { e.textContent = mmss(+e.getAttribute('data-cd') - t); });
+    root.querySelectorAll('[data-cd]').forEach(function (e) { var rem = +e.getAttribute('data-cd') - t; e.textContent = mmss(rem); if (e.hasAttribute('data-urg')) e.classList.toggle('urg', rem <= 10000 && rem > 0); });
     root.querySelectorAll('[data-cdbar]').forEach(function (e) { e.style.width = Math.max(0, Math.min(100, (+e.getAttribute('data-cdbar') - t) / +e.getAttribute('data-dur') * 100)) + '%'; });
     // ré-affichages liés au temps (dés, fin de chrono, rasengan, diaporama)
     if (st && (needsTimeRedraw(t))) { lastHtml = ''; draw(); }
@@ -253,7 +256,7 @@
   var lastPhase = '';
   function needsTimeRedraw(t) {
     var ph = '';
-    if (st.step === 3 && st.ombre) { var end = st.ombre.cur ? st.ombre.cur.end : st.ombre.end; ph += 'o' + (end && t > end ? 1 : 0); }
+    if (st.step === 3 && st.ombre) { var end = st.ombre.cur ? st.ombre.cur.end : st.ombre.end; ph += 'o' + (end && t > end ? 1 : 0) + (st.ombre.startAt && t > st.ombre.startAt + 600000 ? 'f' : ''); }
     if (st.step === 4 && st.destin) ph += 'd' + (st.destin.at && t - st.destin.at < 1600 ? 1 : 0);
     if (st.step === 5 && st.boss) {
       var b = st.boss, p2 = b.p2;
@@ -341,14 +344,19 @@
     return '<section class="card" style="gap:14px;padding:20px 18px"><div class="lab">Question ' + (sv.idx + 1) + ' / ' + sv.total + '</div><div class="ser" style="font-size:24px;line-height:1.25">' + esc(sv.q) + '</div></section><div class="muted">Mettez-vous d’accord et répondez au Sensei.</div>';
   }
   function pOmbre(c) {
-    var o = st.ombre || {}, stt = o.state;
-    var bg = stt === 'green' ? '#2F7D64' : stt === 'red' ? '#B8445F' : '#6B5B9A';
-    var big = stt === 'green' ? 'À vous !' : stt === 'red' ? 'Attends' : 'Prochain mime…';
-    var line = stt === 'green' ? 'Votre négociateur peut lever la main' : stt === 'red' ? 'Mauvaise réponse : attends que les autres clans tentent leur chance' : (o.mimeur ? 'Mimeur : clan du ' + esc(CK[o.mimeur].n) : 'Le maître du jeu prépare le mime');
-    return { cls: 'dark', html: '<div class="full" style="background:' + bg + '"><div class="lab" style="color:rgba(255,255,255,.85)">Clan du ' + esc(c.n) + ' · ' + st.scores[c.k] + ' pts' + (jk(c.k) === 'on' ? ' · Joker x2' : '') + '</div>' +
-      '<div style="font-family:Caveat,cursive;font-weight:700;font-size:84px;line-height:1;animation:breathe 1.6s ease-in-out infinite">' + big + '</div><div class="ser" style="font-size:22px;max-width:300px;line-height:1.25">' + line + '</div>' +
-      (stt !== 'wait' && o.end ? '<div class="ser" style="font-size:30px">' + cd(o.end) + '</div>' : '') +
-      '<div style="margin-top:30px;font-size:14px;font-weight:800;opacity:.85;max-width:280px">Les mimes sont des actions mais aussi des personnages</div></div>' };
+    var o = st.ombre || {}, ch = o.choose;
+    if (ch && ch.options.length) {
+      var show = ch.me || pl.reveal === o.end + ':' + ch.mname;
+      var h2 = '<div class="full" style="background:#6B5B9A;gap:18px">';
+      if (!show) h2 += '<div class="ser" style="font-size:24px;max-width:300px">C’est ' + esc(ch.mname) + ' qui mime</div><div style="font-weight:800;opacity:.85">Passe ton téléphone à ' + esc(ch.mname) + '</div><button data-g="oreveal" data-k="' + esc(o.end + ':' + ch.mname) + '" style="margin-top:10px;height:56px;padding:0 22px;border-radius:16px;border:0;background:#fff;color:#3A3350;font-family:Fraunces,serif;font-weight:700;font-size:18px">Je suis ' + esc(ch.mname) + ' : voir les mimes</button>';
+      else h2 += '<div class="ser" style="font-size:24px">Choisis ton mime</div>' + ch.options.map(function (x) { return '<button data-g="opickp" data-i="' + x.i + '" style="width:min(320px,86vw);min-height:58px;border-radius:16px;border:0;background:#fff;color:#3A3350;font-family:Fraunces,serif;font-weight:700;font-size:20px;padding:8px 14px">' + esc(x.t) + '</button>'; }).join('') + '<div style="font-weight:700;opacity:.8">45 secondes dès que tu choisis</div>';
+      return { cls: 'dark', html: h2 + '</div>' };
+    }
+    var open = o.state === 'green', run = o.state !== 'wait' && o.end;
+    return { cls: 'dark', html: '<div class="full" style="background:' + (open ? '#2F7D64' : '#B8445F') + ';gap:22px">' +
+      (run ? '<div class="ser" style="font-size:64px;line-height:1">' + cdu(o.end, '', 'padding:4px 14px;border-radius:16px') + '</div>' : '') +
+      '<div style="font-family:Fraunces,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div>' +
+      (o.mine ? '<button data-g="ohold" style="position:absolute;bottom:calc(26px + env(safe-area-inset-bottom));height:44px;padding:0 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:800;font-size:14px;user-select:none;-webkit-user-select:none">Maintenir pour revoir le mime</button><div id="g-hold" style="display:none;position:absolute;inset:0;background:#3A3350;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:34px;padding:24px;text-align:center">' + esc(o.mine) + '</div>' : '') + '</div>' };
   }
   function pDestin(c) {
     var d = st.destin;
@@ -471,17 +479,22 @@
     return h + nextBtn();
   }
   function mOmbre() {
-    var o = st.ombre || {}, c = o.cur, nextClan = CK[['feu', 'foudre', 'vent'][(o.turn || 0) % 3]];
-    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Mimes joués</span><span class="muted">' + (o.used || []).length + ' / 30</span></div>';
+    var o = st.ombre || {}, c = o.cur, nextClan = CK[['feu', 'foudre', 'vent'][(o.turn || 0) % 3]], cnt = o.count || {};
+    var endAll = o.startAt ? o.startAt + 600000 : 0;
+    var finished = endAll && now() > endAll && cnt.feu === cnt.foudre && cnt.foudre === cnt.vent && (!c || c.done);
+    var h = '<section class="card"><div style="background:#FFF6D9;border-radius:12px;padding:10px 12px;font-weight:800;font-size:14px">À dire aux joueurs : les mimes sont des actions mais aussi des personnages.</div>' +
+      '<div class="row" style="justify-content:space-between"><span class="lab">Passages</span><span style="font-weight:800;font-size:14px">' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · ') + '</span></div>' +
+      '<div class="row" style="justify-content:space-between"><span class="lab">Temps de l’épreuve</span>' + (endAll ? cd(endAll, 'ser', 'font-size:18px') : '<span class="muted">démarre au 1er mime</span>') + '</div>' +
+      (finished ? '<div style="background:#E3F3EC;color:#2F6F5E;border-radius:12px;padding:10px 12px;font-weight:800">Fin de l’épreuve : 10 minutes passées et tous les clans sont passés autant de fois.</div>' : '');
     if (!c || c.done) {
       if (c && c.done) h += '<div style="font-weight:800;color:#2F6F5E">' + (c.winner ? 'Trouvé par ' + esc(CK[c.winner].n) + (c.winner === c.clan ? ' : +2' : ' : +1 et ' + esc(CK[c.clan].n) + ' +1') : 'Pas trouvé, pas de point') + ' · « ' + esc(st.mimes[c.mime]) + ' »</div>';
       h += '<button class="btn" data-g="onext">Mime suivant : clan du ' + esc(nextClan.n) + '</button></section>';
     } else if (c.mime === null) {
-      h += '<div class="ser" style="font-size:18px">Montre ces 3 mimes au mimeur du clan du ' + esc(CK[c.clan].n) + ' : il en choisit un</div>' +
-        c.options.map(function (i) { return '<button class="btn2" style="height:56px;font-family:Fraunces,serif;font-size:18px" data-g="opick" data-i="' + i + '">' + esc(st.mimes[i]) + '</button>'; }).join('') + '</section>';
+      h += '<div class="ser" style="font-size:18px">' + esc(c.mname || 'Le mimeur') + ' (' + esc(CK[c.clan].n) + ') choisit son mime sur un téléphone de son clan…</div>' +
+        (mj.showOpts ? c.options.map(function (i) { return '<button class="btn2" style="height:56px;font-family:Fraunces,serif;font-size:18px" data-g="opick" data-i="' + i + '">' + esc(st.mimes[i]) + '</button>'; }).join('') : '<button class="btn2" data-g="oshow">Pas de téléphone ? Choisir sur ma console</button>') + '</section>';
     } else {
       var over = now() > c.end;
-      h += '<div class="lab">Mimeur · clan du ' + esc(CK[c.clan].n) + '</div><div class="ser" style="font-size:28px;text-align:center">' + esc(st.mimes[c.mime]) + '</div><div class="row" style="gap:10px">' + cdBar(c.end, 45000) + cd(c.end, 'ser', 'font-size:22px;min-width:50px;text-align:right') + '</div></section>';
+      h += '<div class="lab">Mimeur · ' + esc(c.mname || '') + ' · clan du ' + esc(CK[c.clan].n) + '</div><div class="ser" style="font-size:28px;text-align:center">' + esc(st.mimes[c.mime]) + '</div><div class="row" style="gap:10px">' + cdBar(c.end, 45000) + cdu(c.end, 'ser', 'font-size:22px;min-width:50px;text-align:right;border-radius:8px;padding:0 4px') + '</div></section>';
       h += '<div class="lab">Qui a levé la main ?</div>' + CL.map(function (k) {
         var red = c.red[k.k], sel = mj.sel === k.k;
         return '<button data-g="osel" data-c="' + k.k + '" ' + (red ? 'disabled' : '') + ' style="height:56px;display:flex;align-items:center;gap:10px;padding:0 18px;border-radius:16px;font-family:Fraunces,serif;font-weight:700;font-size:19px;' + (red ? 'background:#F3D5DC;color:#A63A55;border:2px solid #E7B3C0' : 'background:' + k.bg + ';color:' + k.ink + ';border:' + (sel ? '3px solid #3A3350' : '2px solid transparent')) + '"><span style="flex:1;text-align:left">' + esc(k.n) + '</span><span style="font-family:Nunito,sans-serif;font-size:13px;font-weight:800">' + (red ? 'Bloqué' : sel ? 'Interrogé' : 'Peut répondre') + '</span></button>';
@@ -604,8 +617,25 @@
     box.innerHTML = '<iframe src="https://www.youtube.com/embed/' + v.id + '?autoplay=1&start=' + v.start + '&rel=0&playsinline=1" title="Musique" allow="autoplay; encrypted-media" style="width:100%;height:100%;border:0"></iframe>';
     document.body.appendChild(box);
   }
+  var firedO = {};
+  function fxOmbre() {
+    var o = st && st.step === 3 && st.ombre, c = o && o.cur; if (!c) return;
+    var t0 = now();
+    if (c.done && c.doneAt && firedO.done !== c.doneAt && t0 - c.doneAt < 4000) {
+      firedO.done = c.doneAt;
+      setTimeout(function () { var el = root && root.querySelector('[data-oban]'); if (c.winner) { fx(el, 'burst', { r: 150 }); fx(el, 'don', { size: 200, dy: 110 }); } else fx(el, 'zuza'); }, 250);
+    }
+    if (c.wrongAt && firedO.wrong !== c.wrongAt && t0 - c.wrongAt < 3000) {
+      firedO.wrong = c.wrongAt;
+      setTimeout(function () { var el = root && root.querySelector('[data-ot="' + c.wrongClan + '"]'); fx(el, 'burst', { r: 60 }); fx(el, 'kachi'); }, 150);
+    }
+    if (!c.done && c.mime !== null && t0 > c.end && firedO.tout !== c.end && t0 - c.end < 4000) {
+      firedO.tout = c.end;
+      setTimeout(function () { fx(root && root.querySelector('[data-oban]'), 'zuza'); }, 300);
+    }
+  }
   function fxHook() {
-    fxJoker(); fxRythme(); musicSync();
+    fxJoker(); fxRythme(); fxOmbre(); musicSync();
     if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
     var o = st.ouv;
     if (o.view === 'clans' && revealing()) {
@@ -689,13 +719,20 @@
       h = pHeader('Savoir', 'Épreuve 2 / 5 · Sensei Alessia', timerRight()) +
         '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.4vw"><div class="pk">' + (q ? 'Question ' + (sv.idx + 1) + ' / ' + sv.list.length : '') + '</div><div class="ser" style="font-size:4.2vw;line-height:1.2">' + (q ? esc(q.q) : 'Les questions arrivent…') + '</div></div>' + pScores(false);
     } else if (s === 3) {
-      var o = st.ombre, c = o.cur, run = c && !c.done && c.mime !== null && now() <= c.end;
-      h = pHeader('L’Ombre', 'Épreuve 3 / 5 · ' + (o.used || []).length + ' mimes joués', run ? cd(c.end, 'pclock') : timerRight()) +
-        '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center">' +
-        (run ? '<div class="pk">Mimeur · clan du ' + esc(CK[c.clan].n) + '</div><div class="row" style="gap:2vw">' + CL.map(function (k) { var red = c.red[k.k]; return '<div style="width:18vw;height:9vw;border-radius:2vw;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:2.6vw;color:#fff;background:' + (red ? '#B8445F' : '#2F7D64') + '">' + esc(k.n) + '</div>'; }).join('') + '</div>' :
-          c && c.done ? '<div class="ser" style="font-size:3.4vw">' + (c.winner ? 'Trouvé par le clan du ' + esc(CK[c.winner].n) + ' !' : 'Personne n’a trouvé') + '</div><div class="pk" style="font-size:1.8vw">C’était : ' + esc(st.mimes[c.mime]) + '</div>' :
-            '<div class="ser" style="font-size:3.4vw">' + (c ? 'Le mimeur choisit son mime…' : 'Prochain mime…') + '</div>') +
-        '<div style="font-weight:800;font-size:1.5vw;color:#6A6280">Les mimes sont des actions mais aussi des personnages</div></div>' + pScores(false);
+      var o = st.ombre, c = o.cur, cnt = o.count || {}, tnow = now();
+      var endAll = o.startAt ? o.startAt + 600000 : 0;
+      var running = c && !c.done && c.mime !== null && tnow <= c.end, timeout = c && !c.done && c.mime !== null && tnow > c.end;
+      var finished = endAll && tnow > endAll && cnt.feu === cnt.foudre && cnt.foudre === cnt.vent && (!c || c.done);
+      var right = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (running ? cdu(c.end, 'pclock') : '') + (endAll && !finished ? '<span class="pk">Épreuve ' + cd(endAll) + '</span>' : '') + '</div>';
+      var mid;
+      if (finished) mid = '<div style="font-family:Caveat,cursive;font-weight:700;font-size:7vw">Fin de l’épreuve !</div>';
+      else if (running) mid = '<div class="pk">Mimeur · ' + esc(c.mname || '') + ' · clan du ' + esc(CK[c.clan].n) + '</div><div class="row" style="gap:2vw">' + CL.map(function (k) { var red = c.red[k.k]; return '<div data-ot="' + k.k + '" style="width:18vw;height:9vw;border-radius:2vw;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:2.6vw;color:#fff;transition:background .3s;background:' + (red ? '#B8445F' : '#2F7D64') + '">' + esc(k.n) + '</div>'; }).join('') + '</div>';
+      else if (c && (c.done || timeout)) mid = '<div data-oban="1" style="display:flex;flex-direction:column;align-items:center;gap:1vw;animation:pop .6s ease-out both"><div class="pk" style="font-size:1.8vw">' + (c.winner ? 'Trouvé par le clan du ' + esc(CK[c.winner].n) + ' !' : timeout ? 'Temps écoulé !' : 'Personne n’a trouvé') + '</div>' +
+          '<div class="ser" style="font-size:6vw;line-height:1.1">' + esc(st.mimes[c.mime]) + '</div>' + (c.winner ? '<div class="ser" style="font-size:2.2vw;color:#2F6F5E">' + (c.winner === c.clan ? esc(CK[c.clan].n) + ' +2' : esc(CK[c.clan].n) + ' +1 · ' + esc(CK[c.winner].n) + ' +1') + '</div>' : '') + '</div>';
+      else if (c) mid = '<div class="ser" style="font-size:3.4vw">' + esc(c.mname || 'Le mimeur') + ' choisit son mime…</div>';
+      else mid = '<div class="ser" style="font-size:3.4vw">Prochain mime…</div>';
+      h = pHeader('L’Ombre', 'Épreuve 3 / 5 · Passages : ' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · '), right) +
+        '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center">' + mid + '</div>' + pScores(false);
     } else if (s === 4) {
       var d = st.destin, sc = st.destinScenes[d.c], rolling = d.at && now() - d.at < 1600;
       h = pHeader(esc(sc.title), 'Épreuve 4 / 5 · Destin · Carrefour ' + (d.c + 1) + ' / 3', timerRight());
@@ -756,6 +793,8 @@
 
   /* ---------- interactions ---------- */
   function onDown(e) {
+    var hb = e.target.closest('[data-g="ohold"]');
+    if (hb) { e.preventDefault(); var hv = document.getElementById('g-hold'); if (hv) { hv.style.display = 'flex'; var up = function () { hv.style.display = 'none'; window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); }; window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up); } return; }
     var b = e.target.closest('[data-g="tap"]');
     if (!b || b.disabled) return;
     e.preventDefault();
@@ -785,6 +824,12 @@
       req('/api/game/seq', { method: 'POST', body: { name: myName(), seq: s2 } }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
+    if (g === 'oreveal') { pl.reveal = d('k'); lastHtml = ''; draw(); return; }
+    if (g === 'opickp') {
+      req('/api/game/opick', { method: 'POST', body: { name: myName(), i: +d('i') } }).then(poll).catch(function (er) { A.toast(er && er.code === 'closed' ? 'Mime déjà choisi' : A.errMsg(er)); poll(); });
+      return;
+    }
+    if (g === 'oshow') { mj.showOpts = true; lastHtml = ''; draw(); return; }
     if (g === 'rate') {
       pl.rate = +d('n'); pl.rateAt = Date.now(); lastHtml = ''; draw();
       req('/api/game/rate', { method: 'POST', body: { name: myName(), n: +d('n') } }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); });
@@ -831,7 +876,7 @@
     if (g === 'reset') { if (!mj.resetArm) { mj.resetArm = true; lastHtml = ''; draw(); setTimeout(function () { mj.resetArm = false; lastHtml = ''; draw(); }, 3000); return; } mj.resetArm = false; act('reset').then(function () { A.toast('Jeu réinitialisé'); }); return; }
     if (g === 'qsave') { act('savoirSet', { text: (document.getElementById('g-qs') || {}).value || '' }).then(function () { A.toast('Questions enregistrées'); }); return; }
     if (g === 'sidx') { act('savoirIdx', { i: +d('i') }); return; }
-    if (g === 'onext') { mj.sel = null; act('ombreNext'); return; }
+    if (g === 'onext') { mj.sel = null; mj.showOpts = false; act('ombreNext'); return; }
     if (g === 'opick') { act('ombrePick', { i: +d('i') }); return; }
     if (g === 'osel') { mj.sel = d('c'); lastHtml = ''; draw(); return; }
     if (g === 'ojudge') { var c = mj.sel; mj.sel = null; act('ombreJudge', { clan: c, ok: d('ok') === '1' }); return; }

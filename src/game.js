@@ -68,7 +68,7 @@ function fresh() {
     timer: null, // { end, dur }
     ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
     savoir: { list: [], idx: 0 },
-    ombre: { used: [], turn: 0, cur: null },
+    ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
     destin: { c: 0, stage: 'vote', mjVotes: {}, results: null, at: 0 },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: '', foudre: '', vent: '' }, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
@@ -80,7 +80,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -165,7 +165,16 @@ export async function playerView(db, name, now) {
     out.rythme = { locked: rLocked(g, now), lockAt: ry.lockAt, cur: ry.cur, stage: ry.stage, results: ry.results, myRate };
   }
   if (g.step === 2) { const q = g.savoir.list[g.savoir.idx]; out.savoir = { idx: g.savoir.idx, total: g.savoir.list.length, q: q ? q.q : '' }; }
-  if (g.step === 3) out.ombre = { state: clan ? ombreState(g, clan, now) : 'wait', mimeur: g.ombre.cur ? g.ombre.cur.clan : null, end: g.ombre.cur ? g.ombre.cur.end : 0 };
+  if (g.step === 3) {
+    const c = g.ombre.cur;
+    out.ombre = { state: clan ? ombreState(g, clan, now) : 'wait', end: c ? c.end : 0 };
+    // Choix du mime : sur le téléphone du mimeur s'il en a un, sinon sur un téléphone de son clan.
+    if (c && !c.done && c.mime === null && clan === c.clan) {
+      const mHasPhone = c.mimeur && r[c.mimeur] && r[c.mimeur].phone;
+      out.ombre.choose = { mname: c.mname || '', me: id === c.mimeur, mHasPhone: !!mHasPhone, options: (!mHasPhone || id === c.mimeur) ? c.options.map((i) => ({ i, t: MIMES[i] })) : [] };
+    }
+    if (c && !c.done && c.mime !== null && c.pickedBy === id) out.ombre.mine = MIMES[c.mime];
+  }
   if (g.step === 4) {
     const d = DESTIN[g.destin.c];
     const v = await votes(db, g);
@@ -223,6 +232,15 @@ export async function playerAct(db, path, b, now) {
     const txt = String(b.text || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 60);
     if (txt) await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('cri:' + clan, txt).run();
     else await db.prepare('DELETE FROM gplay WHERE k=?').bind('cri:' + clan).run();
+    return { ok: true };
+  }
+  if (path === 'opick') {
+    const c = g.ombre.cur;
+    const i = parseInt(b.i, 10);
+    if (g.step !== 3 || !c || c.done || c.mime !== null || clan !== c.clan || !c.options.includes(i)) return { error: 'closed' };
+    c.mime = i; g.ombre.used.push(i); c.end = now + 45000; c.red = {}; c.pickedBy = id;
+    g.ombre.count[c.clan] = (g.ombre.count[c.clan] || 0) + 1;
+    await save(db, g);
     return { ok: true };
   }
   if (path === 'rate') {
@@ -356,13 +374,20 @@ export async function mjAct(db, b, now) {
       const pool = left.length ? left : MIMES.map((_, i) => i);
       const clan = CLANS[g.ombre.turn % 3];
       g.ombre.turn += 1;
-      g.ombre.cur = { clan, options: shuffle(pool).slice(0, 3), mime: null, end: 0, red: {}, done: false };
+      await fold();
+      const mem = Object.keys(g.roster).filter((id) => g.roster[id].clan === clan).sort((a, z) => g.roster[a].name.localeCompare(g.roster[z].name, 'fr'));
+      const k = g.ombre.idx[clan] || 0;
+      const mimeur = mem.length ? mem[k % mem.length] : null;
+      g.ombre.idx[clan] = k + 1;
+      if (!g.ombre.startAt) g.ombre.startAt = now;
+      g.ombre.cur = { clan, mimeur, mname: mimeur ? g.roster[mimeur].name : '', options: shuffle(pool).slice(0, 3), mime: null, end: 0, red: {}, done: false, pickedBy: null };
       break;
     }
     case 'ombrePick': {
       const c = g.ombre.cur;
       if (!c || c.mime !== null || !c.options.includes(b.i)) break;
-      c.mime = b.i; g.ombre.used.push(b.i); c.end = now + 45000; c.red = {};
+      c.mime = b.i; g.ombre.used.push(b.i); c.end = now + 45000; c.red = {}; c.pickedBy = null;
+      g.ombre.count[c.clan] = (g.ombre.count[c.clan] || 0) + 1;
       break;
     }
     case 'ombreJudge': {
@@ -371,14 +396,14 @@ export async function mjAct(db, b, now) {
       if (b.ok) {
         if (b.clan === c.clan) addPts(g, c.clan, 2);
         else { addPts(g, c.clan, 1); addPts(g, b.clan, 1); }
-        c.done = true; c.winner = b.clan;
+        c.done = true; c.winner = b.clan; c.doneAt = now;
       } else {
-        c.red[b.clan] = true;
+        c.red[b.clan] = true; c.wrongAt = now; c.wrongClan = b.clan;
         if (CLANS.every((k) => c.red[k])) c.red = {};
       }
       break;
     }
-    case 'ombreSkip': if (g.ombre.cur) { g.ombre.cur.done = true; g.ombre.cur.winner = null; } break;
+    case 'ombreSkip': if (g.ombre.cur) { g.ombre.cur.done = true; g.ombre.cur.winner = null; g.ombre.cur.doneAt = now; } break;
 
     case 'destinVote': if (okClan(b.clan) && ['A', 'B', 'C'].includes(b.opt)) g.destin.mjVotes[b.clan] = b.opt; break;
     case 'destinReveal': {
