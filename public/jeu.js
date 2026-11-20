@@ -93,6 +93,17 @@
     '@keyframes drop{0%{transform:translateY(-40vh) rotate(-12deg);opacity:0}70%{transform:translateY(8px) rotate(3deg);opacity:1}100%{transform:translateY(0) rotate(-4deg)}}',
     '@keyframes rise{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}@keyframes fadein{from{opacity:0}to{opacity:1}}',
     '@keyframes upulse{from{transform:scale(1)}to{transform:scale(1.12)}}.urg{animation:upulse .5s ease-in-out infinite alternate;display:inline-block}#g.proj .urg{color:#fff;background:#C0506A!important}',
+    '#g .scr{min-height:100%;background:#2b211a;padding:calc(10px + env(safe-area-inset-top)) 0 calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;display:flex;flex-direction:column}',
+    '#g .rod{margin:0 14px;height:12px;border-radius:6px;background:linear-gradient(#7a4a24,#4a2c14);flex-shrink:0}',
+    '#g .paper{flex:1;margin:0 22px;background:linear-gradient(90deg,#d9c39a,#efe0bf 12%,#f3e7cc 50%,#efe0bf 88%,#d9c39a);padding:20px 16px;color:#2b1d12;font-family:Georgia,Fraunces,serif;position:relative;display:flex;flex-direction:column;gap:12px}',
+    '#g .sk{font:700 11px Nunito,Arial,sans-serif;letter-spacing:.22em;color:#8a5a2b;text-transform:uppercase}',
+    '#g .scroll3{display:flex;gap:8px;justify-content:center;align-items:flex-start}',
+    '#g .scl{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;border:0;background:none;padding:0;color:#2b1d12;font-family:Georgia,serif}',
+    '#g .scl i{display:block;width:108%;height:10px;border-radius:5px;background:#4a2c14;flex-shrink:0}',
+    '#g .scl b{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:14px 6px;text-align:center;font-weight:400;background:linear-gradient(90deg,#e9d6ad,#fbf3e1 50%,#e9d6ad);box-shadow:0 6px 12px rgba(0,0,0,.25);transition:min-height .35s ease}',
+    '#g .stamp{border:4px solid #b5302a;color:#b5302a;border-radius:8px;display:flex;align-items:center;justify-content:center;transform:rotate(-7deg);font-family:serif}',
+    '@keyframes stampin{0%{transform:scale(2.4) rotate(-20deg);opacity:0}60%{transform:scale(.9) rotate(-5deg);opacity:1}100%{transform:scale(1) rotate(-7deg)}}',
+    '@keyframes spinw{from{transform:rotate(0)}to{transform:rotate(var(--end))}}@keyframes fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
     '.rolling{animation:roll .45s linear infinite}.boss{animation:sway 3s ease-in-out infinite;transform-origin:50% 80%}.boss.hit{animation:hit .5s ease-in-out}.boss.boom{animation:boom 1.6s ease-in forwards}',
     '@media (prefers-reduced-motion:reduce){#g *,.fig *{animation:none!important}}',
     /* projection */
@@ -168,6 +179,22 @@
     return '<svg class="fig mv-' + k + '" width="' + size + '" height="' + Math.round(size * 1.4) + '" viewBox="0 0 60 84" fill="none" stroke="' + ink + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;overflow:visible">' +
       g(0, leg(6, 7) + leg(8, 9) + g(1, seg(-17, 9) + ((POSES[k] || {}).back ? arm(2, 3) + arm(4, 5) + head : head + arm(2, 3) + arm(4, 5)))) + bubble + '</svg>';
   }
+  var GAGE_SHORT = ['Drama coréen', 'Dattebayo', 'Selfie grimace', 'Sur une jambe'];
+  function emo(s) { return esc(s).replace(/🫰/g, '<img src="/vendor/em/heart.png" alt="" style="height:1.1em;vertical-align:-.2em">'); }
+  function d20svg(n, size, roll) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" style="' + (roll ? 'animation:roll .4s linear ' + roll + ';' : '') + 'filter:drop-shadow(0 4px 8px rgba(43,29,18,.25))"><polygon points="50,4 92,28 92,72 50,96 8,72 8,28" fill="#f8efdc" stroke="#2b1d12" stroke-width="3"/><polygon points="50,22 76,64 24,64" fill="none" stroke="#2b1d12" stroke-width="1.8" opacity=".8"/><path d="M50 4 50 22 M92 28 76 64 M92 72 76 64 M50 96 76 64 M50 96 24 64 M8 72 24 64 M8 28 24 64 M8 28 50 22 M92 28 50 22" stroke="#2b1d12" stroke-width="1.3" opacity=".5"/><text x="50" y="57" text-anchor="middle" font-family="Georgia,serif" font-size="21" font-weight="700" fill="#2b1d12">' + n + '</text></svg>';
+  }
+  function rollSpec(at) { var el = (now() - at) / 1000; var left = 1.6 - el; return left > 0 ? Math.max(1, Math.round(left / 0.4)) + '' : ''; }
+  function wheelSvg(idx, size, startIn) {
+    var cols = ['#F4C6D3', '#F7E6A8', '#BFE3D4', '#D9CEF0'], seg = '';
+    for (var i = 0; i < 4; i++) {
+      var a0 = (i * 90 - 90) * Math.PI / 180, a1 = ((i + 1) * 90 - 90) * Math.PI / 180, am = ((i + 0.5) * 90 - 90) * Math.PI / 180;
+      seg += '<path d="M50 50 L' + (50 + 46 * Math.cos(a0)).toFixed(2) + ' ' + (50 + 46 * Math.sin(a0)).toFixed(2) + ' A46 46 0 0 1 ' + (50 + 46 * Math.cos(a1)).toFixed(2) + ' ' + (50 + 46 * Math.sin(a1)).toFixed(2) + ' Z" fill="' + cols[i] + '" stroke="#2b1d12" stroke-width="1.2"/>' +
+        '<text x="' + (50 + 28 * Math.cos(am)).toFixed(2) + '" y="' + (50 + 28 * Math.sin(am)).toFixed(2) + '" text-anchor="middle" dominant-baseline="middle" font-family="Georgia,serif" font-size="6.2" font-weight="700" fill="#2b1d12" transform="rotate(' + ((i + 0.5) * 90) + ' ' + (50 + 28 * Math.cos(am)).toFixed(2) + ' ' + (50 + 28 * Math.sin(am)).toFixed(2) + ')">' + GAGE_SHORT[i] + '</text>';
+    }
+    var end = 360 * 6 - (idx * 90 + 45);
+    return '<div style="position:relative;width:' + size + ';aspect-ratio:1"><svg viewBox="0 0 100 100" style="width:100%;height:100%;--end:' + end + 'deg;animation:spinw 4s cubic-bezier(.12,.75,.2,1) ' + startIn.toFixed(2) + 's both"><circle cx="50" cy="50" r="48" fill="#4a2c14"/>' + seg + '<circle cx="50" cy="50" r="6" fill="#b5302a" stroke="#2b1d12" stroke-width="1.5"/></svg><svg viewBox="0 0 20 20" style="position:absolute;top:-4%;left:50%;width:9%;transform:translateX(-50%)"><path d="M2 2 H18 L10 18 Z" fill="#b5302a" stroke="#2b1d12" stroke-width="1.5"/></svg></div>';
+  }
   function star(on, size) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="' + (on ? '#F2B53A' : 'none') + '" stroke="' + (on ? '#C98A12' : '#B7AECB') + '" stroke-width="1.6" stroke-linejoin="round"/></svg>'; }
   function stars(avg, size) { var h = ''; for (var i = 1; i <= 5; i++) h += star(avg >= i - 0.5, size); return h; }
   function yt(u) {
@@ -228,6 +255,7 @@
   function draw() {
     if (!root || !mode) return;
     if (mode === 'ecran' && revealing() && root.getAttribute('data-reveal') === String(st.ouv.drawAt)) return;
+    if (mode === 'ecran' && st && st.step === 4 && st.destin && st.destin.stage === 'reveal' && st.destin.shownAt && now() - st.destin.shownAt < 7200 && root.getAttribute('data-dfreeze') === String(st.destin.shownAt + ':' + st.destin.shown)) return;
     var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
     if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#3A3350;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
       '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
@@ -257,7 +285,7 @@
   function needsTimeRedraw(t) {
     var ph = '';
     if (st.step === 3 && st.ombre) { var end = st.ombre.cur ? st.ombre.cur.end : st.ombre.end; ph += 'o' + (end && t > end ? 1 : 0) + (st.ombre.startAt && t > st.ombre.startAt + 600000 ? 'f' : ''); }
-    if (st.step === 4 && st.destin) ph += 'd' + (st.destin.at && t - st.destin.at < 1600 ? 1 : 0);
+    if (st.step === 4 && st.destin) ph += 'd' + (st.destin.shownAt && t - st.destin.shownAt < 7200 ? 1 : 0) + (st.destin.voteEnd && t > st.destin.voteEnd ? 'v' : '');
     if (st.step === 5 && st.boss) {
       var b = st.boss, p2 = b.p2;
       ph += 'b' + (b.p1 && b.p1.at && t - b.p1.at < 1600 ? 1 : 0) + (p2 ? (t < p2.start ? 'w' : t < p2.end ? 'r' : 'e') : '') + (b.dead && b.deadAt && t - b.deadAt < 2600 ? 'x' : '');
@@ -282,6 +310,7 @@
     if (!c) return wrap('<h1>Salut ' + esc(myName()) + ' !</h1><section class="card" style="align-items:center;text-align:center;padding:26px 16px"><div class="ser" style="font-size:22px">Le maître du jeu forme les clans</div><div class="muted">Ton clan apparaîtra ici dans un instant.</div></section>');
     var s = st.step;
     if (s === 3) return pOmbre(c);
+    if (s === 4) return pDestin(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
     var head = '<div class="hd"><h1>' + esc(STEPN[s]) + '</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + ico(c, 16) + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>';
     if (jk(c.k) === 'on' && s >= 1 && s <= 4) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#3A3350;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
@@ -358,28 +387,32 @@
       '<div style="font-family:Fraunces,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div>' +
       (o.mine ? '<button data-g="ohold" style="position:absolute;bottom:calc(26px + env(safe-area-inset-bottom));height:44px;padding:0 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:800;font-size:14px;user-select:none;-webkit-user-select:none">Maintenir pour revoir le mime</button><div id="g-hold" style="display:none;position:absolute;inset:0;background:#3A3350;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:34px;padding:24px;text-align:center">' + esc(o.mine) + '</div>' : '') + '</div>' };
   }
+  function scrollWrap(inner) { return { cls: 'dark', html: '<div class="scr"' + (demo() ? ' style="padding-top:calc(52px + env(safe-area-inset-top))"' : '') + '><div class="rod"></div><div class="paper">' + inner + '</div><div class="rod"></div></div>' }; }
   function pDestin(c) {
-    var d = st.destin;
-    if (!d) return '';
-    var rolling = d.at && now() - d.at < 1600;
-    var mine = pl.vote && Date.now() - pl.voteAt < 4000 ? pl.vote : d.myVote;
-    var h = '<section class="card" style="padding:0;overflow:hidden;gap:0"><div style="background:' + c.bg + ';padding:14px 16px" class="row"><span class="lab" style="color:' + c.ink + '">Carrefour ' + (d.c + 1) + ' / 3</span></div>' +
-      '<div style="padding:12px 16px 16px"><div class="ser" style="font-size:22px;margin-bottom:6px">' + esc(d.title) + '</div><div style="font-weight:700;line-height:1.45">' + esc(d.text) + '</div></div></section>';
-    if (d.stage === 'vote') {
-      h += d.opts.map(function (o) {
-        var on = mine === o.k;
-        return '<button data-g="vote" data-k="' + o.k + '" style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:18px;text-align:left;' + (on ? 'background:#E9E3F6;border:2.5px solid #6B5B9A' : 'background:#fff;border:1.5px solid #E2D9EE') + '"><span class="ser" style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;' + (on ? 'background:#6B5B9A;color:#fff' : 'background:#F3EEF9') + '">' + o.k + '</span><span style="display:flex;flex-direction:column;gap:3px"><span class="ser" style="font-size:17px;line-height:1.2">' + esc(o.t) + '</span><span style="font-size:13px;font-weight:800;color:#6A6280">' + esc(o.r) + '</span></span></button>';
-      }).join('');
-      h += '<div class="card" style="align-items:center;font-weight:800;' + (mine ? 'background:#E3F3EC;color:#2F6F5E;border-color:#BFE3D4' : 'background:rgba(255,255,255,.6);color:#6A6280;border-style:dashed') + '">' + (mine ? 'Vote ' + mine + ' enregistré · le négociateur peut encore changer' : 'Vote secret : le négociateur choisit pour le clan') + '</div>';
-    } else {
-      h += CL.map(function (k) {
-        var r = d.results[k.k];
-        return '<section class="card" style="flex-direction:row;align-items:center;gap:12px;background:' + k.bg + ';border-color:' + (k.k === c.k ? '#3A3350' : 'transparent') + '">' +
-          '<span class="ser ' + (rolling ? 'rolling' : '') + '" style="width:50px;height:50px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">' + (rolling ? '?' : r.die) + '</span>' +
-          '<div style="flex:1"><div class="ser" style="font-size:17px">' + esc(k.n) + ' · choix ' + r.opt + '</div><div style="font-weight:800;font-size:14px">' + (rolling ? 'Les dés roulent…' : esc(r.text) + ' ' + (r.pts > 0 ? '+' : '') + r.pts + (r.joker ? ' (joker x2)' : '') + (r.gage ? ' · Gage : ' + esc(r.gage) : '')) + '</div></div></section>';
-      }).join('');
+    var d = st.destin; if (!d) return scrollWrap('');
+    var head = '<div class="sk">Carrefour ' + ['一', '二', '三'][d.c] + (d.double ? ' · tout compte double' : '') + '</div><div style="font-size:26px;font-weight:700;line-height:1.1">' + esc(d.title) + '</div><div style="height:2px;background:linear-gradient(90deg,#2b1d12,transparent)"></div>';
+    var foot = function (txt) { return '<div class="sk" style="margin-top:auto;text-align:center">' + txt + '</div>'; };
+    if (d.mine) {
+      var r = d.mine, rs = d.mineAt ? rollSpec(d.mineAt) : '', del = d.mineAt ? Math.max(0, 1.6 - (now() - d.mineAt) / 1000) : 0;
+      var h = head + '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center">' +
+        '<div class="sk">' + esc(['Prudent', 'Audacieux', 'Fou'][' ABC'.indexOf(r.opt) - 1]) + (r.roll === null ? ' · assuré' : ' · difficulté ' + r.dd) + '</div>' +
+        (r.roll === null ? '<div class="stamp" style="width:84px;height:84px;font-size:44px;animation:stampin .5s ease-out both">成</div>' :
+          d20svg(r.roll, 128, rs) + '<div class="stamp" style="width:76px;height:76px;font-size:40px;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div>') +
+        '<div style="font-size:28px;font-weight:700;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.ok ? 'Réussite !' : 'Échec…') + '</div>' +
+        '<div style="font-style:italic;font-size:16px;line-height:1.5;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
+        '<div style="font:800 15px Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + ' point' + (Math.abs(r.pts) > 1 ? 's' : '') + (r.double ? ' · ×2 dernier carrefour' : '') + (r.joker ? ' · joker' : '') + '</div>' +
+        (r.gage ? '<div style="border:2px dashed #b5302a;border-radius:10px;padding:10px 12px;font-size:15px;line-height:1.45;animation:fadeup .5s ' + (del + 5.8).toFixed(2) + 's both"><b style="color:#b5302a">Gage :</b> ' + emo(r.gage) + '</div>' : '') + '</div>';
+      return scrollWrap(h);
     }
-    return h;
+    if (d.waiting) return scrollWrap(head + '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center"><div class="stamp" style="width:70px;height:70px;font-size:36px;opacity:.5">運</div><div style="font-size:20px;font-style:italic">Le destin de votre clan va être révélé…</div></div>');
+    var vote = d.stage === 'vote' && now() <= d.voteEnd + 500, mine = pl.vote && Date.now() - pl.voteAt < 4000 ? pl.vote : d.myVote;
+    var cols = ['#2f6b45', '#9a6a12', '#b5302a'];
+    var scrolls = '<div class="scroll3">' + d.opts.map(function (o, i) {
+      var on = mine === o.k;
+      return '<button class="scl" data-g="vote" data-k="' + o.k + '"' + (vote ? '' : ' disabled') + '><i></i><b style="min-height:' + (on ? 330 : 270) + 'px;' + (on ? 'outline:3px solid #b5302a;outline-offset:-3px;' : '') + (vote || on ? '' : 'opacity:.75') + '"><span style="font-size:28px;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:15px;line-height:1.3">' + esc(o.t) + '</span><span class="sk" style="letter-spacing:.06em;color:' + cols[i] + ';font-size:10.5px">' + esc(o.r).replace(' · ', '<br>') + '</span>' + (on ? '<span class="stamp" style="margin-top:auto;width:44px;height:44px;font-size:24px;animation:stampin .4s ease-out both">選</span>' : '') + '</b><i></i></button>';
+    }).join('') + '</div>';
+    var status = d.stage === 'story' ? 'Écoutez le récit… le vote va s’ouvrir' : vote ? 'Clan du ' + esc(c.n) + ' · ' + cdu(d.voteEnd, '', 'border-radius:6px;padding:0 4px') : 'Votes verrouillés';
+    return scrollWrap(head + '<div style="font-style:italic;font-size:15px;line-height:1.5">' + esc(d.text) + '</div>' + scrolls + foot(status));
   }
   function pBoss(c) {
     var b = st.boss || {};
@@ -505,16 +538,23 @@
     return h + nextBtn();
   }
   function mDestin() {
-    var d = st.destin, sc = st.destinScenes[d.c], v = st.destinVotes || {};
-    var h = '<section class="card"><div class="lab">Carrefour ' + (d.c + 1) + ' / 3</div><div class="ser" style="font-size:20px">' + esc(sc.title) + '</div><div style="font-weight:700;line-height:1.4">' + esc(sc.text) + '</div>' +
-      sc.opts.map(function (t, i) { return '<div style="font-weight:700;font-size:14px"><b>' + 'ABC'[i] + '</b> · ' + esc(t) + '</div>'; }).join('') + '</section>';
-    if (d.stage === 'vote') {
-      h += '<section class="card"><div class="lab">Votes (tu peux voter pour un clan sans téléphone)</div>' + CL.map(function (c) {
+    var d = st.destin, sc = st.destinScenes[d.c], v = st.destinVotes || {}, res = d.results || {};
+    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Carrefour ' + (d.c + 1) + ' / 3</span>' + (d.c === 2 ? '<span class="pill" style="background:#3A3350;color:#F7E6A8">Tout compte double</span>' : '') + '</div><div class="ser" style="font-size:20px">' + esc(sc.title) + '</div>' +
+      '<div style="background:#FFF6D9;border-radius:12px;padding:10px 12px;font-weight:700;line-height:1.45">À lire : ' + esc(sc.text) + '</div>' +
+      sc.opts.map(function (o, i) { return '<div style="font-weight:700;font-size:14px"><b>' + 'ABC'[i] + '</b> · ' + esc(o.t) + ' <span class="muted" style="font-size:12px">(' + esc(sc.tags[i]) + ')</span></div>'; }).join('') + '</section>';
+    if (d.stage === 'story') h += '<button class="btn" data-g="dopen">Ouvrir le vote · 45 s</button>';
+    else if (d.stage === 'vote') {
+      var tleft = now() <= d.voteEnd;
+      h += '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Votes</span>' + (tleft ? cdu(d.voteEnd, 'ser', 'font-size:20px;border-radius:8px;padding:0 4px') : '<span style="font-weight:800;color:#A63A55">Verrouillés</span>') + '</div>' + CL.map(function (c) {
         return '<div class="row"><span class="ser" style="flex:1;color:' + c.ink + '">' + esc(c.n) + '</span>' + ['A', 'B', 'C'].map(function (k) { return '<button class="chip' + (v[c.k] === k ? ' on' : '') + '" data-g="dvote" data-c="' + c.k + '" data-k="' + k + '">' + k + '</button>'; }).join('') + '</div>';
-      }).join('') + '<div class="muted" style="font-size:12px">Sans vote, un clan joue A (prudent).</div></section><button class="btn" data-g="dreveal">Révéler et lancer les dés</button>';
+      }).join('') + '<div class="muted" style="font-size:12px">Tu peux voter pour un clan sans téléphone. Sans vote, un clan joue A.</div></section><button class="btn" data-g="dreveal">Lancer les dés</button>';
     } else {
-      h += '<section class="card"><div class="lab">Résultats</div>' + CL.map(function (c) { var r = d.results[c.k]; return '<div style="background:' + c.bg + ';border-radius:12px;padding:8px 12px;font-weight:800">' + esc(c.n) + ' · ' + r.opt + ' · dé ' + r.die + ' · ' + (r.pts > 0 ? '+' : '') + r.pts + (r.gage ? ' · Gage : ' + esc(r.gage) : '') + '</div>'; }).join('') + '</section>';
-      h += d.c < 2 ? '<button class="btn" data-g="dnext">Carrefour suivant</button>' : nextBtn();
+      h += '<section class="card"><div class="lab">Révélations</div>' + d.order.map(function (k, i) {
+        var c = CK[k], r = res[k];
+        if (i >= d.shown) return i === d.shown ? '<button class="btn" data-g="dshow" style="background:' + c.ink + ';box-shadow:0 5px 0 rgba(0,0,0,.25)">Révéler : clan du ' + esc(c.n) + '</button>' : '<div class="muted">Clan du ' + esc(c.n) + ' · en attente</div>';
+        return '<div style="background:' + c.bg + ';border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div style="font-weight:800">' + esc(c.n) + ' · ' + r.opt + (r.roll === null ? ' · assuré' : ' · d20 ' + r.roll + ' / ' + r.dd) + ' · ' + (r.pts > 0 ? '+' : '') + r.pts + '</div><div style="font-weight:700;font-size:14px">À lire : ' + esc(r.text) + '</div>' + (r.gage ? '<div style="font-weight:800;color:#A63A55;font-size:14px">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
+      }).join('') + '</section>';
+      if (d.shown >= 3) h += d.c < 2 ? '<button class="btn" data-g="dnext">Carrefour suivant</button>' : '<section class="card" style="background:#3A3350;color:#fff;border-color:#3A3350"><div class="lab" style="color:#D9CEF0">À lire pour conclure</div><div style="font-weight:700;line-height:1.45">' + esc(st.destinOutro) + '</div></section>' + nextBtn();
     }
     return h;
   }
@@ -634,8 +674,22 @@
       setTimeout(function () { fx(root && root.querySelector('[data-oban]'), 'zuza'); }, 300);
     }
   }
+  var firedD = '';
+  function fxDestin() {
+    var d = st && st.step === 4 && st.destin;
+    if (!d || d.stage !== 'reveal' || !d.shownAt) { root.removeAttribute('data-dfreeze'); return; }
+    var key = d.shownAt + ':' + d.shown;
+    if (now() - d.shownAt < 7200) root.setAttribute('data-dfreeze', key); else root.removeAttribute('data-dfreeze');
+    if (firedD === key || now() - d.shownAt > 3000) return;
+    firedD = key;
+    var k = d.order[d.shown - 1], r = d.results[k];
+    setTimeout(function () {
+      var el = root && root.querySelector('[data-dr="' + k + '"]'); if (!el) return;
+      if (r.roll === null) fx(el, 'pon'); else if (r.ok) { fx(el, 'burst', { r: 120 }); fx(el, 'don', { size: 170, dy: 100 }); } else fx(el, 'zuza');
+    }, Math.max(0, d.shownAt + 1650 - now()));
+  }
   function fxHook() {
-    fxJoker(); fxRythme(); fxOmbre(); musicSync();
+    fxJoker(); fxRythme(); fxOmbre(); fxDestin(); musicSync();
     if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
     var o = st.ouv;
     if (o.view === 'clans' && revealing()) {
@@ -734,21 +788,42 @@
       h = pHeader('L’Ombre', 'Épreuve 3 / 5 · Passages : ' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · '), right) +
         '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center">' + mid + '</div>' + pScores(false);
     } else if (s === 4) {
-      var d = st.destin, sc = st.destinScenes[d.c], rolling = d.at && now() - d.at < 1600;
-      h = pHeader(esc(sc.title), 'Épreuve 4 / 5 · Destin · Carrefour ' + (d.c + 1) + ' / 3', timerRight());
-      if (d.stage === 'vote') {
-        h += '<div class="ser" style="font-size:2.4vw;line-height:1.35;font-weight:600">' + esc(sc.text) + '</div><div style="display:flex;flex-direction:column;gap:1vw;flex:1">' + sc.opts.map(function (t, i) { return '<div class="row" style="gap:1.4vw;background:#fff;border-radius:1.6vw;padding:1vw 1.6vw"><span class="ser" style="width:4vw;height:4vw;border-radius:1vw;background:#F3EEF9;display:flex;align-items:center;justify-content:center;font-size:2.2vw">' + 'ABC'[i] + '</span><span class="ser" style="font-size:2.2vw;flex:1">' + esc(t) + '</span><span style="font-weight:800;font-size:1.4vw;color:#6A6280">' + esc(sc.risk[i]) + '</span></div>'; }).join('') + '</div>' +
-          '<div class="row" style="gap:2vw;justify-content:center">' + CL.map(function (k) { var ok = !!(st.destinVotes || {})[k.k]; return '<span class="pill" style="font-size:1.6vw;padding:.6vw 1.4vw;background:' + (ok ? k.bg : 'rgba(255,255,255,.6)') + ';color:' + k.ink + '">' + esc(k.n) + (ok ? ' a voté' : ' réfléchit…') + '</span>'; }).join('') + '</div>';
-      } else {
-        h += '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (k) {
-          var r = d.results[k.k];
-          return '<div style="background:' + k.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vw;text-align:center"><div class="ser" style="font-size:2.6vw;color:' + k.ink + '">' + esc(k.n) + ' · ' + r.opt + '</div>' +
-            '<div class="ser ' + (rolling ? 'rolling' : '') + '" style="width:9vw;height:9vw;border-radius:2vw;background:#fff;display:flex;align-items:center;justify-content:center;font-size:5vw;box-shadow:0 .5vw 0 rgba(0,0,0,.15)">' + (rolling ? '?' : r.die) + '</div>' +
-            (rolling ? '' : '<div class="ser" style="font-size:2.2vw">' + esc(r.text) + ' ' + (r.pts > 0 ? '+' : '') + r.pts + '</div>' + (r.gage ? '<div style="font-weight:800;font-size:1.5vw">Gage : ' + esc(r.gage) + '</div>' : '')) + '</div>';
-        }).join('') + '</div>' + pScores(false);
-      }
+      return projDestin();
     }
     return { html: '<div class="pw">' + h + '</div>', cls: cls };
+  }
+  function projDestin() {
+    var d = st.destin, sc = st.destinScenes[d.c], res = d.results || {}, tnow = now();
+    var cols = ['#2f6b45', '#9a6a12', '#b5302a'], inner;
+    var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 4 / 5 · Destin · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">TOUT COMPTE DOUBLE</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
+    if (d.stage !== 'reveal') {
+      inner = head + '<div style="font-style:italic;font-size:1.9vw;line-height:1.45;max-width:80%">' + esc(sc.text) + '</div>' +
+        '<div style="display:flex;gap:3vw;justify-content:center;flex:1;align-items:flex-start">' + sc.opts.map(function (o, i) {
+          return '<div class="scl" style="max-width:none;width:18vw"><i></i><b style="min-height:24vw;padding:1.6vw 1vw;gap:1.2vw"><span style="font-size:3.4vw;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:1.7vw;line-height:1.3">' + esc(o.t) + '</span><span class="sk" style="font-size:1vw;letter-spacing:.08em;color:' + cols[i] + '">' + esc(sc.tags[i]) + '</span></b><i></i></div>';
+        }).join('') + '</div>' +
+        '<div style="display:flex;gap:2vw;justify-content:center">' + CL.map(function (k) { var ok = !!(st.destinVotes || {})[k.k]; return '<span class="pill" style="font-size:1.4vw;padding:.5vw 1.4vw;background:' + (ok ? k.bg : 'rgba(255,255,255,.5)') + ';color:' + k.ink + '">' + esc(k.n) + (d.stage === 'story' ? ' · écoute le récit' : ok ? ' a choisi' : ' réfléchit…') + '</span>'; }).join('') + '</div>';
+    } else {
+      var lastK = d.order[d.shown - 1], wheelOn = false;
+      inner = head + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (k) {
+        var pos = d.order.indexOf(k.k), shown = pos < d.shown, r = res[k.k];
+        if (!shown) return '<div style="border:.2vw dashed #8a5a2b;border-radius:1.6vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1vw;opacity:.7"><div class="ser" style="font-size:2.4vw;color:' + k.ink + '">' + esc(k.n) + '</div><div class="stamp" style="width:6vw;height:6vw;font-size:3vw;opacity:.5">運</div><div style="font-style:italic;font-size:1.4vw">Le destin attend…</div></div>';
+        var latest = k.k === lastK, rs = latest ? rollSpec(d.shownAt) : '', del = latest ? Math.max(0, 1.6 - (tnow - d.shownAt) / 1000) : 0;
+        if (latest && r.gage && tnow - d.shownAt < 7200) wheelOn = true;
+        return '<div data-dr="' + k.k + '" style="background:rgba(255,255,255,.45);border:.2vw solid ' + k.ink + ';border-radius:1.6vw;padding:1.4vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9vw;text-align:center">' +
+          '<div class="ser" style="font-size:2.2vw;color:' + k.ink + '">' + esc(k.n) + ' · ' + ['一', '二', '三'][' ABC'.indexOf(r.opt) - 1] + '</div><div style="font-size:1.3vw;line-height:1.3">' + esc(sc.opts[' ABC'.indexOf(r.opt) - 1].t) + '</div>' +
+          (r.roll === null ? '<div class="stamp" style="width:7vw;height:7vw;font-size:3.6vw;animation:stampin .5s ease-out both">成</div>' : '<div style="display:flex;align-items:center;gap:1.2vw">' + d20svg(r.roll, '8vw', rs).replace('width="8vw" height="8vw"', 'style="width:8vw;height:8vw"') + '<div class="stamp" style="width:5.6vw;height:5.6vw;font-size:3vw;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div></div>') +
+          '<div style="font-style:italic;font-size:1.35vw;line-height:1.4;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
+          '<div style="font:800 1.8vw Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + (r.double ? ' (×2)' : '') + '</div>' +
+          (r.gage && !(latest && tnow - d.shownAt < 7200) ? '<div style="font-size:1.25vw;line-height:1.35;color:#b5302a;font-weight:700">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
+      }).join('') + '</div>' + (d.c === 2 && d.shown >= 3 ? '<div style="text-align:center;font-style:italic;font-size:1.9vw;line-height:1.4">' + esc(st.destinOutro) + '</div>' : '');
+      if (wheelOn) {
+        var r2 = res[lastK], startIn = (d.shownAt + 1800 - tnow) / 1000;
+        inner += '<div style="position:absolute;inset:0;background:rgba(43,29,18,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;color:#f3e7cc;animation:fadein .4s ' + Math.max(0, startIn - 0.4).toFixed(2) + 's both"><div class="sk" style="color:#e9d6ad;font-size:1.4vw">Gage pour le clan du ' + esc(CK[lastK].n) + '</div>' + wheelSvg(r2.gageIdx, '30vw', startIn) +
+          '<div style="font-size:2.2vw;max-width:70%;text-align:center;line-height:1.35;animation:fadeup .6s ' + (startIn + 4.1).toFixed(2) + 's both">' + emo(r2.gage) + '</div></div>';
+      }
+    }
+    return { cls: 'dark proj', html: '<div class="pw" style="padding:0;gap:0;background:#2b211a"><div class="rod" style="margin:1.2vw 2vw 0"></div><div class="paper" style="margin:0 3vw;padding:2.2vw 3vw;gap:1.6vw">' + inner + '</div><div class="rod" style="margin:0 2vw 1.2vw"></div></div>' };
   }
   function projBoss() {
     var b = st.boss, t = now(), p2 = b.p2;
@@ -883,6 +958,8 @@
     if (g === 'oskip') { mj.sel = null; act('ombreSkip'); return; }
     if (g === 'dvote') { act('destinVote', { clan: d('c'), opt: d('k') }); return; }
     if (g === 'dreveal') { act('destinReveal'); return; }
+    if (g === 'dopen') { act('destinOpen'); return; }
+    if (g === 'dshow') { act('destinShow'); return; }
     if (g === 'dnext') { act('destinNext'); return; }
     if (g === 'bp1') { act('bossP1'); return; }
     if (g === 'bp2s') { act('bossP2Start'); return; }

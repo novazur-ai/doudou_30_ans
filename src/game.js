@@ -23,30 +23,45 @@ export const MIMES = [
   'Un videur de boîte de nuit', 'Une poule qui couve un œuf', 'Un dentiste', 'Faire une omelette', 'Un dinosaure',
 ];
 
+// Histoire du Destin : 3 carrefours ; chaque choix a sa suite (réussite / échec). A = prudent (assuré), B = audacieux (d20 ≥ 10), C = fou (d20 ≥ 15).
 export const DESTIN = [
   {
     title: 'Ichiraku Ramen',
-    text: "Sanjûbi a volé la recette secrète des ramens. Le chef refuse de servir qui que ce soit tant qu'elle n'est pas retrouvée. Que fait votre clan ?",
-    opts: ["Payer l'addition et partir", 'Défier le chef à un concours', "S'infiltrer en cuisine déguisés en bols"],
+    text: "Le chef croise les bras : « Pas de recette, pas de ramen. » Derrière lui, la marmite fume encore. Que fait votre clan ?",
+    opts: [
+      { t: "Payer l'addition et partir", ok: "Vous laissez un généreux pourboire. Le chef, touché, vous souffle que Sanjûbi est parti vers la Forêt de la Mort." },
+      { t: 'Défier le chef à un concours de ramens', ok: "Trois bols engloutis d'affilée ! Le chef, ému, vous tend la recette tachée de bouillon.", ko: 'Le chef vous écrase au deuxième bol. Pas de recette… mais le ventre bien plein.' },
+      { t: "S'infiltrer en cuisine déguisés en bols", ok: 'Personne ne se méfie de bols qui marchent. Vous ressortez avec la recette et le dessert !', ko: 'Un client affamé vous verse du bouillon dessus. Démasqués !' },
+    ],
   },
   {
     title: 'La Forêt de la Mort',
-    text: "Sanjûbi s'est réfugié au cœur de la Forêt de la Mort. Trois chemins s'offrent à vous. Lequel prenez-vous ?",
-    opts: ['La route balisée', 'Le raccourci par le marais', "La tyrolienne au-dessus des serpents d'Orochimaru"],
+    text: 'Les arbres murmurent le nom de Sanjûbi. Trois chemins s’enfoncent dans la forêt. Lequel prenez-vous ?',
+    opts: [
+      { t: 'La route balisée', ok: 'Lente mais sûre : vous arrivez sans une égratignure.' },
+      { t: 'Le raccourci par le marais', ok: 'Vous traversez en sautant de nénuphar en nénuphar, comme de vrais ninjas.', ko: 'Embourbés jusqu’aux genoux… vous ressortez avec une chaussure en moins.' },
+      { t: "La tyrolienne au-dessus des serpents d'Orochimaru", ok: 'Vous survolez les serpents en hurlant votre cri de guerre. Entrée légendaire !', ko: 'La corde lâche à mi-chemin. Les serpents, eux, ne lâchent rien.' },
+    ],
   },
   {
     title: 'Le repaire de Sanjûbi',
-    text: "Les 30 bougies d'Alessia sont gardées par les sbires de Sanjûbi. Comment les récupérer ?",
-    opts: ['Négocier avec les sbires', 'Créer une diversion', 'Attaque frontale en clones d’ombre'],
+    text: "Au fond du repaire, les 30 bougies d'Alessia brillent, gardées par les sbires de Sanjûbi. Dernière chance avant le combat : tout compte double !",
+    opts: [
+      { t: 'Négocier avec les sbires', ok: 'Une part de gâteau contre une bougie : marché conclu.' },
+      { t: 'Créer une diversion', ok: 'Vous entonnez « Joyeux anniversaire » : les sbires, émus, chantent avec vous.', ko: 'Votre diversion fait un flop. Les sbires vous fixent, perplexes.' },
+      { t: "Attaque frontale en clones d'ombre", ok: 'Dix clones surgissent de la fumée : les sbires s’enfuient en hurlant !', ko: 'Vos clones se trompent de cible et se battent entre eux…' },
+    ],
   },
 ];
-const RISK = ['Prudent · +1 point assuré', 'Audacieux · +3 si le dé fait 3 ou plus', 'Fou · +6 sur 5 ou 6, sinon −1 et un gage'];
-const GAGES = [
-  'Chanter le générique de Naruto',
-  'Faire la course Naruto autour de la table',
-  'Imiter Sanjûbi pendant 10 secondes',
-  'Faire un cœur des doigts à chaque personne',
-  'Danser 10 secondes de K-pop',
+export const DESTIN_OUTRO = 'Les bougies sont réunies… mais le sol tremble. Sanjûbi, le démon à 30 queues, surgit de l’ombre. Le combat final commence !';
+const TAGS = ['Prudent · assuré', 'Audacieux · D20 10+', 'Fou · D20 15+'];
+const DD = [0, 10, 15];
+const BASE = [1, 3, 6];
+export const GAGES = [
+  'Déclarer sa flamme à Alessia façon drama coréen (et lui demander ce qu’est un drama coréen 🫰)',
+  'Finir chaque phrase par « dattebayo » jusqu’au prochain carrefour',
+  'Faire un selfie du clan avec la pire grimace possible',
+  'Deux personnes du clan tiennent sur une seule jambe jusqu’à la prochaine étape : elles peuvent s’appuyer l’une sur l’autre, mais sur personne d’autre',
 ];
 
 // Ajoute des points ; un gain compte double si le joker du clan est posé sur l'épreuve en cours.
@@ -55,6 +70,7 @@ function addPts(g, clan, n) {
   g.scores[clan] += n > 0 && j && j.step === g.step ? n * 2 : n;
 }
 const die = () => 1 + Math.floor(Math.random() * 6);
+const d20 = () => 1 + Math.floor(Math.random() * 20);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
@@ -69,7 +85,7 @@ function fresh() {
     ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
     savoir: { list: [], idx: 0 },
     ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
-    destin: { c: 0, stage: 'vote', mjVotes: {}, results: null, at: 0 },
+    destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0 },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: '', foudre: '', vent: '' }, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
     hokage: { slide: false, at: 0 },
@@ -80,7 +96,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -176,9 +192,18 @@ export async function playerView(db, name, now) {
     if (c && !c.done && c.mime !== null && c.pickedBy === id) out.ombre.mine = MIMES[c.mime];
   }
   if (g.step === 4) {
-    const d = DESTIN[g.destin.c];
+    const D = g.destin, d = DESTIN[D.c];
     const v = await votes(db, g);
-    out.destin = { c: g.destin.c, title: d.title, text: d.text, opts: d.opts.map((t, i) => ({ k: 'ABC'[i], t, r: RISK[i] })), stage: g.destin.stage, myVote: clan ? v[clan] || null : null, results: g.destin.results, at: g.destin.at };
+    const shown = (D.order || []).slice(0, D.shown);
+    out.destin = {
+      c: D.c, title: d.title, text: d.text, double: D.c === 2, stage: D.stage, voteEnd: D.voteEnd,
+      opts: d.opts.map((o, i) => ({ k: 'ABC'[i], t: o.t, r: TAGS[i] })),
+      myVote: clan ? v[clan] || null : null,
+      mine: clan && shown.includes(clan) && D.results ? D.results[clan] : null,
+      mineAt: clan && D.order[D.shown - 1] === clan ? D.shownAt : 0,
+      waiting: D.stage === 'reveal' && clan && !shown.includes(clan),
+      last: D.c === DESTIN.length - 1 && D.stage === 'reveal' && D.shown >= 3,
+    };
   }
   if (g.step === 5) {
     const b = g.boss;
@@ -193,7 +218,7 @@ export async function playerView(db, name, now) {
 export async function fullView(db, now) {
   const g = await load(db);
   const r = await roster(db, g);
-  const out = { ...g, now, roster: r, members: members(r), mimes: MIMES, destinScenes: DESTIN.map((d) => ({ ...d, risk: RISK })) };
+  const out = { ...g, now, roster: r, members: members(r), mimes: MIMES, destinScenes: DESTIN.map((d) => ({ ...d, tags: TAGS })), destinOutro: DESTIN_OUTRO, gages: GAGES };
   out.seqs = await seqs(db);
   if (g.step === 1 && g.rythme.cur) { const v = await rateVotes(db, g.rythme.cur); out.rateCount = v.length; }
   out.rLocked = rLocked(g, now);
@@ -258,7 +283,7 @@ export async function playerAct(db, path, b, now) {
     return { ok: true };
   }
   if (path === 'vote') {
-    if (g.step !== 4 || g.destin.stage !== 'vote' || !['A', 'B', 'C'].includes(b.opt)) return { error: 'closed' };
+    if (g.step !== 4 || g.destin.stage !== 'vote' || now > g.destin.voteEnd + 1500 || !['A', 'B', 'C'].includes(b.opt)) return { error: 'closed' };
     await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('vote:' + g.destin.c + ':' + clan, b.opt).run();
     return { ok: true };
   }
@@ -405,29 +430,36 @@ export async function mjAct(db, b, now) {
     }
     case 'ombreSkip': if (g.ombre.cur) { g.ombre.cur.done = true; g.ombre.cur.winner = null; g.ombre.cur.doneAt = now; } break;
 
-    case 'destinVote': if (okClan(b.clan) && ['A', 'B', 'C'].includes(b.opt)) g.destin.mjVotes[b.clan] = b.opt; break;
-    case 'destinReveal': {
+    case 'destinVote': if (okClan(b.clan) && ['A', 'B', 'C'].includes(b.opt) && g.destin.stage !== 'reveal') g.destin.mjVotes[b.clan] = b.opt; break;
+    case 'destinOpen': if (g.destin.stage === 'story') { g.destin.stage = 'vote'; g.destin.voteEnd = now + 45000; } break;
+    case 'destinReveal': { // tire tous les dés, les révélations se font ensuite clan par clan
       if (g.destin.stage !== 'vote') break;
       const v = await votes(db, g);
       const res = {};
       for (const clan of CLANS) {
-        const opt = v[clan] || 'A';
-        const d = die();
-        let pts, text, gage = null;
-        if (opt === 'A') { pts = 1; text = 'Prudence récompensée'; }
-        else if (opt === 'B') { pts = d >= 3 ? 3 : 0; text = d >= 3 ? 'Audace payante !' : 'Raté de peu'; }
-        else if (d >= 5) { pts = 6; text = 'Coup de génie !'; }
-        else { pts = -1; text = 'Catastrophe…'; gage = pick(GAGES); }
-        const jk = g.joker[clan].step === g.step && pts > 0;
-        addPts(g, clan, pts);
-        if (jk) pts *= 2;
-        res[clan] = { opt, die: d, pts, joker: jk, text, gage, voted: !!v[clan] };
+        const opt = v[clan] || 'A', i = 'ABC'.indexOf(opt), o = DESTIN[g.destin.c].opts[i];
+        const roll = i === 0 ? null : d20();
+        const ok = i === 0 || roll >= DD[i];
+        const base = ok ? BASE[i] : i === 2 ? -1 : 0;
+        const gi = !ok && i === 2 ? Math.floor(Math.random() * GAGES.length) : null;
+        res[clan] = { opt, roll, dd: DD[i], ok, base, text: ok ? o.ok : o.ko, gage: gi === null ? null : GAGES[gi], gageIdx: gi, voted: !!v[clan] };
       }
-      g.destin.results = res; g.destin.stage = 'reveal'; g.destin.at = now;
+      g.destin.results = res; g.destin.stage = 'reveal'; g.destin.order = shuffle(CLANS); g.destin.shown = 0; g.destin.shownAt = 0;
+      break;
+    }
+    case 'destinShow': { // révèle le clan suivant et ajoute ses points
+      const D = g.destin;
+      if (D.stage !== 'reveal' || D.shown >= 3) break;
+      const clan = D.order[D.shown], r = D.results[clan];
+      const mult = D.c === DESTIN.length - 1 ? 2 : 1; // dernier carrefour : tout compte double
+      const before = g.scores[clan];
+      addPts(g, clan, r.base * mult);
+      r.pts = g.scores[clan] - before; r.double = mult === 2; r.joker = g.joker[clan].step === g.step && r.base > 0;
+      D.shown += 1; D.shownAt = now;
       break;
     }
     case 'destinNext':
-      if (g.destin.c < DESTIN.length - 1) { g.destin = { c: g.destin.c + 1, stage: 'vote', mjVotes: {}, results: null, at: 0 }; }
+      if (g.destin.c < DESTIN.length - 1 && g.destin.stage === 'reveal' && g.destin.shown >= 3) g.destin = { c: g.destin.c + 1, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0 };
       break;
 
     case 'bossP1': {
