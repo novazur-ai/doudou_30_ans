@@ -112,7 +112,7 @@ function fresh() {
     destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: '', foudre: '', vent: '' }, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
-    hokage: { slide: false, at: 0 },
+    hokage: { view: 'ceremony', viewAt: 0, speech: '', music: '', dur: 5, idx: 0, idxAt: 0, paused: false },
   };
 }
 
@@ -120,7 +120,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) } }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) } }; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -338,7 +338,7 @@ export async function mjAct(db, b, now) {
       await db.prepare('DELETE FROM gplay').run();
       break;
     }
-    case 'step': g.step = Math.max(0, Math.min(STEPS - 1, b.i | 0)); g.timer = null; break;
+    case 'step': g.step = Math.max(0, Math.min(STEPS - 1, b.i | 0)); g.timer = null; if (g.step === 6 && g.hokage.view === 'ceremony') g.hokage.viewAt = now; break;
     case 'pts': if (okClan(b.clan)) addPts(g, b.clan, Math.max(-20, Math.min(20, b.d | 0))); break;
     case 'joker': {
       if (!okClan(b.clan) || g.step < 1 || g.step > 4) break;
@@ -524,7 +524,18 @@ export async function mjAct(db, b, now) {
       break;
     }
     case 'bossFinal': if (!g.boss.dead) { g.boss.hp = 0; g.boss.dead = true; g.boss.deadAt = now; } break;
-    case 'slide': g.hokage.slide = !!b.on; g.hokage.at = now; break;
+    // Hokage : vue de la projection (cérémonie, podium, mot de Théo, diaporama) et commandes du diaporama.
+    case 'hokView': {
+      const v = ['ceremony', 'podium', 'speech', 'slides'].includes(b.v) ? b.v : 'ceremony';
+      g.hokage.view = v; g.hokage.viewAt = now;
+      if (v === 'slides') { g.hokage.idx = 0; g.hokage.idxAt = now; g.hokage.paused = false; }
+      break;
+    }
+    case 'hokSpeech': g.hokage.speech = String(b.t || '').slice(0, 1200); break;
+    case 'hokMusic': g.hokage.music = String(b.url || '').slice(0, 300); break;
+    case 'hokDur': { const d = [3, 5, 8].includes(+b.d) ? +b.d : 5; g.hokage.idx = Math.max(0, b.cur | 0); g.hokage.idxAt = now; g.hokage.dur = d; break; }
+    case 'hokGo': g.hokage.idx = Math.max(0, Math.min(1000, b.i | 0)); g.hokage.idxAt = now; break;
+    case 'hokPause': g.hokage.paused = !!b.on; g.hokage.idx = Math.max(0, b.cur | 0); g.hokage.idxAt = now; break;
     default: return { error: 'unknown' };
   }
   await save(db, g);
