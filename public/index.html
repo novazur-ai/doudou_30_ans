@@ -209,7 +209,7 @@ function api(path,o){
   if(o.auth){var c=sess.get(KC);if(c)h['x-code']=c}
   if(path.indexOf('/api/game')===0&&sess.get(KX)==='1'){h['x-demo']='1';var c2=sess.get(KC);if(c2)h['x-code']=c2}
   return fetch(path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){
-    return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.error||'http');er.code=j.error;er.status=r.status;er.n=j.n;throw er}return j})});
+    return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.error||'http');er.code=j.error;er.status=r.status;er.n=j.n;er.r=j.r;throw er}return j})});
 }
 function refresh(){
   return api('/api/state',{auth:sess.get(KA)==='1'}).then(function(s){
@@ -263,7 +263,7 @@ function toast(msg){
 }
 
 /* ---------- vues ---------- */
-var draft=null,resetArmed=false;
+var draft=null,resetArmed=false,trollArmed=false;
 
 function vLanding(){
   var m=me();var c=db.config;
@@ -342,6 +342,9 @@ function vAdmin(){
    '<button class="btn primary" data-a="gmode" data-r="mj">Console du maître du jeu</button><button class="btn" data-a="gmode" data-r="ecran">Écran de projection</button>'+
    '<button class="btn" data-a="gmode" data-r="mj" data-d="1">Mode démo</button><div class="info">Le mode démo est une partie fictive, séparée de la vraie : personne d’autre ne la voit.</div>'+
    '<div class="info">'+(db.gameOn?'Le jeu est visible par les invités':'Le jeu est invisible pour les invités')+'</div></section>'+
+   '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Parchemin scellé</h2>'+
+   '<div class="info">Remet à zéro le compteur de codes ratés, l’historique affiché sur tous les téléphones et le blocage des essais.</div>'+
+   '<button class="btn" data-a="trollreset">Remettre à zéro</button></section>'+
    '<a class="btn primary" href="#orga">Organisation</a></div>';
 }
 function vOrga(){
@@ -438,10 +441,13 @@ function trollMsg(c){
   if(/^[0-9]{4}$/.test(c))return 'Déjà, bravo : tu as réussi à comprendre que ce n’était pas un code à 6 chiffres 👏\nImagine si j’avais mis un code à 2 chiffres 🙃🫠';
   return 'Dommage mon cœur, pas cette fois-ci 😘 Try again';
 }
-function trollLog(c,n){
+function trollHist(r){ // historique du téléphone, sans ce qui précède la dernière remise à zéro
   var h=[];try{h=JSON.parse(localStorage.getItem(KT)||'[]')}catch(_){}
-  h.unshift(c);h=h.slice(0,16);try{localStorage.setItem(KT,JSON.stringify(h))}catch(_){}
-  try{sessionStorage.setItem(KTL,JSON.stringify({c:c,n:n||0}))}catch(_){}
+  return h.map(function(x){return typeof x==='string'?{c:x,t:0}:x}).filter(function(x){return x&&x.t>(r||0)});
+}
+function trollLog(c,n,r){
+  var h=trollHist(r);h.unshift({c:c,t:Date.now()});h=h.slice(0,16);try{localStorage.setItem(KT,JSON.stringify(h))}catch(_){}
+  try{sessionStorage.setItem(KTL,JSON.stringify({c:c,n:n||0,r:r||0}))}catch(_){}
 }
 function partyStart(){
   var c=db.config;if(!c.date)return null;
@@ -459,7 +465,7 @@ var SHU='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><pat
 function emoT(s){return esc(s).replace(/🫠/g,'<img src="/vendor/em/melt.png" alt="🫠" style="height:1.15em;vertical-align:-.22em">').replace(/\n/g,'<br>')}
 function vSceau(){
   var l={};try{l=JSON.parse(sessionStorage.getItem(KTL)||'{}')}catch(_){}
-  var h=[];try{h=JSON.parse(localStorage.getItem(KT)||'[]')}catch(_){}
+  var h=trollHist(l.r).map(function(x){return x.c});
   var n=l.n||h.length,msg=trollMsg(l.c||'');
   return '<div style="position:fixed;inset:0;overflow:auto;background:#2b211a;z-index:30"><div style="max-width:430px;margin:0 auto;padding:calc(30px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:0;min-height:100%">'+
    '<div style="width:100%;height:16px;border-radius:8px;background:linear-gradient(#6b3f1d,#3b2210)"></div>'+
@@ -569,10 +575,14 @@ document.addEventListener('click',function(e){
     sess.set(KC,v);
     api(adm?'/api/admin/check':'/api/orga/check',{method:'POST',auth:true}).then(function(){sess.set(KA,'1');if(adm)sess.set(KD,'1');return refresh()}).then(function(){go(adm?'admin':'orga')}).catch(function(er){
       sess.del(KC);ci.value='';
-      if(er&&(er.status===401||er.status===429)){trollLog(v,er.n);go('sceau');return}
+      if(er&&(er.status===401||er.status===429)){trollLog(v,er.n,er.r);go('sceau');return}
       ci.classList.add('err');ci.focus();toast(errMsg(er))});
   }
   else if(a==='sceau-retry'){go('orga-acces')}
+  else if(a==='trollreset'){
+    if(!trollArmed){trollArmed=true;b.textContent='Confirmer ?';setTimeout(function(){trollArmed=false;if(b.isConnected)b.textContent='Remettre à zéro'},4000);return}
+    trollArmed=false;api('/api/admin/troll-reset',{method:'POST',auth:true}).then(function(){try{localStorage.removeItem(KT);sessionStorage.removeItem(KTL)}catch(_){}toast('Parchemin remis à zéro');b.textContent='Remettre à zéro'}).catch(function(er){toast(errMsg(er))});
+  }
   else if(a==='gmode'){if(b.getAttribute('data-d')==='1')sess.set(KX,'1');else sess.del(KX);go(b.getAttribute('data-r'))}
   else if(a==='quit'){sess.del(KA);sess.del(KC);sess.del(KD);sess.del(KX);refresh().then(function(){go('')})}
   else if(a==='saveorga'){readOrga();pushCfg().then(function(){toast('Enregistré');render(true)}).catch(function(er){toast(errMsg(er))})}

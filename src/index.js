@@ -47,6 +47,11 @@ async function bumpTroll(env) {
   const row = await env.DB.prepare("SELECT v FROM kv WHERE k='troll_n'").first();
   return row ? parseInt(row.v, 10) || 0 : 0;
 }
+// Date de la dernière remise à zéro du parchemin : les téléphones effacent l'historique antérieur.
+async function trollResetAt(env) {
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k='troll_r'").first();
+  return row ? parseInt(row.v, 10) || 0 : 0;
+}
 
 // Vérifie le code organisateur (6 chiffres) avec limitation des essais par IP.
 async function checkOrga(request, env, adminOnly) {
@@ -168,7 +173,7 @@ async function handle(request, env) {
 
   if (path === '/api/orga/check' && method === 'POST') {
     const r = await checkOrga(request, env);
-    if (r !== 'ok') return json({ error: r === 'locked' ? 'locked' : 'code', n: await bumpTroll(env) }, r === 'locked' ? 429 : 401);
+    if (r !== 'ok') return json({ error: r === 'locked' ? 'locked' : 'code', n: await bumpTroll(env), r: await trollResetAt(env) }, r === 'locked' ? 429 : 401);
     return json({ ok: true });
   }
 
@@ -261,7 +266,20 @@ async function handle(request, env) {
   // Menu admin caché (code à 4 chiffres). Le code admin ouvre aussi l'espace organisateur.
   if (path === '/api/admin/check' && method === 'POST') {
     const r = await checkOrga(request, env, true);
-    if (r !== 'ok') return json({ error: r === 'locked' ? 'locked' : 'code', n: await bumpTroll(env) }, r === 'locked' ? 429 : 401);
+    if (r !== 'ok') return json({ error: r === 'locked' ? 'locked' : 'code', n: await bumpTroll(env), r: await trollResetAt(env) }, r === 'locked' ? 429 : 401);
+    return json({ ok: true });
+  }
+
+  // Remise à zéro du parchemin scellé (compteur, historique des téléphones, blocage des essais) — admin uniquement.
+  if (path === '/api/admin/troll-reset' && method === 'POST') {
+    const r = await checkOrga(request, env, true);
+    if (r === 'locked') return fail('locked', 429);
+    if (r !== 'ok') return fail('code', 401);
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO kv (k,v) VALUES ('troll_n','0') ON CONFLICT(k) DO UPDATE SET v='0'"),
+      env.DB.prepare("INSERT INTO kv (k,v) VALUES ('troll_r', ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(String(Date.now())),
+      env.DB.prepare('DELETE FROM attempts'),
+    ]);
     return json({ ok: true });
   }
 
