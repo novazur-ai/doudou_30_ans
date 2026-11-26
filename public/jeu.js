@@ -35,7 +35,7 @@
     'Aujourd’hui, pour devenir Hokage, il lui reste une dernière épreuve.',
     'Sanjûbi, le démon à 30 queues, s’est réveillé. Il a volé ses 30 bougies et veut lui voler sa jeunesse.',
     'Seuls les trois grands clans du village peuvent l’arrêter : le Feu, la Foudre et le Vent.',
-    'K-pop no Jutsu, Hit-Jutsu, Examen Chûnin, Théâtre des ombres et Voie du ninja : chaque épreuve renforcera votre chakra pour la Bataille des 30 queues.',
+    'De l’examen des Chûnins au Théâtre des ombres, en passant par le fameux K-pop no Jutsu : chaque épreuve renforcera votre chakra pour la Bataille des 30 queues.',
     'Ninjas, formez vos clans !',
   ];
 
