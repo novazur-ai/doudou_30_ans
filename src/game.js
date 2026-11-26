@@ -12,6 +12,8 @@ const FAKE = ['Léa', 'Marc', 'Tom', 'Zoé', 'Paul', 'Inès', 'Hugo', 'Alessia']
 const STEPS = 7; // 0 ouverture, 1 rythme, 2 savoir, 3 ombre, 4 destin, 5 boss, 6 hokage
 const MOVES = ['heart', 'bigheart', 'horse', 'tt', 'shimmy', 'wave', 'point', 'flip', 'mudra', 'run'];
 const BOSS_HP = 2026;
+// Musique du Rythme : la même pour les 3 clans (TXT & Jonas Brothers, « Do It Like That »), extrait de 1:04 à 1:40.
+const SONG = 'https://youtu.be/C0EYKxF1oTI?t=64', SONG_END = 100;
 // Équilibrage : la phase 1 vise ~1 000 dégâts, le Rasengan amène Sanjûbi à 30 PV (une par bougie), le coup final d'Alessia les retire.
 const FINAL_HP = 30, P1_TARGET = 1000, P2_MIN = 500, TAPS_PER_PHONE = 30;
 
@@ -110,7 +112,7 @@ function fresh() {
     savoir: { list: [], idx: 0 },
     ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
     destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
-    rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: '', foudre: '', vent: '' }, music: null },
+    rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: SONG, foudre: SONG, vent: SONG }, songEnd: SONG_END, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
     hokage: { view: 'ceremony', viewAt: 0, speech: '', music: '', dur: 5, idx: 0, idxAt: 0, paused: false },
   };
@@ -120,7 +122,9 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); return { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) } }; } catch (_) { return g; }
+  try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) } };
+    if (!CLANS.some((c) => out.rythme.songs && out.rythme.songs[c])) out.rythme.songs = { feu: SONG, foudre: SONG, vent: SONG };
+    return out; } catch (_) { return g; }
 }
 async function save(db, g) {
   g.rev = (g.rev || 0) + 1;
@@ -354,7 +358,7 @@ export async function mjAct(db, b, now) {
       break;
     }
     case 'rUnlock': g.rythme.lockAt = 0; break;
-    case 'rSongs': for (const c of CLANS) g.rythme.songs[c] = String((b.songs || {})[c] || '').trim().slice(0, 200); break;
+    case 'rSongs': { const u = String(b.url || '').trim().slice(0, 200); for (const c of CLANS) g.rythme.songs[c] = u; g.rythme.songEnd = Math.max(0, Math.min(3600, b.end | 0)); break; }
     case 'rStage': { // un clan entre en piste
       if (!okClan(b.clan)) break;
       g.rythme.cur = b.clan; g.rythme.stage = 'dance';

@@ -518,7 +518,11 @@
         '<div style="font-weight:700;font-size:14px">' + (s.length ? s.map(function (k, i) { return (i + 1) + '. ' + esc(MK[k].t); }).join(' · ') : 'Pas encore choisie') + '</div>' +
         (songs[c.k] ? '<div class="row" style="gap:6px">' + (ry.music && ry.music.clan === c.k ? '<button class="chip" data-g="music" data-c="' + c.k + '" data-on="0">Couper la musique</button>' : '<button class="chip" data-g="music" data-c="' + c.k + '" data-on="1">Musique</button>') + '</div>' : '') + '</div>';
     }).join('') + '<div class="muted" style="font-size:12px">En piste : la musique du clan démarre sur l’écran. Après la danse, ouvre le vote : les 2 autres clans notent sur 5 depuis leurs téléphones, la moyenne arrondie devient leurs points.</div></section>';
-    h += '<section class="card"><div class="lab">Musiques · lien YouTube avec le minutage (?t=)</div>' + CL.map(function (c) { return '<label class="muted" for="g-song-' + c.k + '" style="font-size:13px;color:' + c.ink + '">' + esc(c.n) + '</label><input id="g-song-' + c.k + '" inputmode="url" placeholder="https://youtu.be/…?t=60" value="' + esc(songs[c.k] || '') + '">'; }).join('') + '<button class="btn2" data-g="songs">Enregistrer les musiques</button></section>';
+    var sg = songs.feu || '', sv = yt(sg), se = ry.songEnd || 0;
+    h += '<section class="card"><div class="lab">Musique · la même pour les 3 clans</div><label class="muted" for="g-song" style="font-size:13px">Lien YouTube avec le début (?t=)</label><input id="g-song" inputmode="url" placeholder="https://youtu.be/…?t=60" value="' + esc(sg) + '">' +
+      '<label class="muted" for="g-songend" style="font-size:13px">Fin de l’extrait (min:s, vide = jusqu’au bout)</label><input id="g-songend" inputmode="numeric" placeholder="1:40" value="' + (se ? Math.floor(se / 60) + ':' + String(se % 60).padStart(2, '0') : '') + '">' +
+      (sv ? '<div class="muted" style="font-size:12px">Extrait joué : ' + Math.floor(sv.start / 60) + ':' + String(sv.start % 60).padStart(2, '0') + (se ? ' → ' + Math.floor(se / 60) + ':' + String(se % 60).padStart(2, '0') + ' (' + (se - sv.start) + ' s)' : '') + '</div>' : '') +
+      '<button class="btn2" data-g="songs">Enregistrer la musique</button></section>';
     return h + nextBtn();
   }
   function mSavoir() {
@@ -675,17 +679,17 @@
     });
   }
   function musicSync() {
-    var ry = st && st.rythme, m = st && st.step === 1 && ry && ry.music, v = m ? yt(ry.songs[m.clan]) : null;
+    var ry = st && st.rythme, m = st && st.step === 1 && ry && ry.music, v = m ? yt(ry.songs[m.clan]) : null, end = v && ry.songEnd > v.start ? ry.songEnd : 0;
     var key = v ? m.clan + m.at : '', box = document.getElementById('gmusic');
     var hk = st && st.step === 6 && st.hokage, hv = hk && hk.view === 'slides' && hk.music ? yt(hk.music) : null;
-    if (hv) { v = hv; key = 'h' + hk.music + hk.viewAt; }
+    if (hv) { v = hv; end = 0; key = 'h' + hk.music + hk.viewAt; }
     if (key === musicKey) return;
     musicKey = key;
     if (box) box.remove();
     if (!v || mode !== 'ecran') return;
     box = document.createElement('div'); box.id = 'gmusic';
     box.style.cssText = 'position:fixed;right:1.4vw;bottom:1.4vw;width:20vw;aspect-ratio:16/9;z-index:40;border-radius:1vw;overflow:hidden;box-shadow:0 1vw 2vw rgba(0,0,0,.25);background:#000';
-    box.innerHTML = '<iframe src="https://www.youtube.com/embed/' + v.id + '?autoplay=1&start=' + v.start + '&rel=0&playsinline=1" title="Musique" allow="autoplay; encrypted-media" style="width:100%;height:100%;border:0"></iframe>';
+    box.innerHTML = '<iframe src="https://www.youtube.com/embed/' + v.id + '?autoplay=1&start=' + v.start + (end ? '&end=' + end : '') + '&rel=0&playsinline=1" title="Musique" allow="autoplay; encrypted-media" style="width:100%;height:100%;border:0"></iframe>';
     document.body.appendChild(box);
   }
   var firedO = {};
@@ -1008,10 +1012,11 @@
     if (g === 'rreveal') { act('rReveal'); return; }
     if (g === 'music') { act('music', { clan: d('c'), on: d('on') === '1' }); return; }
     if (g === 'songs') {
-      var so = {}; CL.forEach(function (c) { var e = document.getElementById('g-song-' + c.k); so[c.k] = e ? e.value.trim() : ''; });
-      var bad = CL.filter(function (c) { return so[c.k] && !yt(so[c.k]); });
-      if (bad.length) { A.toast('Lien YouTube invalide : ' + bad.map(function (c) { return c.n; }).join(', ')); return; }
-      act('rSongs', { songs: so }).then(function () { A.toast('Musiques enregistrées'); });
+      var se1 = document.getElementById('g-song'), se2 = document.getElementById('g-songend'), u = se1 ? se1.value.trim() : '', et = se2 ? se2.value.trim() : '';
+      if (u && !yt(u)) { A.toast('Lien YouTube invalide'); return; }
+      var em = et.match(/^(\d+):([0-5]\d)$/), end = et ? (em ? +em[1] * 60 + +em[2] : /^\d+$/.test(et) ? +et : -1) : 0;
+      if (end < 0 || (end && u && end <= yt(u).start)) { A.toast('Fin invalide (format 1:40, après le début)'); return; }
+      act('rSongs', { url: u, end: end }).then(function () { A.toast('Musique enregistrée'); });
       return;
     }
     if (g === 'cri') {
