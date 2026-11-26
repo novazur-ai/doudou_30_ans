@@ -184,6 +184,9 @@
   function d20svg(n, size, roll) {
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" style="' + (roll ? 'animation:roll .4s linear ' + roll + ';' : '') + 'filter:drop-shadow(0 4px 8px rgba(43,29,18,.25))"><polygon points="50,4 92,28 92,72 50,96 8,72 8,28" fill="#f8efdc" stroke="#2b1d12" stroke-width="3"/><polygon points="50,22 76,64 24,64" fill="none" stroke="#2b1d12" stroke-width="1.8" opacity=".8"/><path d="M50 4 50 22 M92 28 76 64 M92 72 76 64 M50 96 76 64 M50 96 24 64 M8 72 24 64 M8 28 24 64 M8 28 50 22 M92 28 50 22" stroke="#2b1d12" stroke-width="1.3" opacity=".5"/><text x="50" y="57" text-anchor="middle" font-family="Georgia,serif" font-size="21" font-weight="700" fill="#2b1d12">' + n + '</text></svg>';
   }
+  function sgn(m) { return (m > 0 ? '+' : '−') + Math.abs(m); }
+  function calcTxt(r) { if (r.roll === null || !r.mods || !r.mods.length) return ''; return r.roll + r.mods.map(function (x) { return ' ' + (x.m > 0 ? '+' : '−') + ' ' + Math.abs(x.m) + ' (' + x.why + ')'; }).join('') + ' = ' + r.total; }
+  function ctxLines(cx, fs) { if (!cx || !cx.lines.length) return ''; return '<div style="border-left:3px solid #8a5a2b;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:3px">' + cx.lines.map(function (l) { return '<div style="font-style:italic;font-size:' + fs + ';line-height:1.4">' + esc(l.t) + (l.m ? ' <b style="font:800 .85em Nunito,Arial,sans-serif;font-style:normal;white-space:nowrap;color:' + (l.m > 0 ? '#2f6b45' : '#b5302a') + '">' + sgn(l.m) + ' au dé</b>' : '') + '</div>'; }).join('') + '</div>'; }
   function rollSpec(at) { var el = (now() - at) / 1000; var left = 1.6 - el; return left > 0 ? Math.max(1, Math.round(left / 0.4)) + '' : ''; }
   function wheelSvg(idx, size, startIn) {
     var cols = ['#F4C6D3', '#F7E6A8', '#BFE3D4', '#D9CEF0'], seg = '';
@@ -390,7 +393,7 @@
   function scrollWrap(inner) { return { cls: 'dark', html: '<div class="scr"' + (demo() ? ' style="padding-top:calc(52px + env(safe-area-inset-top))"' : '') + '><div class="rod"></div><div class="paper">' + inner + '</div><div class="rod"></div></div>' }; }
   function pDestin(c) {
     var d = st.destin; if (!d) return scrollWrap('');
-    var head = '<div class="sk">Carrefour ' + ['一', '二', '三'][d.c] + (d.double ? ' · tout compte double' : '') + '</div><div style="font-size:26px;font-weight:700;line-height:1.1">' + esc(d.title) + '</div><div style="height:2px;background:linear-gradient(90deg,#2b1d12,transparent)"></div>';
+    var head = '<div class="sk">Carrefour ' + ['一', '二', '三'][d.c] + (d.double ? ' · points ×2' : '') + '</div><div style="font-size:26px;font-weight:700;line-height:1.1">' + esc(d.title) + '</div><div style="height:2px;background:linear-gradient(90deg,#2b1d12,transparent)"></div>';
     var foot = function (txt) { return '<div class="sk" style="margin-top:auto;text-align:center">' + txt + '</div>'; };
     if (d.mine) {
       var r = d.mine, rs = d.mineAt ? rollSpec(d.mineAt) : '', del = d.mineAt ? Math.max(0, 1.6 - (now() - d.mineAt) / 1000) : 0;
@@ -398,6 +401,7 @@
         '<div class="sk">' + esc(['Prudent', 'Audacieux', 'Fou'][' ABC'.indexOf(r.opt) - 1]) + (r.roll === null ? ' · assuré' : ' · difficulté ' + r.dd) + '</div>' +
         (r.roll === null ? '<div class="stamp" style="width:84px;height:84px;font-size:44px;animation:stampin .5s ease-out both">成</div>' :
           d20svg(r.roll, 128, rs) + '<div class="stamp" style="width:76px;height:76px;font-size:40px;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div>') +
+        (calcTxt(r) ? '<div style="font:800 14px Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
         '<div style="font-size:28px;font-weight:700;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.ok ? 'Réussite !' : 'Échec…') + '</div>' +
         '<div style="font-style:italic;font-size:16px;line-height:1.5;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
         '<div style="font:800 15px Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + ' point' + (Math.abs(r.pts) > 1 ? 's' : '') + (r.double ? ' · ×2 dernier carrefour' : '') + (r.joker ? ' · joker' : '') + '</div>' +
@@ -412,7 +416,7 @@
       return '<button class="scl" data-g="vote" data-k="' + o.k + '"' + (vote ? '' : ' disabled') + '><i></i><b style="min-height:' + (on ? 330 : 270) + 'px;' + (on ? 'outline:3px solid #b5302a;outline-offset:-3px;' : '') + (vote || on ? '' : 'opacity:.75') + '"><span style="font-size:28px;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:15px;line-height:1.3">' + esc(o.t) + '</span><span class="sk" style="letter-spacing:.06em;color:' + cols[i] + ';font-size:10.5px">' + esc(o.r).replace(' · ', '<br>') + '</span>' + (on ? '<span class="stamp" style="margin-top:auto;width:44px;height:44px;font-size:24px;animation:stampin .4s ease-out both">選</span>' : '') + '</b><i></i></button>';
     }).join('') + '</div>';
     var status = d.stage === 'story' ? 'Écoutez le récit… le vote va s’ouvrir' : vote ? 'Clan du ' + esc(c.n) + ' · ' + cdu(d.voteEnd, '', 'border-radius:6px;padding:0 4px') : 'Votes verrouillés';
-    return scrollWrap(head + '<div style="font-style:italic;font-size:15px;line-height:1.5">' + esc(d.text) + '</div>' + scrolls + foot(status));
+    return scrollWrap(head + '<div style="font-style:italic;font-size:15px;line-height:1.5">' + esc(d.text) + '</div>' + ctxLines(d.ctx, '14px') + scrolls + foot(status));
   }
   function pBoss(c) {
     var b = st.boss || {};
@@ -539,9 +543,11 @@
   }
   function mDestin() {
     var d = st.destin, sc = st.destinScenes[d.c], v = st.destinVotes || {}, res = d.results || {};
-    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Carrefour ' + (d.c + 1) + ' / 3</span>' + (d.c === 2 ? '<span class="pill" style="background:#3A3350;color:#F7E6A8">Tout compte double</span>' : '') + '</div><div class="ser" style="font-size:20px">' + esc(sc.title) + '</div>' +
+    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Carrefour ' + (d.c + 1) + ' / 3</span>' + (d.c === 2 ? '<span class="pill" style="background:#3A3350;color:#F7E6A8">Points ×2</span>' : '') + '</div><div class="ser" style="font-size:20px">' + esc(sc.title) + '</div>' +
       '<div style="background:#FFF6D9;border-radius:12px;padding:10px 12px;font-weight:700;line-height:1.45">À lire : ' + esc(sc.text) + '</div>' +
       sc.opts.map(function (o, i) { return '<div style="font-weight:700;font-size:14px"><b>' + 'ABC'[i] + '</b> · ' + esc(o.t) + ' <span class="muted" style="font-size:12px">(' + esc(sc.tags[i]) + ')</span></div>'; }).join('') + '</section>';
+    var cxs = st.destinCtx || {};
+    if (d.c > 0 && d.stage !== 'reveal') h += '<section class="card"><div class="lab">Suite de chaque clan · affichée sur son téléphone</div>' + CL.map(function (c) { var cx = cxs[c.k]; if (!cx || !cx.lines.length) return ''; return '<div style="background:' + c.bg + ';border-radius:12px;padding:8px 12px"><div style="font-weight:800;color:' + c.ink + '">' + esc(c.n) + ' · ' + sgn(cx.mod).replace('+0', '±0').replace('−0', '±0') + ' au dé</div>' + cx.lines.map(function (l) { return '<div style="font-size:14px;font-weight:600">' + esc(l.t) + '</div>'; }).join('') + '</div>'; }).join('') + '</section>';
     if (d.stage === 'story') h += '<button class="btn" data-g="dopen">Ouvrir le vote · 45 s</button>';
     else if (d.stage === 'vote') {
       var tleft = now() <= d.voteEnd;
@@ -552,7 +558,7 @@
       h += '<section class="card"><div class="lab">Révélations</div>' + d.order.map(function (k, i) {
         var c = CK[k], r = res[k];
         if (i >= d.shown) return i === d.shown ? '<button class="btn" data-g="dshow" style="background:' + c.ink + ';box-shadow:0 5px 0 rgba(0,0,0,.25)">Révéler : clan du ' + esc(c.n) + '</button>' : '<div class="muted">Clan du ' + esc(c.n) + ' · en attente</div>';
-        return '<div style="background:' + c.bg + ';border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div style="font-weight:800">' + esc(c.n) + ' · ' + r.opt + (r.roll === null ? ' · assuré' : ' · d20 ' + r.roll + ' / ' + r.dd) + ' · ' + (r.pts > 0 ? '+' : '') + r.pts + '</div><div style="font-weight:700;font-size:14px">À lire : ' + esc(r.text) + '</div>' + (r.gage ? '<div style="font-weight:800;color:#A63A55;font-size:14px">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
+        return '<div style="background:' + c.bg + ';border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div style="font-weight:800">' + esc(c.n) + ' · ' + r.opt + (r.roll === null ? ' · assuré' : ' · d20 ' + (r.mod ? r.roll + ' ' + sgn(r.mod).replace(/^([+−])/, '$1 ') + ' = ' + r.total : r.roll) + ' / ' + r.dd) + ' · ' + (r.pts > 0 ? '+' : '') + r.pts + '</div><div style="font-weight:700;font-size:14px">À lire : ' + esc(r.text) + '</div>' + (r.gage ? '<div style="font-weight:800;color:#A63A55;font-size:14px">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
       }).join('') + '</section>';
       if (d.shown >= 3) h += d.c < 2 ? '<button class="btn" data-g="dnext">Carrefour suivant</button>' : '<section class="card" style="background:#3A3350;color:#fff;border-color:#3A3350"><div class="lab" style="color:#D9CEF0">À lire pour conclure</div><div style="font-weight:700;line-height:1.45">' + esc(st.destinOutro) + '</div></section>' + nextBtn();
     }
@@ -796,7 +802,7 @@
     var d = st.destin, sc = st.destinScenes[d.c], res = d.results || {}, tnow = now();
     var cols = ['#2f6b45', '#9a6a12', '#b5302a'], inner;
     var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 4 / 5 · Destin · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">TOUT COMPTE DOUBLE</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">POINTS ×2</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
     if (d.stage !== 'reveal') {
       inner = head + '<div style="font-style:italic;font-size:1.9vw;line-height:1.45;max-width:80%">' + esc(sc.text) + '</div>' +
         '<div style="display:flex;gap:3vw;justify-content:center;flex:1;align-items:flex-start">' + sc.opts.map(function (o, i) {
@@ -813,6 +819,7 @@
         return '<div data-dr="' + k.k + '" style="background:rgba(255,255,255,.45);border:.2vw solid ' + k.ink + ';border-radius:1.6vw;padding:1.4vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9vw;text-align:center">' +
           '<div class="ser" style="font-size:2.2vw;color:' + k.ink + '">' + esc(k.n) + ' · ' + ['一', '二', '三'][' ABC'.indexOf(r.opt) - 1] + '</div><div style="font-size:1.3vw;line-height:1.3">' + esc(sc.opts[' ABC'.indexOf(r.opt) - 1].t) + '</div>' +
           (r.roll === null ? '<div class="stamp" style="width:7vw;height:7vw;font-size:3.6vw;animation:stampin .5s ease-out both">成</div>' : '<div style="display:flex;align-items:center;gap:1.2vw">' + d20svg(r.roll, '8vw', rs).replace('width="8vw" height="8vw"', 'style="width:8vw;height:8vw"') + '<div class="stamp" style="width:5.6vw;height:5.6vw;font-size:3vw;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div></div>') +
+          (calcTxt(r) ? '<div style="font:800 1.3vw Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
           '<div style="font-style:italic;font-size:1.35vw;line-height:1.4;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
           '<div style="font:800 1.8vw Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + (r.double ? ' (×2)' : '') + '</div>' +
           (r.gage && !(latest && tnow - d.shownAt < 7200) ? '<div style="font-size:1.25vw;line-height:1.35;color:#b5302a;font-weight:700">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';

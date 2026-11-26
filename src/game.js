@@ -36,24 +36,47 @@ export const DESTIN = [
   },
   {
     title: 'La Forêt de la Mort',
-    text: 'Les arbres murmurent le nom de Sanjûbi. Trois chemins s’enfoncent dans la forêt. Lequel prenez-vous ?',
+    text: 'La rumeur s’est répandue au village : Sanjûbi se cache au cœur de la Forêt de la Mort. À l’orée, trois chemins s’enfoncent entre les arbres. Lequel prenez-vous ?',
     opts: [
-      { t: 'La route balisée', ok: 'Lente mais sûre : vous arrivez sans une égratignure.' },
-      { t: 'Le raccourci par le marais', ok: 'Vous traversez en sautant de nénuphar en nénuphar, comme de vrais ninjas.', ko: 'Embourbés jusqu’aux genoux… vous ressortez avec une chaussure en moins.' },
+      { t: 'Suivre la route balisée', ok: 'Lente mais sûre : vous arrivez sans une égratignure, juste à temps pour repérer l’entrée du repaire.' },
+      { t: 'Couper par le marais', ok: 'De nénuphar en nénuphar, comme de vrais ninjas… et vous tombez sur des traces fraîches de Sanjûbi !', ko: 'Embourbés jusqu’aux genoux… vous ressortez avec une chaussure en moins.' },
       { t: "La tyrolienne au-dessus des serpents d'Orochimaru", ok: 'Vous survolez les serpents en hurlant votre cri de guerre. Entrée légendaire !', ko: 'La corde lâche à mi-chemin. Les serpents, eux, ne lâchent rien.' },
     ],
   },
   {
     title: 'Le repaire de Sanjûbi',
-    text: "Au fond du repaire, les 30 bougies d'Alessia brillent, gardées par les sbires de Sanjûbi. Dernière chance avant le combat : tout compte double !",
+    text: "Au bout de la forêt, le repaire. Les 30 bougies d'Alessia brillent, gardées par les sbires de Sanjûbi… qui ont l'air affamés. Dernière chance avant le combat : tous les points comptent double !",
     opts: [
-      { t: 'Négocier avec les sbires', ok: 'Une part de gâteau contre une bougie : marché conclu.' },
-      { t: 'Créer une diversion', ok: 'Vous entonnez « Joyeux anniversaire » : les sbires, émus, chantent avec vous.', ko: 'Votre diversion fait un flop. Les sbires vous fixent, perplexes.' },
-      { t: "Attaque frontale en clones d'ombre", ok: 'Dix clones surgissent de la fumée : les sbires s’enfuient en hurlant !', ko: 'Vos clones se trompent de cible et se battent entre eux…' },
+      { t: 'Négocier avec les sbires', ok: 'Une part de gâteau contre une bougie : marché conclu.', okRecipe: 'La recette d’Ichiraku contre les bougies : les sbires en pleurent de joie.' },
+      { t: 'Créer une diversion', ok: 'Vous entonnez « Joyeux anniversaire » : les sbires, émus, chantent avec vous… pendant que vous filez avec les bougies.', ko: 'Votre diversion fait un flop. Les sbires vous fixent, perplexes.' },
+      { t: "Attaque frontale en clones d'ombre", ok: 'Dix clones surgissent de la fumée : les sbires s’enfuient en hurlant !', ko: 'Vos clones se transforment en Sexy Jutsu… et les sbires se moquent de vous !' },
     ],
   },
 ];
-export const DESTIN_OUTRO = 'Les bougies sont réunies… mais le sol tremble. Sanjûbi, le démon à 30 queues, surgit de l’ombre. Le combat final commence !';
+export const DESTIN_OUTRO = 'Les bougies sont réunies… mais le sol tremble. Sanjûbi, le démon à 30 queues, surgit de l’ombre, furieux qu’on lui ait volé son festin. Le combat final commence !';
+// Suites : selon le choix et le résultat d'un clan, une phrase et un bonus de dé au carrefour suivant.
+const NEXT = [
+  [
+    { ok: { t: 'Grâce à l’indice du chef, vous savez où chercher.', m: 2, why: 'indice du chef' } },
+    { ok: { t: 'La recette d’Ichiraku en poche, vous filez vers la forêt.', m: 0 }, ko: { t: 'Le ventre plein de ramens, vous avancez… lentement.', m: -1, why: 'ventre plein' } },
+    { ok: { t: 'Recette et dessert en poche, rien ne peut vous arrêter.', m: 0 }, ko: { t: 'Vous sentez encore le bouillon… et la forêt aussi.', m: -2, why: 'bouillon' } },
+  ],
+  [
+    { ok: { t: 'Arrivés par la route, vous êtes reposés et lucides.', m: 1, why: 'reposés' } },
+    { ok: { t: 'Les traces de Sanjûbi vous mènent droit aux bougies.', m: 2, why: 'traces de Sanjûbi' }, ko: { t: 'Avec une chaussure en moins, la discrétion est compliquée.', m: -1, why: 'chaussure perdue' } },
+    { ok: { t: 'Votre entrée légendaire a fait trembler les sbires.', m: 2, why: 'entrée légendaire' }, ko: { t: 'Encore sonnés par les serpents, vous titubez jusqu’au repaire.', m: -2, why: 'morsures' } },
+  ],
+];
+const RECIPE = { t: 'Et vous avez la recette d’Ichiraku : les sbires affamés en salivent déjà.', m: 2, why: 'recette' };
+const hasRecipe = (D, clan) => { const r = D.hist && D.hist[0] && D.hist[0][clan]; return !!(r && r.opt !== 'A' && r.ok); };
+// Ce que le clan rapporte des carrefours précédents : phrases à lire et bonus total au dé.
+function destinCtx(D, clan) {
+  const prev = D.c > 0 && D.hist && D.hist[D.c - 1] && D.hist[D.c - 1][clan];
+  if (!prev) return { lines: [], mod: 0 };
+  const lines = [NEXT[D.c - 1]['ABC'.indexOf(prev.opt)][prev.ok ? 'ok' : 'ko']];
+  if (D.c === 2 && hasRecipe(D, clan)) lines.push(RECIPE);
+  return { lines, mod: lines.reduce((a, l) => a + l.m, 0) };
+}
 const TAGS = ['Prudent · assuré', 'Audacieux · D20 10+', 'Fou · D20 15+'];
 const DD = [0, 10, 15];
 const BASE = [1, 3, 6];
@@ -85,7 +108,7 @@ function fresh() {
     ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
     savoir: { list: [], idx: 0 },
     ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
-    destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0 },
+    destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: '', foudre: '', vent: '' }, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
     hokage: { slide: false, at: 0 },
@@ -203,6 +226,7 @@ export async function playerView(db, name, now) {
       mineAt: clan && D.order[D.shown - 1] === clan ? D.shownAt : 0,
       waiting: D.stage === 'reveal' && clan && !shown.includes(clan),
       last: D.c === DESTIN.length - 1 && D.stage === 'reveal' && D.shown >= 3,
+      ctx: clan ? destinCtx(D, clan) : null,
     };
   }
   if (g.step === 5) {
@@ -223,7 +247,7 @@ export async function fullView(db, now) {
   if (g.step === 1 && g.rythme.cur) { const v = await rateVotes(db, g.rythme.cur); out.rateCount = v.length; }
   out.rLocked = rLocked(g, now);
   out.cris = await cris(db);
-  if (g.step === 4) out.destinVotes = await votes(db, g);
+  if (g.step === 4) { out.destinVotes = await votes(db, g); out.destinCtx = {}; for (const c of CLANS) out.destinCtx[c] = destinCtx(g.destin, c); }
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
   const ph = await db.prepare('SELECT id FROM photos ORDER BY id').all();
   out.photos = ph.results.map((x) => x.id);
@@ -438,11 +462,14 @@ export async function mjAct(db, b, now) {
       const res = {};
       for (const clan of CLANS) {
         const opt = v[clan] || 'A', i = 'ABC'.indexOf(opt), o = DESTIN[g.destin.c].opts[i];
-        const roll = i === 0 ? null : d20();
-        const ok = i === 0 || roll >= DD[i];
+        const cx = destinCtx(g.destin, clan), roll = i === 0 ? null : d20();
+        const total = roll === null ? null : roll + cx.mod;
+        const ok = i === 0 || total >= DD[i];
+        const mods = cx.lines.filter((l) => l.m).map((l) => ({ m: l.m, why: l.why }));
+        const text = ok ? (i === 0 && g.destin.c === 2 && hasRecipe(g.destin, clan) ? o.okRecipe : o.ok) : o.ko;
         const base = ok ? BASE[i] : i === 2 ? -1 : 0;
         const gi = !ok && i === 2 ? Math.floor(Math.random() * GAGES.length) : null;
-        res[clan] = { opt, roll, dd: DD[i], ok, base, text: ok ? o.ok : o.ko, gage: gi === null ? null : GAGES[gi], gageIdx: gi, voted: !!v[clan] };
+        res[clan] = { opt, roll, mod: cx.mod, mods, total, dd: DD[i], ok, base, text, gage: gi === null ? null : GAGES[gi], gageIdx: gi, voted: !!v[clan] };
       }
       g.destin.results = res; g.destin.stage = 'reveal'; g.destin.order = shuffle(CLANS); g.destin.shown = 0; g.destin.shownAt = 0;
       break;
@@ -459,7 +486,7 @@ export async function mjAct(db, b, now) {
       break;
     }
     case 'destinNext':
-      if (g.destin.c < DESTIN.length - 1 && g.destin.stage === 'reveal' && g.destin.shown >= 3) g.destin = { c: g.destin.c + 1, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0 };
+      if (g.destin.c < DESTIN.length - 1 && g.destin.stage === 'reveal' && g.destin.shown >= 3) g.destin = { c: g.destin.c + 1, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: { ...(g.destin.hist || {}), [g.destin.c]: g.destin.results } };
       break;
 
     case 'bossP1': {
