@@ -294,7 +294,7 @@
     if (!root) return;
     var t = now();
     root.querySelectorAll('[data-cd]').forEach(function (e) { var rem = +e.getAttribute('data-cd') - t; e.textContent = mmss(rem); if (e.hasAttribute('data-urg')) e.classList.toggle('urg', rem <= 10000 && rem > 0); });
-    root.querySelectorAll('[data-pie]').forEach(function (e) { var f = Math.max(0, Math.min(1, (+e.getAttribute('data-pie') - t) / +e.getAttribute('data-dur'))); e.style.strokeDashoffset = (157.08 * (1 - f)).toFixed(2); });
+    root.querySelectorAll('[data-pie]').forEach(function (e) { var f = Math.max(0, Math.min(1, (+e.getAttribute('data-pie') - t) / +e.getAttribute('data-dur'))); e.style.strokeDashoffset = (150.8 * (1 - f)).toFixed(2); });
     root.querySelectorAll('[data-cdbar]').forEach(function (e) { e.style.width = Math.max(0, Math.min(100, (+e.getAttribute('data-cdbar') - t) / +e.getAttribute('data-dur') * 100)) + '%'; });
     // ré-affichages liés au temps (dés, fin de chrono, rasengan, diaporama)
     if (st && (needsTimeRedraw(t))) { lastHtml = ''; draw(); }
@@ -436,11 +436,11 @@
     return h + nextBtn();
   }
   function projEcho() {
-    var x = echoInfo(), p = x.play, ink = p ? p.ink : '#3A3350', C = 157.08;
+    var x = echoInfo(), p = x.play, ink = p ? p.ink : '#3A3350', C = 150.8;
     var f = x.wait ? 1 : x.run ? Math.max(0, (x.e.end - now()) / 45000) : 0;
-    var pie = '<svg viewBox="0 0 100 100" style="width:24vw;height:24vw;display:block"><circle cx="50" cy="50" r="48" fill="#fff" stroke="' + ink + '" stroke-width="2"/><circle ' + (x.run ? 'data-pie="' + x.e.end + '" data-dur="45000" ' : '') + 'cx="50" cy="50" r="25" fill="none" stroke="' + ink + '" stroke-width="50" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - f)).toFixed(2) + '" transform="rotate(-90 50 50) scale(1 -1) translate(0 -100)" style="transition:stroke-dashoffset .3s linear' + (x.run ? '' : ';transition:none') + '"/></svg>';
+    var pie = '<svg viewBox="0 0 100 100" style="width:24vw;height:24vw;display:block"><circle cx="50" cy="50" r="48" fill="#fff" stroke="' + ink + '" stroke-width="2"/><circle ' + (x.run ? 'data-pie="' + x.e.end + '" data-dur="45000" ' : '') + 'cx="50" cy="50" r="24" fill="none" stroke="' + ink + '" stroke-width="48" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - f)).toFixed(2) + '" transform="rotate(-90 50 50) scale(1 -1) translate(0 -100)" style="transition:stroke-dashoffset .3s linear' + (x.run ? '' : ';transition:none') + '"/></svg>';
     var left = x.done ? '<div class="ser" style="font-size:4vw;text-align:center">Fin de l’épreuve</div>' :
-      '<div style="display:flex;flex-direction:column;align-items:center;gap:1.4vw">' + pie +
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:1.4vw;width:30vw;flex-shrink:0;text-align:center">' + pie +
       '<div class="ser" style="font-size:2.8vw;color:' + ink + '">' + (x.run ? cd(x.e.end, '', 'font-size:3.4vw') : x.open ? 'Aux autres clans !' : 'Clan du ' + esc(p.n) + ' : piochez !') + '</div></div>';
     var scores = '<div style="display:flex;flex-direction:column;gap:1.4vw;flex:1">' + CL.map(function (c) {
       var on = p && p.k === c.k && !x.open;
