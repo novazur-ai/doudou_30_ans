@@ -9,7 +9,9 @@ export function demoDb(db) {
   return { demo: true, prepare: (sql) => db.prepare(tr(sql)), batch: (a) => db.batch(a) };
 }
 const FAKE = ['Léa', 'Marc', 'Tom', 'Zoé', 'Paul', 'Inès', 'Hugo', 'Alessia'];
-const STEPS = 7; // 0 ouverture, 1 rythme, 2 savoir, 3 ombre, 4 destin, 5 boss, 6 hokage
+const STEPS = 8; // 0 ouverture, 1 rythme, 2 savoir, 3 ombre, 4 destin, 5 boss, 6 hokage, 7 écho (jouée entre rythme et savoir)
+const JOKER_STEPS = [1, 7, 2, 3, 4];
+const ECHO_CARDS = 6, ECHO_SECS = 45; // Hitster : 2 tours, une carte par clan et par tour
 const MOVES = ['heart', 'bigheart', 'horse', 'tt', 'shimmy', 'wave', 'point', 'flip', 'mudra', 'run'];
 const BOSS_HP = 2026;
 // Musique du Rythme : la même pour les 3 clans (TXT & Jonas Brothers, « Do It Like That »), extrait de 1:04 à 1:40.
@@ -114,6 +116,7 @@ function fresh() {
     destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: SONG, foudre: SONG, vent: SONG }, songEnd: SONG_END, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
+    echo: { card: 0, start: 0, end: 0, res: [] },
     hokage: { view: 'ceremony', viewAt: 0, speech: '', music: '', dur: 5, idx: 0, idxAt: 0, paused: false },
   };
 }
@@ -122,7 +125,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) } };
+  try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) }, echo: { ...g.echo, ...(v.echo || {}) } };
     if (!CLANS.some((c) => out.rythme.songs && out.rythme.songs[c])) out.rythme.songs = { feu: SONG, foudre: SONG, vent: SONG };
     return out; } catch (_) { return g; }
 }
@@ -234,6 +237,7 @@ export async function playerView(db, name, now) {
       ctx: clan ? destinCtx(D, clan) : null,
     };
   }
+  if (g.step === 7) out.echo = { card: g.echo.card, start: g.echo.start, end: g.echo.end };
   if (g.step === 5) {
     const b = g.boss;
     let mine = 0;
@@ -345,7 +349,7 @@ export async function mjAct(db, b, now) {
     case 'step': g.step = Math.max(0, Math.min(STEPS - 1, b.i | 0)); g.timer = null; if (g.step === 6 && g.hokage.view === 'ceremony') g.hokage.viewAt = now; break;
     case 'pts': if (okClan(b.clan)) addPts(g, b.clan, Math.max(-20, Math.min(20, b.d | 0))); break;
     case 'joker': {
-      if (!okClan(b.clan) || g.step < 1 || g.step > 4) break;
+      if (!okClan(b.clan) || !JOKER_STEPS.includes(g.step)) break;
       const j = g.joker[b.clan];
       if (j.step === null) { j.step = g.step; j.at = now; }
       else if (j.step === g.step) { j.step = null; j.at = 0; }
@@ -528,6 +532,17 @@ export async function mjAct(db, b, now) {
       break;
     }
     case 'bossFinal': if (!g.boss.dead) { g.boss.hp = 0; g.boss.dead = true; g.boss.deadAt = now; } break;
+    // Écho (Hitster) : le clan qui a pioché a 45 s ; trouvé = 2 pts, sinon un autre clan peut voler la réponse = 1 pt.
+    case 'echoStart': if (g.echo.card < ECHO_CARDS) { g.echo.start = now; g.echo.end = now + ECHO_SECS * 1000; } break;
+    case 'echoScore': {
+      const e = g.echo; if (e.card >= ECHO_CARDS) break;
+      const play = CLANS[e.card % 3], clan = okClan(b.clan) ? b.clan : null, pts = clan ? (clan === play ? 2 : 1) : 0;
+      if (clan) addPts(g, clan, pts);
+      e.res = (e.res || []).slice(0, e.card); e.res[e.card] = { clan, pts };
+      e.card += 1; e.start = 0; e.end = 0;
+      break;
+    }
+    case 'echoGo': g.echo.card = Math.max(0, Math.min(ECHO_CARDS, b.i | 0)); g.echo.start = 0; g.echo.end = 0; break;
     // Hokage : vue de la projection (cérémonie, podium, mot de Théo, diaporama) et commandes du diaporama.
     case 'hokView': {
       const v = ['ceremony', 'podium', 'speech', 'slides'].includes(b.v) ? b.v : 'ceremony';

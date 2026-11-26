@@ -13,7 +13,9 @@
   var CK = {}; CL.forEach(function (c) { CK[c.k] = c; });
   var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (Rythme, Savoir, Ombre ou Destin). Annoncez-le au maître du jeu avant le début de l’épreuve.';
   function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === st.step ? 'on' : 'used'; }
-  var STEPN = ['Ouverture', 'Rythme', 'Savoir', 'Ombre', 'Destin', 'Sanjûbi', 'Hokage'];
+  var STEPN = ['Ouverture', 'Rythme', 'Savoir', 'Ombre', 'Destin', 'Sanjûbi', 'Hokage', 'Écho'];
+  var ORDER = [0, 1, 7, 2, 3, 4, 5, 6]; // ordre de jeu (l'Écho, ajoutée après coup, se joue après le Rythme)
+  function jokerOk(s) { return s === 1 || s === 7 || (s >= 2 && s <= 4); }
   var MOVES = [
     { k: 'heart', t: 'Cœur des doigts', d: 'Pouce et index croisés, bras tendu' },
     { k: 'bigheart', t: 'Grand cœur', d: 'Bras en cœur au-dessus de la tête' },
@@ -292,6 +294,7 @@
     if (!root) return;
     var t = now();
     root.querySelectorAll('[data-cd]').forEach(function (e) { var rem = +e.getAttribute('data-cd') - t; e.textContent = mmss(rem); if (e.hasAttribute('data-urg')) e.classList.toggle('urg', rem <= 10000 && rem > 0); });
+    root.querySelectorAll('[data-pie]').forEach(function (e) { var f = Math.max(0, Math.min(1, (+e.getAttribute('data-pie') - t) / +e.getAttribute('data-dur'))); e.style.strokeDashoffset = (157.08 * (1 - f)).toFixed(2); });
     root.querySelectorAll('[data-cdbar]').forEach(function (e) { e.style.width = Math.max(0, Math.min(100, (+e.getAttribute('data-cdbar') - t) / +e.getAttribute('data-dur') * 100)) + '%'; });
     // ré-affichages liés au temps (dés, fin de chrono, rasengan, diaporama)
     if (st && (needsTimeRedraw(t))) { lastHtml = ''; draw(); }
@@ -301,6 +304,7 @@
   function needsTimeRedraw(t) {
     var ph = '';
     if (st.step === 3 && st.ombre) { var end = st.ombre.cur ? st.ombre.cur.end : st.ombre.end; ph += 'o' + (end && t > end ? 1 : 0) + (st.ombre.startAt && t > st.ombre.startAt + 600000 ? 'f' : ''); }
+    if (st.step === 7 && st.echo) ph += 'e' + (st.echo.start ? (t > st.echo.end ? 2 : 1) : 0);
     if (st.step === 4 && st.destin) ph += 'd' + (st.destin.shownAt && t - st.destin.shownAt < 7200 ? 1 : 0) + (st.destin.voteEnd && t > st.destin.voteEnd ? 'v' : '');
     if (st.step === 5 && st.boss) {
       var b = st.boss, p2 = b.p2;
@@ -323,11 +327,12 @@
     if (!c) return wrap('<h1>Salut ' + esc(myName()) + ' !</h1><section class="card" style="align-items:center;text-align:center;padding:26px 16px"><div class="ser" style="font-size:22px">Le maître du jeu forme les clans</div><div class="muted">Ton clan apparaîtra ici dans un instant.</div></section>');
     var s = st.step;
     if (s === 3) return pOmbre(c);
+    if (s === 7) return pEcho(c);
     if (s === 4) return pDestin(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
     var head = '<div class="hd"><h1>' + esc(STEPN[s]) + '</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + ico(c, 16) + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>';
-    if (jk(c.k) === 'on' && s >= 1 && s <= 4) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#3A3350;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
-    else if (jk(c.k) === 'free' && s >= 1 && s <= 4) head += '<div class="muted" style="font-size:13px">Joker x2 encore disponible : annoncez-le avant l’épreuve.</div>';
+    if (jk(c.k) === 'on' && jokerOk(s)) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#3A3350;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
+    else if (jk(c.k) === 'free' && jokerOk(s)) head += '<div class="muted" style="font-size:13px">Joker x2 encore disponible : annoncez-le avant l’épreuve.</div>';
     if (st.timer && now() < st.timer.end + 1000) head += '<div class="row" style="gap:10px">' + cdBar(st.timer.end, st.timer.dur * 1000) + cd(st.timer.end, 'ser', 'font-size:20px;min-width:52px;text-align:right') + '</div>';
     var body = s === 0 ? pClan(c) : s === 1 ? pRythme(c) : s === 2 ? pSavoir() : s === 4 ? pDestin(c) : pHokage();
     return wrap(head + body);
@@ -400,6 +405,50 @@
       '<div style="font-family:Fraunces,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div>' +
       (o.mine ? '<button data-g="ohold" style="position:absolute;bottom:calc(26px + env(safe-area-inset-bottom));height:44px;padding:0 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:800;font-size:14px;user-select:none;-webkit-user-select:none">Maintenir pour revoir le mime</button><div id="g-hold" style="display:none;position:absolute;inset:0;background:#3A3350;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:34px;padding:24px;text-align:center">' + esc(o.mine) + '</div>' : '') + '</div>' };
   }
+  /* ---------- Écho (Hitster) ---------- */
+  function echoInfo() {
+    var e = st.echo || {}, t = now(), card = e.card || 0;
+    return { e: e, card: card, done: card >= 6, play: card < 6 ? CL[card % 3] : null, run: !!(e.start && t < e.end), open: !!(e.start && t >= e.end), wait: !e.start };
+  }
+  function pEcho(c) {
+    var x = echoInfo();
+    if (x.done) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div class="ser" style="font-size:30px">Fin de l’épreuve</div><div style="font-weight:800;opacity:.85">Regardez l’écran</div></div>' };
+    if (x.wait) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div style="font-weight:800;opacity:.85">Carte ' + (x.card + 1) + ' / 6</div><div class="ser" style="font-size:30px;line-height:1.15">' + (x.play.k === c.k ? 'À vous de piocher !' : 'Au tour du clan du ' + esc(x.play.n)) + '</div></div>' };
+    var open = x.run ? x.play.k === c.k : true;
+    return { cls: 'dark', html: '<div class="full" style="background:' + (open ? '#2F7D64' : '#B8445F') + ';gap:22px">' +
+      (x.run ? '<div class="ser" style="font-size:64px;line-height:1">' + cdu(x.e.end, '', 'padding:4px 14px;border-radius:16px') + '</div>' : '') +
+      '<div style="font-family:Fraunces,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div></div>' };
+  }
+  function mEcho() {
+    var x = echoInfo(), res = x.e.res || [], h = '';
+    var hist = res.slice(0, x.card).map(function (r, i) { var p = CL[i % 3], w = r && r.clan ? CL.filter(function (c) { return c.k === r.clan; })[0] : null; return (i + 1) + '. ' + esc(p.n) + ' → ' + (w ? esc(w.n) + ' +' + r.pts : 'personne'); }).join(' · ');
+    if (x.done) h += '<section class="card" style="align-items:center;text-align:center"><div class="ser" style="font-size:22px">Épreuve terminée</div><div class="muted" style="font-size:13px">' + hist + '</div></section>';
+    else {
+      var p = x.play, others = CL.filter(function (c) { return c.k !== p.k; });
+      h += '<section class="card" style="background:' + p.bg + ';border-color:' + p.bg + '"><div class="row" style="justify-content:space-between"><span class="lab" style="color:' + p.ink + '">Tour ' + (x.card < 3 ? 1 : 2) + ' · carte ' + (x.card + 1) + ' / 6</span>' + (x.run ? cdu(x.e.end, 'ser', 'font-size:24px;padding:0 8px;border-radius:8px') : x.open ? '<b style="color:' + p.ink + '">Aux autres clans</b>' : '') + '</div>' +
+        '<div class="ser" style="font-size:22px;color:' + p.ink + '">Clan du ' + esc(p.n) + '</div>' +
+        (x.wait ? '<button class="btn" data-g="estart">Lancer les 45 s</button>' :
+          '<button class="btn" data-g="escore" data-c="' + p.k + '">Trouvé · +2 ' + esc(p.n) + '</button><div class="row" style="gap:8px">' + others.map(function (c) { return '<button class="btn2" style="flex:1;height:46px;color:' + c.ink + '" data-g="escore" data-c="' + c.k + '">+1 ' + esc(c.n) + '</button>'; }).join('') + '<button class="btn2" style="flex:1;height:46px" data-g="escore" data-c="">Personne</button></div>') +
+        '</section>';
+      if (hist) h += '<div class="muted" style="font-size:12px;line-height:1.5">' + hist + '</div>';
+    }
+    if (x.card > 0) h += '<button class="chip" data-g="ego" data-i="' + (x.card - 1) + '" style="align-self:flex-start">Revenir à la carte ' + x.card + '</button><div class="muted" style="font-size:12px">Revenir ne retire pas les points : corrige avec −1 / +1 en haut.</div>';
+    return h + nextBtn();
+  }
+  function projEcho() {
+    var x = echoInfo(), p = x.play, ink = p ? p.ink : '#3A3350', C = 157.08;
+    var f = x.wait ? 1 : x.run ? Math.max(0, (x.e.end - now()) / 45000) : 0;
+    var pie = '<svg viewBox="0 0 100 100" style="width:24vw;height:24vw;display:block"><circle cx="50" cy="50" r="48" fill="#fff" stroke="' + ink + '" stroke-width="2"/><circle ' + (x.run ? 'data-pie="' + x.e.end + '" data-dur="45000" ' : '') + 'cx="50" cy="50" r="25" fill="none" stroke="' + ink + '" stroke-width="50" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - f)).toFixed(2) + '" transform="rotate(-90 50 50) scale(1 -1) translate(0 -100)" style="transition:stroke-dashoffset .3s linear' + (x.run ? '' : ';transition:none') + '"/></svg>';
+    var left = x.done ? '<div class="ser" style="font-size:4vw;text-align:center">Fin de l’épreuve</div>' :
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:1.4vw">' + pie +
+      '<div class="ser" style="font-size:2.8vw;color:' + ink + '">' + (x.run ? cd(x.e.end, '', 'font-size:3.4vw') : x.open ? 'Aux autres clans !' : 'Clan du ' + esc(p.n) + ' : piochez !') + '</div></div>';
+    var scores = '<div style="display:flex;flex-direction:column;gap:1.4vw;flex:1">' + CL.map(function (c) {
+      var on = p && p.k === c.k && !x.open;
+      return '<div style="background:' + c.bg + ';border-radius:2vw;padding:1.4vw 2.4vw;display:flex;align-items:center;gap:1.4vw;transition:transform .4s;' + (on ? 'box-shadow:0 0 0 .4vw #3A3350;transform:scale(1.03)' : '') + '">' + ico(c, '52') + '<span class="ser" style="font-size:3vw;color:' + c.ink + '">' + esc(c.n) + '</span>' + (jk(c.k) === 'on' ? '<span class="ser" style="background:#3A3350;color:#F7E6A8;border-radius:1vw;padding:.2vw .9vw;font-size:1.8vw">x2</span>' : '') + '<span class="ser" style="margin-left:auto;font-size:6vw;line-height:1">' + st.scores[c.k] + '</span></div>';
+    }).join('') + '</div>';
+    return { cls: 'peach proj', html: '<div class="pw">' + pHeader('Écho', 'Épreuve 2 / 6 · ' + (x.done ? '6 cartes jouées' : 'Tour ' + (x.card < 3 ? 1 : 2) + ' · carte ' + (x.card + 1) + ' / 6'), '') +
+      '<div style="flex:1;display:flex;align-items:center;gap:5vw;padding:0 3vw">' + left + scores + '</div></div>' };
+  }
   function scrollWrap(inner) { return { cls: 'dark', html: '<div class="scr"' + (demo() ? ' style="padding-top:calc(52px + env(safe-area-inset-top))"' : '') + '><div class="rod"></div><div class="paper">' + inner + '</div><div class="rod"></div></div>' }; }
   function pDestin(c) {
     var d = st.destin; if (!d) return scrollWrap('');
@@ -466,7 +515,7 @@
     if (!st) return wrap('<h1>…</h1>');
     var s = st.step;
     var h = '<div class="hd"><h1>' + (st.demo ? 'Démo' : 'Maître du jeu') + '</h1><div class="row" style="gap:14px"><a href="#ecran" style="font-weight:800;color:#5B4B8A;text-decoration:none">Écran</a><a href="#admin" style="font-weight:800;color:#5B4B8A;text-decoration:none">Admin</a></div></div>';
-    h += '<div class="scroll">' + STEPN.map(function (n, i) { return '<button class="chip' + (i === s ? ' on' : '') + '" data-g="step" data-i="' + i + '">' + (i + 1) + '. ' + esc(n) + '</button>'; }).join('') + '</div>';
+    h += '<div class="scroll">' + ORDER.map(function (i, k) { return '<button class="chip' + (i === s ? ' on' : '') + '" data-g="step" data-i="' + i + '">' + (k + 1) + '. ' + esc(STEPN[i]) + '</button>'; }).join('') + '</div>';
     if (!st.on && !st.demo) h += '<div class="card" style="background:#FFF6D9;border-color:#F7E3A0;flex-direction:row;align-items:center;gap:10px"><span style="flex:1;font-weight:800">Le jeu est invisible pour les joueurs</span><button class="chip on" data-g="on" data-v="1">Ouvrir</button></div>';
     // scores
     h += '<section class="card"><div class="lab">Scores</div><div class="grid3">' + CL.map(function (c) {
@@ -477,11 +526,11 @@
     // chrono
     h += '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chrono</span>' + (st.timer && now() < st.timer.end ? cd(st.timer.end, 'ser', 'font-size:22px') : '<span class="muted">—</span>') + '</div><div class="row" style="flex-wrap:wrap">' +
       [[30, '0:30'], [45, '0:45'], [90, '1:30'], [600, '10 min']].map(function (x) { return '<button class="chip" data-g="timer" data-s="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '<button class="chip" data-g="timerStop">Stop</button></div></section>';
-    h += [mOuverture, mRythme, mSavoir, mOmbre, mDestin, mBoss, mHokage][s]();
+    h += [mOuverture, mRythme, mSavoir, mOmbre, mDestin, mBoss, mHokage, mEcho][s]();
     return wrap(h);
   }
   function jokerBtn(c) {
-    var s = jk(c.k), j = st.joker[c.k], ok = st.step >= 1 && st.step <= 4;
+    var s = jk(c.k), j = st.joker[c.k], ok = jokerOk(st.step);
     if (s === 'used') return '<span style="font-size:11px;font-weight:800;color:' + c.ink + ';text-align:center">Joker : ' + esc(STEPN[j.step]) + '</span>';
     return '<button class="chip' + (s === 'on' ? ' on' : '') + '" data-g="joker" data-c="' + c.k + '"' + (ok ? '' : ' disabled') + ' style="height:30px;padding:0 10px;' + (s === 'on' ? '' : 'border-color:' + c.ink + ';color:' + c.ink) + (ok ? '' : ';opacity:.45') + '">' + (s === 'on' ? 'x2 actif' : 'Joker x2') + '</button>';
   }
@@ -507,7 +556,7 @@
     h += '<section class="card"><div class="lab">Partie</div><div class="grid2">' + (st.demo ? '' : '<button class="btn2" data-g="on" data-v="' + (st.on ? 0 : 1) + '">' + (st.on ? 'Masquer le jeu' : 'Ouvrir le jeu') + '</button>') + '<button class="btn2" data-g="reset" style="color:#A63A55">' + (mj.resetArm ? 'Confirmer ?' : 'Réinitialiser') + '</button></div><div class="muted" style="font-size:12px">Réinitialiser efface clans, scores et votes (les questions et les photos restent).</div></section>';
     return h + nextBtn();
   }
-  function nextBtn() { return st.step < 6 ? '<button class="btn" data-g="step" data-i="' + (st.step + 1) + '">Épreuve suivante : ' + esc(STEPN[st.step + 1]) + '</button>' : ''; }
+  function nextBtn() { var k = ORDER.indexOf(st.step), nx = ORDER[k + 1]; return nx !== undefined ? '<button class="btn" data-g="step" data-i="' + nx + '">Épreuve suivante : ' + esc(STEPN[nx]) + '</button>' : ''; }
   function mRythme() {
     var ry = st.rythme || {}, res = ry.results || {}, songs = ry.songs || {};
     var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chorégraphies</span>' + (st.rLocked ? '<button class="chip" data-g="runlock">Déverrouiller</button>' : '<span class="muted" style="font-size:12px">' + (ry.lockAt ? 'Verrouillage à la fin du chrono' : 'Lance 1:30 : verrouillage à la fin') + '</span>') + '</div>';
@@ -801,11 +850,12 @@
     if (!st) return { html: '', cls: 'peach proj' };
     var s = st.step, h = '', cls = 'peach proj';
     if (s === 6) return projHokage();
+    if (s === 7) return projEcho();
     if (s === 5) return projBoss();
     if (s === 0) return { html: projOuverture(), cls: cls };
     if (s === 1) {
       var ry = st.rythme || {}, res = ry.results || {};
-      h = pHeader('Rythme', 'Épreuve 1 / 5', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
+      h = pHeader('Rythme', 'Épreuve 1 / 6', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var q = (st.seqs || {})[c.k] || [], cur = ry.cur === c.k, r = res[c.k], dim = ry.cur && !cur;
         return '<div data-rr="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw;transition:transform .4s,opacity .4s;' + (cur ? 'transform:scale(1.04);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.45' : '') + '"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
           (cur ? '<div class="ser" style="text-align:center;background:#3A3350;color:#fff;border-radius:1vw;padding:.5vw;font-size:1.7vw">' + (ry.stage === 'vote' ? 'Vote du public · ' + (st.rateCount || 0) : 'En piste !') + '</div>' : '') +
@@ -814,7 +864,7 @@
       }).join('') + '</div>';
     } else if (s === 2) {
       var sv = st.savoir, q = sv.list[sv.idx];
-      h = pHeader('Savoir', 'Épreuve 2 / 5 · Sensei Alessia', timerRight()) +
+      h = pHeader('Savoir', 'Épreuve 3 / 6 · Sensei Alessia', timerRight()) +
         '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.4vw"><div class="pk">' + (q ? 'Question ' + (sv.idx + 1) + ' / ' + sv.list.length : '') + '</div><div class="ser" style="font-size:4.2vw;line-height:1.2">' + (q ? esc(q.q) : 'Les questions arrivent…') + '</div></div>' + pScores(false);
     } else if (s === 3) {
       var o = st.ombre, c = o.cur, cnt = o.count || {}, tnow = now();
@@ -829,7 +879,7 @@
           '<div class="ser" style="font-size:6vw;line-height:1.1">' + esc(st.mimes[c.mime]) + '</div>' + (c.winner ? '<div class="ser" style="font-size:2.2vw;color:#2F6F5E">' + (c.winner === c.clan ? esc(CK[c.clan].n) + ' +2' : esc(CK[c.clan].n) + ' +1 · ' + esc(CK[c.winner].n) + ' +1') + '</div>' : '') + '</div>';
       else if (c) mid = '<div class="ser" style="font-size:3.4vw">' + esc(c.mname || 'Le mimeur') + ' choisit son mime…</div>';
       else mid = '<div class="ser" style="font-size:3.4vw">Prochain mime…</div>';
-      h = pHeader('L’Ombre', 'Épreuve 3 / 5 · Passages : ' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · '), right) +
+      h = pHeader('L’Ombre', 'Épreuve 4 / 6 · Passages : ' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · '), right) +
         '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center">' + mid + '</div>' + pScores(false);
     } else if (s === 4) {
       return projDestin();
@@ -839,7 +889,7 @@
   function projDestin() {
     var d = st.destin, sc = st.destinScenes[d.c], res = d.results || {}, tnow = now();
     var cols = ['#2f6b45', '#9a6a12', '#b5302a'], inner;
-    var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 4 / 5 · Destin · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
+    var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 5 / 6 · Destin · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">POINTS ×2</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
     if (d.stage !== 'reveal') {
       inner = head + '<div style="font-style:italic;font-size:1.9vw;line-height:1.45;max-width:80%">' + esc(sc.text) + '</div>' +
@@ -1062,6 +1112,9 @@
     if (g === 'bp2s') { act('bossP2Start'); return; }
     if (g === 'bp2c') { act('bossP2Close'); return; }
     if (g === 'bfinal') { act('bossFinal'); try { if (navigator.vibrate) navigator.vibrate([60, 40, 120]); } catch (_) {} return; }
+    if (g === 'estart') { act('echoStart'); return; }
+    if (g === 'escore') { act('echoScore', { clan: d('c') }); return; }
+    if (g === 'ego') { act('echoGo', { i: +d('i') }); return; }
     if (g === 'hview') { act('hokView', { v: d('v') }); return; }
     if (g === 'hspeech') { var sp = document.getElementById('g-speech'); act('hokSpeech', { t: sp ? sp.value : '' }).then(function () { A.toast('Mot enregistré'); }); return; }
     if (g === 'hmusic') { var hm = document.getElementById('g-hmusic'), u = hm ? hm.value.trim() : ''; if (u && !yt(u)) { A.toast('Lien YouTube invalide'); return; } act('hokMusic', { url: u }).then(function () { A.toast(u ? 'Musique enregistrée' : 'Musique retirée'); }); return; }
