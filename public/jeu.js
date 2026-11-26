@@ -184,6 +184,13 @@
   function d20svg(n, size, roll) {
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" style="' + (roll ? 'animation:roll .4s linear ' + roll + ';' : '') + 'filter:drop-shadow(0 4px 8px rgba(43,29,18,.25))"><polygon points="50,4 92,28 92,72 50,96 8,72 8,28" fill="#f8efdc" stroke="#2b1d12" stroke-width="3"/><polygon points="50,22 76,64 24,64" fill="none" stroke="#2b1d12" stroke-width="1.8" opacity=".8"/><path d="M50 4 50 22 M92 28 76 64 M92 72 76 64 M50 96 76 64 M50 96 24 64 M8 72 24 64 M8 28 24 64 M8 28 50 22 M92 28 50 22" stroke="#2b1d12" stroke-width="1.3" opacity=".5"/><text x="50" y="57" text-anchor="middle" font-family="Georgia,serif" font-size="21" font-weight="700" fill="#2b1d12">' + n + '</text></svg>';
   }
+  // Étiquette d'un choix du Destin : profil, dé à 20 faces (barré pour le choix assuré), minimum à atteindre.
+  function d20ico(col, size, crossed) {
+    return '<svg viewBox="0 0 100 100" style="width:' + size + ';height:' + size + ';display:block"><polygon points="50,6 90,29 90,71 50,94 10,71 10,29" fill="rgba(255,255,255,.55)" stroke="' + col + '" stroke-width="6"/><polygon points="50,25 74,63 26,63" fill="none" stroke="' + col + '" stroke-width="4"/><path d="M50 6 50 25 M90 29 74 63 M50 94 74 63 M50 94 26 63 M10 29 26 63 M10 29 50 25 M90 29 50 25" stroke="' + col + '" stroke-width="3" opacity=".6"/>' + (crossed ? '<line x1="10" y1="90" x2="90" y2="10" stroke="#b5302a" stroke-width="9" stroke-linecap="round"/>' : '') + '</svg>';
+  }
+  function dTag(i, col, fs, ico) {
+    return '<span style="display:flex;flex-direction:column;align-items:center;gap:.35em;font-size:' + fs + '"><span class="sk" style="font-size:1em;letter-spacing:.06em;color:' + col + '">' + ['Prudent', 'Audacieux', 'Fou'][i] + '</span>' + d20ico(col, ico, i === 0) + (i ? '<span class="sk" style="font-size:1em;letter-spacing:.04em;color:' + col + '">Minimum ' + [0, 10, 15][i] + '</span>' : '') + '</span>';
+  }
   function sgn(m) { return (m > 0 ? '+' : '−') + Math.abs(m); }
   function calcTxt(r) { if (r.roll === null || !r.mods || !r.mods.length) return ''; return r.roll + r.mods.map(function (x) { return ' ' + (x.m > 0 ? '+' : '−') + ' ' + Math.abs(x.m) + ' (' + x.why + ')'; }).join('') + ' = ' + r.total; }
   function ctxLines(cx, fs) { if (!cx || !cx.lines.length) return ''; return '<div style="border-left:3px solid #8a5a2b;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:3px">' + cx.lines.map(function (l) { return '<div style="font-style:italic;font-size:' + fs + ';line-height:1.4">' + esc(l.t) + (l.m ? ' <b style="font:800 .85em Nunito,Arial,sans-serif;font-style:normal;white-space:nowrap;color:' + (l.m > 0 ? '#2f6b45' : '#b5302a') + '">' + sgn(l.m) + ' au dé</b>' : '') + '</div>'; }).join('') + '</div>'; }
@@ -413,7 +420,7 @@
     var cols = ['#2f6b45', '#9a6a12', '#b5302a'];
     var scrolls = '<div class="scroll3">' + d.opts.map(function (o, i) {
       var on = mine === o.k;
-      return '<button class="scl" data-g="vote" data-k="' + o.k + '"' + (vote ? '' : ' disabled') + '><i></i><b style="min-height:' + (on ? 330 : 270) + 'px;' + (on ? 'outline:3px solid #b5302a;outline-offset:-3px;' : '') + (vote || on ? '' : 'opacity:.75') + '"><span style="font-size:28px;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:15px;line-height:1.3">' + esc(o.t) + '</span><span class="sk" style="letter-spacing:.06em;color:' + cols[i] + ';font-size:10.5px">' + esc(o.r).replace(' · ', '<br>') + '</span>' + (on ? '<span class="stamp" style="margin-top:auto;width:44px;height:44px;font-size:24px;animation:stampin .4s ease-out both">選</span>' : '') + '</b><i></i></button>';
+      return '<button class="scl" data-g="vote" data-k="' + o.k + '"' + (vote ? '' : ' disabled') + '><i></i><b style="min-height:' + (on ? 330 : 270) + 'px;' + (on ? 'outline:3px solid #b5302a;outline-offset:-3px;' : '') + (vote || on ? '' : 'opacity:.75') + '"><span style="font-size:28px;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:15px;line-height:1.3">' + esc(o.t) + '</span>' + dTag(i, cols[i], '10.5px', '30px') + (on ? '<span class="stamp" style="margin-top:auto;width:44px;height:44px;font-size:24px;animation:stampin .4s ease-out both">選</span>' : '') + '</b><i></i></button>';
     }).join('') + '</div>';
     var status = d.stage === 'story' ? 'Écoutez le récit… le vote va s’ouvrir' : vote ? 'Clan du ' + esc(c.n) + ' · ' + cdu(d.voteEnd, '', 'border-radius:6px;padding:0 4px') : 'Votes verrouillés';
     return scrollWrap(head + '<div style="font-style:italic;font-size:15px;line-height:1.5">' + esc(d.text) + '</div>' + ctxLines(d.ctx, '14px') + scrolls + foot(status));
@@ -806,7 +813,7 @@
     if (d.stage !== 'reveal') {
       inner = head + '<div style="font-style:italic;font-size:1.9vw;line-height:1.45;max-width:80%">' + esc(sc.text) + '</div>' +
         '<div style="display:flex;gap:3vw;justify-content:center;flex:1;align-items:flex-start">' + sc.opts.map(function (o, i) {
-          return '<div class="scl" style="max-width:none;width:18vw"><i></i><b style="min-height:24vw;padding:1.6vw 1vw;gap:1.2vw"><span style="font-size:3.4vw;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:1.7vw;line-height:1.3">' + esc(o.t) + '</span><span class="sk" style="font-size:1vw;letter-spacing:.08em;color:' + cols[i] + '">' + esc(sc.tags[i]) + '</span></b><i></i></div>';
+          return '<div class="scl" style="max-width:none;width:18vw"><i></i><b style="min-height:24vw;padding:1.6vw 1vw;gap:1.2vw"><span style="font-size:3.4vw;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:1.7vw;line-height:1.3">' + esc(o.t) + '</span>' + dTag(i, cols[i], '1vw', '3.4vw') + '</b><i></i></div>';
         }).join('') + '</div>' +
         '<div style="display:flex;gap:2vw;justify-content:center">' + CL.map(function (k) { var ok = !!(st.destinVotes || {})[k.k]; return '<span class="pill" style="font-size:1.4vw;padding:.5vw 1.4vw;background:' + (ok ? k.bg : 'rgba(255,255,255,.5)') + ';color:' + k.ink + '">' + esc(k.n) + (d.stage === 'story' ? ' · écoute le récit' : ok ? ' a choisi' : ' réfléchit…') + '</span>'; }).join('') + '</div>';
     } else {
