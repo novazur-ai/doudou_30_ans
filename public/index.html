@@ -209,7 +209,7 @@ function api(path,o){
   if(o.auth){var c=sess.get(KC);if(c)h['x-code']=c}
   if(path.indexOf('/api/game')===0&&sess.get(KX)==='1'){h['x-demo']='1';var c2=sess.get(KC);if(c2)h['x-code']=c2}
   return fetch(path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){
-    return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.error||'http');er.code=j.error;er.status=r.status;throw er}return j})});
+    return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var er=new Error(j.error||'http');er.code=j.error;er.status=r.status;er.n=j.n;throw er}return j})});
 }
 function refresh(){
   return api('/api/state',{auth:sess.get(KA)==='1'}).then(function(s){
@@ -417,12 +417,67 @@ function render(keep){
     var g=db.guests[key(me())];
     draft={who:key(me()),votes:g?JSON.parse(JSON.stringify(g.votes)):{},plus:g&&g.plus?JSON.parse(JSON.stringify(g.plus)):{on:false,name:''}};
   }
-  var v={'':vLanding,sondages:vSondages,merci:vMerci,resultats:vResultats,'orga-acces':vOrgaAcces,orga:vOrga,admin:vAdmin}[r]||vLanding;
+  var v={'':vLanding,sondages:vSondages,merci:vMerci,resultats:vResultats,'orga-acces':vOrgaAcces,orga:vOrga,admin:vAdmin,sceau:vSceau}[r]||vLanding;
   app.innerHTML=v();
   window.scrollTo(0,keep?y:0);
   if(r==='orga-acces'){var ci=document.getElementById('code');if(ci)ci.focus()}
 }
 window.addEventListener('hashchange',function(){render(false)});
+
+/* ---------- parchemin scellé : page piégée quand un code est faux ---------- */
+var KT='alessia30.essais', KTL='alessia30.troll';
+var TROLL={
+  '0499':'Vraiment, tu me pensais si prévisible ? 😘',
+  '2511':'Ton anniversaire ? Bonne idée mais désolé, ce n’est pas ça 😘','251196':'Ton anniversaire ? Bonne idée mais désolé, ce n’est pas ça 😘',
+  '050496':'Mon anniversaire ? Je ne suis pas si mégalo que ça 😘','0504':'Mon anniversaire ? Je ne suis pas si mégalo que ça 😘',
+  '049999':'Bonne idée, mais je me doutais bien que tu allais le tester 😘'
+};
+['1234','0000','9999','0123','123456','000000','999999','012345'].forEach(function(k){TROLL[k]='Quand même, pas un code zéro en sécurité 😘\nAprès, j’aurais pu : plus c’est gros, plus ça passe 🙃'});
+function trollMsg(c){
+  if(TROLL[c])return TROLL[c];
+  if(/^[0-9]{4}$/.test(c))return 'Déjà, bravo : tu as réussi à comprendre que ce n’était pas un code à 6 chiffres 👏\nImagine si j’avais mis un code à 2 chiffres 🙃🫠';
+  return 'Dommage mon cœur, pas cette fois-ci 😘 Try again';
+}
+function trollLog(c,n){
+  var h=[];try{h=JSON.parse(localStorage.getItem(KT)||'[]')}catch(_){}
+  h.unshift(c);h=h.slice(0,16);try{localStorage.setItem(KT,JSON.stringify(h))}catch(_){}
+  try{sessionStorage.setItem(KTL,JSON.stringify({c:c,n:n||0}))}catch(_){}
+}
+function partyStart(){
+  var c=db.config;if(!c.date)return null;
+  var ts=['escape','resto','kpop'].map(function(k){return c.acts[k]&&c.acts[k].time}).filter(function(t){return /^\d{1,2}:\d{2}$/.test(t||'')}).sort();
+  var d=new Date(c.date+'T'+(ts[0]?(ts[0].length===4?'0'+ts[0]:ts[0]):'00:00')+':00');return isNaN(d)?null:d.getTime();
+}
+function sceauCd(){
+  var t=partyStart();if(!t)return '';var r=t-Date.now();
+  if(r<=0)return '<div style="font-weight:800;font-size:13px;letter-spacing:.1em">LE SCEAU EST BRISÉ : C’EST LE GRAND JOUR !</div>';
+  var d=Math.floor(r/864e5),h=Math.floor(r%864e5/36e5),m=Math.floor(r%36e5/6e4);
+  function b(v,l){return '<div style="background:#2b1d12;color:#f3e3c3;border-radius:10px;padding:6px 10px;min-width:58px;text-align:center"><b style="display:block;font:700 26px Fraunces,Georgia,serif">'+(v<10&&l!=='JOURS'?'0'+v:v)+'</b><span style="font-size:11px;font-weight:800;letter-spacing:.08em">'+l+'</span></div>'}
+  return '<div style="font-weight:800;font-size:12px;letter-spacing:.1em">LE SCEAU SE BRISERA DANS</div><div style="display:flex;gap:8px">'+b(d,'JOURS')+b(h,'H')+b(m,'MIN')+'</div>';
+}
+var SHU='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 1 14.2 9.8 23 12 14.2 14.2 12 23 9.8 14.2 1 12 9.8 9.8Z" fill="#3b2a1e"/><circle cx="12" cy="12" r="2.2" fill="#f3e3c3"/></svg>';
+function emoT(s){return esc(s).replace(/🫠/g,'<img src="/vendor/em/melt.png" alt="🫠" style="height:1.15em;vertical-align:-.22em">').replace(/\n/g,'<br>')}
+function vSceau(){
+  var l={};try{l=JSON.parse(sessionStorage.getItem(KTL)||'{}')}catch(_){}
+  var h=[];try{h=JSON.parse(localStorage.getItem(KT)||'[]')}catch(_){}
+  var n=l.n||h.length,msg=trollMsg(l.c||'');
+  return '<div style="position:fixed;inset:0;overflow:auto;background:#2b211a;z-index:30"><div style="max-width:430px;margin:0 auto;padding:calc(30px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:0;min-height:100%">'+
+   '<div style="width:100%;height:16px;border-radius:8px;background:linear-gradient(#6b3f1d,#3b2210)"></div>'+
+   '<div style="background:#f3e3c3;width:94%;padding:24px 18px;color:#2b1d12;box-shadow:inset 0 0 40px rgba(120,80,30,.35);text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center">'+
+    '<div style="font-weight:800;font-size:12px;letter-spacing:.16em">PARCHEMIN SCELLÉ · ACCÈS INTERDIT</div>'+
+    '<div style="width:92px;height:92px;border-radius:50%;background:#b5302a;color:#f3e3c3;display:flex;align-items:center;justify-content:center;font-size:56px;font-family:serif;transform:rotate(-8deg);box-shadow:0 0 0 4px rgba(181,48,42,.3);animation:pop .6s ease-out both">禁</div>'+
+    '<div class="serif" style="font-size:21px;font-weight:700;line-height:1.35">'+emoT(msg)+'</div>'+
+    '<div style="font-weight:800;font-size:13px">Tentatives de crochetage du sceau : '+n+'</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;max-width:300px">'+new Array(Math.min(n,30)+1).join(SHU)+(n>30?'<b style="align-self:center">+'+(n-30)+'</b>':'')+'</div>'+
+    (h.length?'<div style="display:flex;flex-direction:column;gap:6px;align-items:center;width:100%"><div style="font-weight:800;font-size:11px;letter-spacing:.12em">CODES ESSAYÉS SUR CE TÉLÉPHONE</div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+h.map(function(c,i){return '<span style="border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px;background:'+(i===0?'#2b1d12':'rgba(43,29,18,.08)')+';color:'+(i===0?'#f3e3c3':'#2b1d12')+';text-decoration:line-through;text-decoration-color:#b5302a;text-decoration-thickness:2px">'+esc(c)+'</span>'}).join('')+'</div></div>':'')+
+    '<div id="sceau-cd" style="display:flex;flex-direction:column;gap:8px;align-items:center">'+sceauCd()+'</div>'+
+   '</div>'+
+   '<div style="width:100%;height:16px;border-radius:8px;background:linear-gradient(#6b3f1d,#3b2210)"></div>'+
+   '<button data-a="sceau-retry" style="margin-top:22px;width:100%;height:52px;border-radius:16px;border:0;background:#f3e3c3;color:#2b1d12;font:700 17px Fraunces,Georgia,serif">Tenter un autre code</button>'+
+   '<a href="#" style="margin-top:14px;color:#d9c7a6;font-weight:800;font-size:14px;text-decoration:none">Retour à l’invitation</a>'+
+  '</div></div>';
+}
+setInterval(function(){if(route()==='sceau'){var e=document.getElementById('sceau-cd');if(e)e.innerHTML=sceauCd()}},20000);
 
 /* ---------- édition participant (orga) ---------- */
 var ed=null;
@@ -510,11 +565,14 @@ document.addEventListener('click',function(e){
   else if(a==='login'){
     var ci=document.getElementById('code');var v=ci.value;
     var adm=/^[0-9]{4}$/.test(v);
-    if(!adm&&!/^[0-9]{6}$/.test(v)){ci.classList.add('err');ci.focus();toast('Code incorrect');return}
+    if(!v){ci.classList.add('err');ci.focus();return}
     sess.set(KC,v);
     api(adm?'/api/admin/check':'/api/orga/check',{method:'POST',auth:true}).then(function(){sess.set(KA,'1');if(adm)sess.set(KD,'1');return refresh()}).then(function(){go(adm?'admin':'orga')}).catch(function(er){
-      sess.del(KC);ci.classList.add('err');ci.value='';ci.focus();toast(er&&er.status===401?'Code incorrect':errMsg(er))});
+      sess.del(KC);ci.value='';
+      if(er&&(er.status===401||er.status===429)){trollLog(v,er.n);go('sceau');return}
+      ci.classList.add('err');ci.focus();toast(errMsg(er))});
   }
+  else if(a==='sceau-retry'){go('orga-acces')}
   else if(a==='gmode'){if(b.getAttribute('data-d')==='1')sess.set(KX,'1');else sess.del(KX);go(b.getAttribute('data-r'))}
   else if(a==='quit'){sess.del(KA);sess.del(KC);sess.del(KD);sess.del(KX);refresh().then(function(){go('')})}
   else if(a==='saveorga'){readOrga();pushCfg().then(function(){toast('Enregistré');render(true)}).catch(function(er){toast(errMsg(er))})}

@@ -41,6 +41,13 @@ async function getConfig(db) {
   return base;
 }
 
+// Compteur global des codes ratés (affiché sur la page « parchemin scellé » d'Alessia). Seul le nombre est gardé, jamais les codes.
+async function bumpTroll(env) {
+  await env.DB.prepare("INSERT INTO kv (k,v) VALUES ('troll_n','1') ON CONFLICT(k) DO UPDATE SET v = CAST(CAST(v AS INTEGER) + 1 AS TEXT)").run();
+  const row = await env.DB.prepare("SELECT v FROM kv WHERE k='troll_n'").first();
+  return row ? parseInt(row.v, 10) || 0 : 0;
+}
+
 // Vérifie le code organisateur (6 chiffres) avec limitation des essais par IP.
 async function checkOrga(request, env, adminOnly) {
   const code = request.headers.get('x-code') || '';
@@ -161,8 +168,7 @@ async function handle(request, env) {
 
   if (path === '/api/orga/check' && method === 'POST') {
     const r = await checkOrga(request, env);
-    if (r === 'locked') return fail('locked', 429);
-    if (r !== 'ok') return fail('code', 401);
+    if (r !== 'ok') return json({ error: r === 'locked' ? 'locked' : 'code', n: await bumpTroll(env) }, r === 'locked' ? 429 : 401);
     return json({ ok: true });
   }
 
@@ -255,8 +261,7 @@ async function handle(request, env) {
   // Menu admin caché (code à 4 chiffres). Le code admin ouvre aussi l'espace organisateur.
   if (path === '/api/admin/check' && method === 'POST') {
     const r = await checkOrga(request, env, true);
-    if (r === 'locked') return fail('locked', 429);
-    if (r !== 'ok') return fail('code', 401);
+    if (r !== 'ok') return json({ error: r === 'locked' ? 'locked' : 'code', n: await bumpTroll(env) }, r === 'locked' ? 429 : 401);
     return json({ ok: true });
   }
 
