@@ -11,10 +11,11 @@
     { k: 'vent', n: 'Vent', bg: '#BFE3D4', ink: '#2F6F5E', p: 'M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h7', j: ['Fûton : Contre-vent', 'Fûton : Tornade', 'Fûton : Murmure'] },
   ];
   var CK = {}; CL.forEach(function (c) { CK[c.k] = c; });
-  var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (Rythme, Savoir, Ombre ou Destin). Annoncez-le au maître du jeu avant le début de l’épreuve.';
+  var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (K-pop no Jutsu, Hit-Jutsu, Examen Chûnin, Théâtre des ombres ou Voie du ninja). Annoncez-le au maître du jeu avant le début de l’épreuve.';
   function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === st.step ? 'on' : 'used'; }
-  var STEPN = ['Ouverture', 'Rythme', 'Savoir', 'Ombre', 'Destin', 'Sanjûbi', 'Hokage', 'Écho'];
-  var ORDER = [0, 1, 7, 2, 3, 4, 5, 6]; // ordre de jeu (l'Écho, ajoutée après coup, se joue après le Rythme)
+  var STEPN = ['L’Appel des clans', 'K-pop no Jutsu', 'L’Examen Chûnin', 'Le Théâtre des ombres', 'La Voie du ninja', 'La Bataille des 30 queues', 'La Nuit de la Hokage', 'Hit-Jutsu'];
+  var STEPS_S = ['Appel des clans', 'K-pop no Jutsu', 'Examen Chûnin', 'Théâtre des ombres', 'Voie du ninja', 'Bataille', 'Nuit de la Hokage', 'Hit-Jutsu']; // versions courtes (onglets, joker)
+  var ORDER = [0, 1, 7, 2, 3, 4, 5, 6]; // ordre de jeu (Hit-Jutsu, ajoutée après coup, se joue après K-pop no Jutsu)
   function jokerOk(s) { return s === 1 || s === 7 || (s >= 2 && s <= 4); }
   var MOVES = [
     { k: 'heart', t: 'Cœur des doigts', d: 'Pouce et index croisés, bras tendu' },
@@ -34,7 +35,7 @@
     'Aujourd’hui, pour devenir Hokage, il lui reste une dernière épreuve.',
     'Sanjûbi, le démon à 30 queues, s’est réveillé. Il a volé ses 30 bougies et veut lui voler sa jeunesse.',
     'Seuls les trois grands clans du village peuvent l’arrêter : le Feu, la Foudre et le Vent.',
-    'Rythme, savoir, ombre et destin : chaque épreuve renforcera votre chakra pour le combat final.',
+    'K-pop no Jutsu, Hit-Jutsu, Examen Chûnin, Théâtre des ombres et Voie du ninja : chaque épreuve renforcera votre chakra pour la Bataille des 30 queues.',
     'Ninjas, formez vos clans !',
   ];
 
@@ -347,7 +348,7 @@
     var s = jk(c.k), j = st.joker[c.k];
     return '<section class="card" style="flex-direction:row;align-items:center;gap:14px;' + (s === 'on' ? 'background:#3A3350;color:#fff;border-color:#3A3350' : s === 'used' ? 'opacity:.55' : '') + '">' +
       '<div class="ser" style="width:56px;height:56px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;' + (s === 'on' ? 'background:#F7E6A8;color:#3A3350;animation:breathe 1.2s ease-in-out infinite' : 'background:' + c.bg + ';color:' + c.ink) + '">x2</div>' +
-      '<div style="display:flex;flex-direction:column;gap:3px"><div class="ser" style="font-size:18px">' + (s === 'on' ? 'Joker x2 activé !' : s === 'used' ? 'Joker utilisé · ' + esc(STEPN[j.step]) : 'Votre joker x2') + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:3px"><div class="ser" style="font-size:18px">' + (s === 'on' ? 'Joker x2 activé !' : s === 'used' ? 'Joker utilisé · ' + esc(STEPS_S[j.step]) : 'Votre joker x2') + '</div>' +
       '<div style="font-size:13px;font-weight:700;' + (s === 'on' ? 'color:#D9CEF0' : 'color:#6A6280') + '">' + (s === 'on' ? 'Vos points comptent double sur cette épreuve' : s === 'used' ? 'Il a déjà servi' : JOKER_TXT) + '</div></div></section>';
   }
   function pCri(c) {
@@ -446,7 +447,7 @@
       var on = p && p.k === c.k && !x.open;
       return '<div style="background:' + c.bg + ';border-radius:2vw;padding:1.4vw 2.4vw;display:flex;align-items:center;gap:1.4vw;transition:transform .4s;' + (on ? 'box-shadow:0 0 0 .4vw #3A3350;transform:scale(1.03)' : '') + '">' + ico(c, '52') + '<span class="ser" style="font-size:3vw;color:' + c.ink + '">' + esc(c.n) + '</span>' + (jk(c.k) === 'on' ? '<span class="ser" style="background:#3A3350;color:#F7E6A8;border-radius:1vw;padding:.2vw .9vw;font-size:1.8vw">x2</span>' : '') + '<span class="ser" style="margin-left:auto;font-size:6vw;line-height:1">' + st.scores[c.k] + '</span></div>';
     }).join('') + '</div>';
-    return { cls: 'peach proj', html: '<div class="pw">' + pHeader('Écho', 'Épreuve 2 / 6 · ' + (x.done ? '6 cartes jouées' : 'Tour ' + (x.card < 3 ? 1 : 2) + ' · carte ' + (x.card + 1) + ' / 6'), '') +
+    return { cls: 'peach proj', html: '<div class="pw">' + pHeader('Hit-Jutsu', 'Épreuve 2 / 6 · ' + (x.done ? '6 cartes jouées' : 'Tour ' + (x.card < 3 ? 1 : 2) + ' · carte ' + (x.card + 1) + ' / 6'), '') +
       '<div style="flex:1;display:flex;align-items:center;gap:5vw;padding:0 3vw">' + left + scores + '</div></div>' };
   }
   function scrollWrap(inner) { return { cls: 'dark', html: '<div class="scr"' + (demo() ? ' style="padding-top:calc(52px + env(safe-area-inset-top))"' : '') + '><div class="rod"></div><div class="paper">' + inner + '</div><div class="rod"></div></div>' }; }
@@ -515,14 +516,14 @@
     if (!st) return wrap('<h1>…</h1>');
     var s = st.step;
     var h = '<div class="hd"><h1>' + (st.demo ? 'Démo' : 'Maître du jeu') + '</h1><div class="row" style="gap:14px"><a href="#ecran" style="font-weight:800;color:#5B4B8A;text-decoration:none">Écran</a><a href="#admin" style="font-weight:800;color:#5B4B8A;text-decoration:none">Admin</a></div></div>';
-    h += '<div class="scroll">' + ORDER.map(function (i, k) { return '<button class="chip' + (i === s ? ' on' : '') + '" data-g="step" data-i="' + i + '">' + (k + 1) + '. ' + esc(STEPN[i]) + '</button>'; }).join('') + '</div>';
+    h += '<div class="scroll">' + ORDER.map(function (i, k) { return '<button class="chip' + (i === s ? ' on' : '') + '" data-g="step" data-i="' + i + '">' + (k + 1) + '. ' + esc(STEPS_S[i]) + '</button>'; }).join('') + '</div>';
     if (!st.on && !st.demo) h += '<div class="card" style="background:#FFF6D9;border-color:#F7E3A0;flex-direction:row;align-items:center;gap:10px"><span style="flex:1;font-weight:800">Le jeu est invisible pour les joueurs</span><button class="chip on" data-g="on" data-v="1">Ouvrir</button></div>';
     // scores
     h += '<section class="card"><div class="lab">Scores</div><div class="grid3">' + CL.map(function (c) {
       return '<div style="background:' + c.bg + ';border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px">' + ico(c, 18) + '<b class="ser" style="font-size:26px">' + st.scores[c.k] + '</b>' +
         '<div class="row" style="gap:4px"><button class="chip" style="height:32px;padding:0 10px" data-g="pts" data-c="' + c.k + '" data-d="-1" aria-label="Moins 1 ' + c.n + '">−1</button><button class="chip" style="height:32px;padding:0 10px" data-g="pts" data-c="' + c.k + '" data-d="1" aria-label="Plus 1 ' + c.n + '">+1</button></div>' +
         jokerBtn(c) + '</div>';
-    }).join('') + '</div><div class="muted" style="font-size:12px">Joker x2 : touche pour l’activer sur l’épreuve en cours (Rythme à Destin), retouche pour annuler. Les gains comptent double automatiquement.</div></section>';
+    }).join('') + '</div><div class="muted" style="font-size:12px">Joker x2 : touche pour l’activer sur l’épreuve en cours (de K-pop no Jutsu à la Voie du ninja), retouche pour annuler. Les gains comptent double automatiquement.</div></section>';
     // chrono
     h += '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chrono</span>' + (st.timer && now() < st.timer.end ? cd(st.timer.end, 'ser', 'font-size:22px') : '<span class="muted">—</span>') + '</div><div class="row" style="flex-wrap:wrap">' +
       [[30, '0:30'], [45, '0:45'], [90, '1:30'], [600, '10 min']].map(function (x) { return '<button class="chip" data-g="timer" data-s="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '<button class="chip" data-g="timerStop">Stop</button></div></section>';
@@ -531,7 +532,7 @@
   }
   function jokerBtn(c) {
     var s = jk(c.k), j = st.joker[c.k], ok = jokerOk(st.step);
-    if (s === 'used') return '<span style="font-size:11px;font-weight:800;color:' + c.ink + ';text-align:center">Joker : ' + esc(STEPN[j.step]) + '</span>';
+    if (s === 'used') return '<span style="font-size:11px;font-weight:800;color:' + c.ink + ';text-align:center">Joker : ' + esc(STEPS_S[j.step]) + '</span>';
     return '<button class="chip' + (s === 'on' ? ' on' : '') + '" data-g="joker" data-c="' + c.k + '"' + (ok ? '' : ' disabled') + ' style="height:30px;padding:0 10px;' + (s === 'on' ? '' : 'border-color:' + c.ink + ';color:' + c.ink) + (ok ? '' : ';opacity:.45') + '">' + (s === 'on' ? 'x2 actif' : 'Joker x2') + '</button>';
   }
   function mOuverture() {
@@ -812,7 +813,7 @@
         INTRO.map(function (s, i) { var last = i === INTRO.length - 1; return '<div class="ser" style="font-size:' + (last ? '4.4vw' : '2.5vw') + ';line-height:1.3;font-weight:' + (last ? 700 : 600) + ';' + (last ? 'font-family:Caveat,cursive;' : '') + 'animation:rise 1s ' + (0.6 + i * 2.2) + 's ease-out both">' + esc(s) + '</div>'; }).join('') + '</div>';
     }
     if (o.view === 'cris') {
-      return '<div class="pw">' + pHeader('Cris de guerre', 'Ouverture', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
+      return '<div class="pw">' + pHeader('Cris de guerre', 'L’Appel des clans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var cri = (st.cris || {})[c.k], spot = o.spot === c.k, dim = o.spot && !spot;
         return '<div data-spot="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center;transition:transform .4s,opacity .4s;' + (spot ? 'transform:scale(1.08);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.4' : '') + '">' + ico(c, '64') + '<div class="ser" style="font-size:2.6vw;color:' + c.ink + '">Clan du ' + esc(c.n) + '</div>' +
           '<div style="font-family:Caveat,cursive;font-weight:700;font-size:' + (spot ? '4.6vw' : '3.2vw') + ';line-height:1.05">' + (cri ? '« ' + esc(cri) + ' »' : '…') + '</div></div>';
@@ -823,7 +824,7 @@
     var cols = { feu: [], foudre: [], vent: [] };
     var ids = rev ? order : Object.keys(r).filter(function (id) { return r[id].clan; }).sort(function (a, b) { return r[a].name.localeCompare(r[b].name, 'fr'); });
     ids.forEach(function (id) { if (r[id] && r[id].clan) cols[r[id].clan].push(id); });
-    return '<div class="pw">' + pHeader('Les clans', 'Ouverture · La Quête des 30 ans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
+    return '<div class="pw">' + pHeader('Les clans', 'L’Appel des clans · La Quête des 30 ans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
       return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;gap:1vw;text-align:center">' + ico(c, '72') + '<div class="ser" style="font-size:3vw">Clan du ' + esc(c.n) + '</div>' +
         cols[c.k].map(function (id) {
           var i = order.indexOf(id), d = rev ? (1200 + i * 900 - el0) / 1000 : 0, al = id === 'alessia';
@@ -855,7 +856,7 @@
     if (s === 0) return { html: projOuverture(), cls: cls };
     if (s === 1) {
       var ry = st.rythme || {}, res = ry.results || {};
-      h = pHeader('Rythme', 'Épreuve 1 / 6', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
+      h = pHeader('K-pop no Jutsu', 'Épreuve 1 / 6', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var q = (st.seqs || {})[c.k] || [], cur = ry.cur === c.k, r = res[c.k], dim = ry.cur && !cur;
         return '<div data-rr="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw;transition:transform .4s,opacity .4s;' + (cur ? 'transform:scale(1.04);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.45' : '') + '"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
           (cur ? '<div class="ser" style="text-align:center;background:#3A3350;color:#fff;border-radius:1vw;padding:.5vw;font-size:1.7vw">' + (ry.stage === 'vote' ? 'Vote du public · ' + (st.rateCount || 0) : 'En piste !') + '</div>' : '') +
@@ -864,7 +865,7 @@
       }).join('') + '</div>';
     } else if (s === 2) {
       var sv = st.savoir, q = sv.list[sv.idx];
-      h = pHeader('Savoir', 'Épreuve 3 / 6 · Sensei Alessia', timerRight()) +
+      h = pHeader('L’Examen Chûnin', 'Épreuve 3 / 6 · Sensei Alessia', timerRight()) +
         '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.4vw"><div class="pk">' + (q ? 'Question ' + (sv.idx + 1) + ' / ' + sv.list.length : '') + '</div><div class="ser" style="font-size:4.2vw;line-height:1.2">' + (q ? esc(q.q) : 'Les questions arrivent…') + '</div></div>' + pScores(false);
     } else if (s === 3) {
       var o = st.ombre, c = o.cur, cnt = o.count || {}, tnow = now();
@@ -879,7 +880,7 @@
           '<div class="ser" style="font-size:6vw;line-height:1.1">' + esc(st.mimes[c.mime]) + '</div>' + (c.winner ? '<div class="ser" style="font-size:2.2vw;color:#2F6F5E">' + (c.winner === c.clan ? esc(CK[c.clan].n) + ' +2' : esc(CK[c.clan].n) + ' +1 · ' + esc(CK[c.winner].n) + ' +1') + '</div>' : '') + '</div>';
       else if (c) mid = '<div class="ser" style="font-size:3.4vw">' + esc(c.mname || 'Le mimeur') + ' choisit son mime…</div>';
       else mid = '<div class="ser" style="font-size:3.4vw">Prochain mime…</div>';
-      h = pHeader('L’Ombre', 'Épreuve 4 / 6 · Passages : ' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · '), right) +
+      h = pHeader('Le Théâtre des ombres', 'Épreuve 4 / 6 · Passages : ' + CL.map(function (k) { return esc(k.n) + ' ' + (cnt[k.k] || 0); }).join(' · '), right) +
         '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center">' + mid + '</div>' + pScores(false);
     } else if (s === 4) {
       return projDestin();
@@ -889,7 +890,7 @@
   function projDestin() {
     var d = st.destin, sc = st.destinScenes[d.c], res = d.results || {}, tnow = now();
     var cols = ['#2f6b45', '#9a6a12', '#b5302a'], inner;
-    var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 5 / 6 · Destin · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
+    var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 5 / 6 · La Voie du ninja · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">POINTS ×2</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
     if (d.stage !== 'reveal') {
       inner = head + '<div style="font-style:italic;font-size:1.9vw;line-height:1.45;max-width:80%">' + esc(sc.text) + '</div>' +
