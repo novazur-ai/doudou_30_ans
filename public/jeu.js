@@ -226,6 +226,12 @@
       '<ellipse cx="190" cy="235" rx="110" ry="88" fill="#251F36" stroke="#C0506A" stroke-width="5"/><path d="M118 178 L 98 128 L 150 160 Z M262 178 L 282 128 L 230 160 Z" fill="#251F36" stroke="#C0506A" stroke-width="5" stroke-linejoin="round"/>' +
       '<path d="M145 225 q 18 -16 36 0" stroke="#F7E6A8" stroke-width="7" stroke-linecap="round"/><path d="M199 225 q 18 -16 36 0" stroke="#F7E6A8" stroke-width="7" stroke-linecap="round"/><path d="M160 270 q 30 18 60 0" stroke="#F4C6D3" stroke-width="5" stroke-linecap="round"/></svg>';
   }
+  function d20s(x, size, rolling) { // petit d20 lisible pour les listes de dés (Boss)
+    return '<svg viewBox="0 0 100 100" style="width:' + size + ';height:' + size + ';' + (rolling ? 'animation:roll .4s linear 4;' : '') + 'filter:drop-shadow(0 2px 3px rgba(43,29,18,.25))"><polygon points="50,3 94,27 94,73 50,97 6,73 6,27" fill="#f8efdc" stroke="#2b1d12" stroke-width="5"/><path d="M50 3 50 16 M94 27 82 33 M94 73 82 67 M50 97 50 84 M6 73 18 67 M6 27 18 33" stroke="#2b1d12" stroke-width="3" opacity=".45"/><text x="50" y="66" text-anchor="middle" font-family="Georgia,serif" font-size="' + (String(x).length > 1 ? 44 : 50) + '" font-weight="700" fill="#2b1d12">' + (rolling ? '?' : x) + '</text></svg>';
+  }
+  function orb(size, speed) {
+    return '<div style="width:' + size + ';height:' + size + ';border-radius:50%;background:radial-gradient(circle at 40% 38%,#fff 0%,#CFE9FF 22%,#7FB6F0 52%,#5B4B8A 100%);box-shadow:0 0 6vw rgba(127,182,240,.6);display:flex;align-items:center;justify-content:center;transition:width .9s ease-out,height .9s ease-out"><svg viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="3" stroke-linecap="round" style="width:78%;height:78%;animation:spin ' + speed + ' linear infinite"><path d="M50 14a36 36 0 0 1 36 36"/><path d="M86 50a36 36 0 0 1-36 36"/><path d="M50 86a36 36 0 0 1-36-36"/><path d="M14 50a36 36 0 0 1 36-36"/><path d="M50 28a22 22 0 0 1 22 22"/><path d="M50 72a22 22 0 0 1-22-22"/></svg></div>';
+  }
   function hpBar(hp, h) { return '<div class="gbar hp" style="height:' + (h || 16) + 'px"><i style="width:' + (hp / 2026 * 100) + '%;transition:width 1s ease-out"></i></div>'; }
   function fmt(n) { return Number(n).toLocaleString('fr-FR'); }
 
@@ -429,8 +435,11 @@
     var b = st.boss || {};
     var dying = b.dead && b.deadAt && now() - b.deadAt < 2600;
     var txt = b.dead ? 'Alessia a terrassé Sanjûbi !' : b.p2 && b.p2.done ? 'Le coup final revient à Alessia…' : b.p1 ? 'Préparez-vous pour le Rasengan collectif' : 'Les clans attaquent Sanjûbi';
+    var p1 = b.p1, rolling = p1 && p1.at && now() - p1.at < 1600, mine = '';
+    if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#3A3350;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
+    if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px"><div style="font-family:Caveat,cursive;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#D9CEF0;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
     return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Sanjûbi</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>' +
-      (b.dead && !dying ? '<div style="font-family:Caveat,cursive;font-size:64px;font-weight:700;color:#F7E6A8;animation:pop .6s ease-out both">Vaincu !</div>' : bossSvg('boss' + (dying ? ' boom' : ''), 280)) +
+      bossSvg('boss' + (dying ? ' boom' : ''), p1 ? 190 : 280) + mine +
       '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#D9CEF0"><span>POINTS DE VIE</span><span>' + fmt(b.hp) + ' / 2 026</span></div>' + hpBar(b.hp) + '</div>' +
       '<div class="ser" style="font-size:22px;line-height:1.3">' + txt + '</div></div>' };
   }
@@ -443,7 +452,7 @@
       '<div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#D9CEF0">Tes tapes</div><div class="ser" style="font-size:30px" id="g-taps">' + pl.taps + '</div></div></div>' +
       '<button data-g="tap" aria-label="Taper" ' + (run ? '' : 'disabled') + ' style="margin-top:14px;width:270px;height:270px;border-radius:50%;border:0;padding:0;touch-action:manipulation;background:radial-gradient(circle at 40% 38%,#fff 0%,#CFE9FF 22%,#7FB6F0 52%,#5B4B8A 100%);box-shadow:0 0 60px rgba(127,182,240,.55);display:flex;align-items:center;justify-content:center;' + (run ? '' : 'opacity:.5') + '">' +
       '<svg width="210" height="210" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="3" stroke-linecap="round" aria-hidden="true" style="animation:spin ' + (run ? '.6s' : '3s') + ' linear infinite"><path d="M50 14a36 36 0 0 1 36 36"/><path d="M86 50a36 36 0 0 1-36 36"/><path d="M50 86a36 36 0 0 1-36-36"/><path d="M14 50a36 36 0 0 1 36-36"/><path d="M50 28a22 22 0 0 1 22 22"/><path d="M50 72a22 22 0 0 1-22-22"/></svg></button>' +
-      '<div class="muted" style="color:#D9CEF0">Pas de téléphone ? Tape sur celui de ton voisin, à deux</div></div>' };
+      '<div style="font-weight:800;color:#F7E6A8">1 tape = ' + fmt(p2.per || 1) + ' dégâts</div><div class="muted" style="color:#D9CEF0">Pas de téléphone ? Tape sur celui de ton voisin, à deux</div></div>' };
   }
   function pHokage() {
     return '<section class="card" style="align-items:center;text-align:center;padding:26px 16px;gap:8px"><div style="font-family:Caveat,cursive;font-size:52px;font-weight:700;line-height:1">Alessia est Hokage !</div><div class="ser" style="font-size:18px">Regardez l’écran, place aux souvenirs</div></section>';
@@ -574,12 +583,12 @@
   function mBoss() {
     var b = st.boss, p2 = b.p2, t = now();
     var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Sanjûbi</span><b class="ser">' + fmt(b.hp) + ' / 2 026</b></div>' + hpBar(b.hp) + '</section>';
-    h += '<section class="card"><div class="lab">Phase 1 · attaques</div>' + (b.p1 ? '<div style="font-weight:800">' + CL.map(function (c) { return esc(c.n) + ' : ' + b.p1.dice[c.k].join(' + '); }).join(' · ') + ' = ' + b.p1.dmg + ' dégâts</div>' : '<div class="muted">1 attaque par tranche de 5 points (au moins 1 par clan). Tous les dés roulent en même temps.</div><button class="btn" data-g="bp1">Lancer toutes les attaques</button>') + '</section>';
+    h += '<section class="card"><div class="lab">Phase 1 · attaques</div>' + (b.p1 ? CL.map(function (c) { return '<div style="font-weight:700;font-size:14px"><b style="color:' + c.ink + '">' + esc(c.n) + '</b> : (' + b.p1.dice[c.k].join(' + ') + ') × ' + (b.p1.mult || 1) + ' = ' + fmt(b.p1.sums ? b.p1.sums[c.k] : 0) + '</div>'; }).join('') + '<div style="font-weight:800">Total : ' + fmt(b.p1.dmg) + ' dégâts</div>' : '<div class="muted">1 attaque par tranche de 5 points (au moins 1 par clan, 12 max), chaque attaque = un d20 multiplié par le chakra. Tous les dés roulent en même temps. Le Rasengan finit le travail jusqu’à 30 PV.</div><button class="btn" data-g="bp1">Lancer toutes les attaques</button>') + '</section>';
     if (b.p1) {
       h += '<section class="card"><div class="lab">Phase 2 · Rasengan</div>';
       if (!p2) h += '<div class="muted">Décompte de 3 s puis 10 s de tapes sur tous les téléphones.</div><button class="btn" data-g="bp2s">Lancer le Rasengan</button>';
-      else if (!p2.done) h += '<div class="row" style="justify-content:space-between"><span style="font-weight:800">' + (t < p2.start ? 'Départ dans ' : t < p2.end ? 'En cours · ' : 'Terminé · ') + (t < p2.end ? cd(t < p2.start ? p2.start : p2.end) : '') + '</span><b class="ser" style="font-size:22px">' + fmt(st.tapsLive || 0) + ' tapes</b></div><button class="btn" data-g="bp2c"' + (t < p2.end + 1200 ? ' disabled' : '') + '>Encaisser les dégâts</button>';
-      else h += '<div style="font-weight:800">' + fmt(p2.dmg) + ' tapes = ' + fmt(p2.dmg) + ' dégâts</div>';
+      else if (!p2.done) h += '<div class="row" style="justify-content:space-between"><span style="font-weight:800">' + (t < p2.start ? 'Départ dans ' : t < p2.end ? 'En cours · ' : 'Terminé · ') + (t < p2.end ? cd(t < p2.start ? p2.start : p2.end) : '') + '</span><b class="ser" style="font-size:22px">' + fmt(st.tapsLive || 0) + ' tapes</b></div><div class="muted">1 tape = ' + fmt(p2.per || 1) + ' dégâts · −' + fmt(Math.min(p2.cap || 0, (st.tapsLive || 0) * (p2.per || 1))) + '</div><button class="btn" data-g="bp2c"' + (t < p2.end + 1200 ? ' disabled' : '') + '>Encaisser les dégâts</button>';
+      else h += '<div style="font-weight:800">' + fmt(p2.taps || 0) + ' tapes × ' + fmt(p2.per || 1) + ' = ' + fmt(p2.dmg) + ' dégâts</div>';
       h += '</section>';
     }
     if (p2 && p2.done) {
@@ -847,18 +856,22 @@
     var right;
     if (b.dead && !dying) right = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;flex:1;text-align:center;animation:pop .8s ease-out both"><div style="font-family:Caveat,cursive;font-weight:700;font-size:11vw;color:#F7E6A8;line-height:1">Vaincu !</div><div class="ser" style="font-size:3vw">Alessia a terrassé Sanjûbi</div></div>';
     else {
-      right = '<div style="display:flex;flex-direction:column;gap:.8vw"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="pk" style="color:#D9CEF0">Points de vie</span><span class="ser" style="font-size:3.4vw">' + fmt(b.hp) + ' <span style="font-size:1.8vw;color:#D9CEF0">/ 2 026</span></span></div>' + hpBar(b.hp, 26) + '</div>';
+      var liveDmg = p2 && !p2.done ? Math.min(p2.cap || 0, (st.tapsLive || 0) * (p2.per || 1)) : 0, hpNow = b.hp - liveDmg;
+      right = '<div style="display:flex;flex-direction:column;gap:.8vw"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="pk" style="color:#D9CEF0">Points de vie</span><span class="ser" style="font-size:3.4vw">' + fmt(hpNow) + ' <span style="font-size:1.8vw;color:#D9CEF0">/ 2 026</span></span></div>' + hpBar(hpNow, 26) + '</div>';
       if (p2 && !p2.done) {
         var wait = t < p2.start, run = t < p2.end;
-        right += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center"><div class="pk" style="color:#D9CEF0">Phase 2 · Rasengan collectif</div><div class="ser" style="font-size:3.4vw">' + (wait ? 'Préparez vos doigts…' : run ? 'Tapez tous !' : 'Terminé !') + '</div>' +
-          (run ? '<div class="pclock" style="background:#fff;color:#3A3350">' + cd(wait ? p2.start : p2.end) + '</div>' : '') + '<div class="ser" style="font-size:6vw">' + fmt(st.tapsLive || 0) + ' <span style="font-size:2.4vw">tapes</span></div></div>';
+        var frac = p2.cap ? Math.min(1, liveDmg / p2.cap) : 0;
+        right += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vw;text-align:center"><div class="row" style="gap:2vw;align-items:center"><div class="pk" style="color:#D9CEF0">Phase 2 · Rasengan collectif · 1 tape = ' + fmt(p2.per || 1) + ' dégâts</div>' + (run ? '<div class="pclock" style="background:#fff;color:#3A3350;font-size:2.6vw;padding:.3vw 1.2vw">' + cd(wait ? p2.start : p2.end) + '</div>' : '') + '</div>' +
+          '<div style="height:24vw;display:flex;align-items:center;justify-content:center">' + orb((6 + 18 * frac).toFixed(1) + 'vw', run ? '.5s' : '3s') + '</div>' +
+          '<div class="ser" style="font-size:2.6vw">' + (wait ? 'Préparez vos doigts…' : run ? 'Tapez tous !' : 'Terminé !') + ' · ' + fmt(st.tapsLive || 0) + ' tapes · <span style="color:#F7E6A8">−' + fmt(liveDmg) + '</span></div></div>';
       } else if (b.p1) {
-        right += '<div class="pk" style="color:#D9CEF0">Phase 1 · toutes les attaques en même temps</div><div style="display:flex;flex-direction:column;gap:1vw">' + CL.map(function (c) {
-          var dice = b.p1.dice[c.k], sum = dice.reduce(function (a, x) { return a + x; }, 0);
-          return '<div class="row" style="gap:1.4vw;padding:1vw 1.6vw;border-radius:1.6vw;background:' + c.bg + ';color:#3A3350"><span class="ser" style="width:9vw;font-size:2.2vw">' + esc(c.n) + '</span><div class="row" style="gap:.8vw;flex:1;flex-wrap:wrap">' +
-            dice.map(function (x) { return '<span class="ser ' + (rolling ? 'rolling' : '') + '" style="width:4.4vw;height:4.4vw;border-radius:1vw;background:#fff;display:flex;align-items:center;justify-content:center;font-size:2.4vw;box-shadow:0 .3vw 0 rgba(0,0,0,.2)">' + (rolling ? '?' : x) + '</span>'; }).join('') +
-            '</div><span class="ser" style="font-size:2.4vw">' + (rolling ? '' : '−' + sum) + '</span></div>';
-        }).join('') + '</div>' + (p2 && p2.done ? '<div class="ser" style="font-size:2.4vw;color:#F7E6A8">Rasengan : −' + fmt(p2.dmg) + ' · Le coup final revient à Alessia !</div>' : '');
+        var mult = b.p1.mult || 1;
+        right += '<div class="row" style="justify-content:space-between"><span class="pk" style="color:#D9CEF0">Phase 1 · toutes les attaques en même temps</span><span class="pill" style="background:#F7E6A8;color:#3A3350;font-size:1.4vw;padding:.3vw 1vw">Chakra ×' + mult + '</span></div><div style="display:flex;flex-direction:column;gap:1vw">' + CL.map(function (c) {
+          var dice = b.p1.dice[c.k], sum = b.p1.sums ? b.p1.sums[c.k] : dice.reduce(function (a, x) { return a + x; }, 0);
+          return '<div class="row" style="gap:1.4vw;padding:.8vw 1.6vw;border-radius:1.6vw;background:' + c.bg + ';color:#3A3350"><span class="ser" style="width:8vw;font-size:2.2vw">' + esc(c.n) + '</span><div class="row" style="gap:.4vw;flex:1;flex-wrap:wrap">' +
+            dice.map(function (x) { return d20s(x, '4vw', rolling); }).join('') +
+            '</div><span class="ser" style="font-size:2.4vw;white-space:nowrap">' + (rolling ? '' : '−' + fmt(sum)) + '</span></div>';
+        }).join('') + '</div>' + (p2 && p2.done ? '<div class="ser" style="font-size:2.2vw;color:#F7E6A8">Rasengan : ' + fmt(p2.taps || 0) + ' tapes × ' + fmt(p2.per || 1) + ' = −' + fmt(p2.dmg) + ' · Plus que ' + fmt(b.hp) + ' PV : le coup final revient à Alessia !</div>' : '');
       } else right += '<div style="flex:1;display:flex;align-items:center"><div class="ser" style="font-size:3.4vw;line-height:1.3">Sanjûbi menace le village.<br>Les clans se préparent à l’attaque…</div></div>';
     }
     var flash = dying && t - st.boss.deadAt < 900 ? '<div style="position:absolute;inset:0;background:#fff;animation:flash .9s ease-out forwards;pointer-events:none"></div>' : '';

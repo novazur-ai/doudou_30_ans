@@ -12,6 +12,8 @@ const FAKE = ['Léa', 'Marc', 'Tom', 'Zoé', 'Paul', 'Inès', 'Hugo', 'Alessia']
 const STEPS = 7; // 0 ouverture, 1 rythme, 2 savoir, 3 ombre, 4 destin, 5 boss, 6 hokage
 const MOVES = ['heart', 'bigheart', 'horse', 'tt', 'shimmy', 'wave', 'point', 'flip', 'mudra', 'run'];
 const BOSS_HP = 2026;
+// Équilibrage : la phase 1 vise ~1 000 dégâts, le Rasengan amène Sanjûbi à 30 PV (une par bougie), le coup final d'Alessia les retire.
+const FINAL_HP = 30, P1_TARGET = 1000, P2_MIN = 500, TAPS_PER_PHONE = 30;
 
 export const MIMES = [
   'Faire du surf', 'Traire une vache', 'Marcher sur un Lego', 'Monter un meuble', 'Faire de la poterie',
@@ -92,7 +94,6 @@ function addPts(g, clan, n) {
   const j = g.joker && g.joker[clan];
   g.scores[clan] += n > 0 && j && j.step === g.step ? n * 2 : n;
 }
-const die = () => 1 + Math.floor(Math.random() * 6);
 const d20 = () => 1 + Math.floor(Math.random() * 20);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -233,7 +234,8 @@ export async function playerView(db, name, now) {
     const b = g.boss;
     let mine = 0;
     if (id) { const t = await db.prepare('SELECT v FROM gplay WHERE k=?').bind('tap:' + id).first(); mine = t ? +t.v : 0; }
-    out.boss = { hp: b.hp, dead: b.dead, p1: !!b.p1, p2: b.p2 ? { start: b.p2.start, end: b.p2.end, done: !!b.p2.done } : null, mine };
+    const p1 = b.p1 ? { at: b.p1.at, mult: b.p1.mult || 1, dmg: b.p1.dmg, dice: clan && b.p1.dice[clan] ? b.p1.dice[clan] : [], sum: clan && b.p1.sums ? b.p1.sums[clan] : 0 } : null;
+    out.boss = { hp: b.hp, dead: b.dead, deadAt: b.deadAt, p1, p2: b.p2 ? { start: b.p2.start, end: b.p2.end, done: !!b.p2.done, per: b.p2.per || 1, dmg: b.p2.dmg } : null, mine };
   }
   return out;
 }
@@ -491,26 +493,33 @@ export async function mjAct(db, b, now) {
 
     case 'bossP1': {
       if (g.boss.p1) break;
-      const dice = {};
-      let dmg = 0;
+      const n = {}, dice = {}, sums = {};
+      let count = 0, dmg = 0;
+      for (const clan of CLANS) { n[clan] = Math.min(12, Math.max(1, Math.floor(Math.max(0, g.scores[clan]) / 5))); count += n[clan]; }
+      const mult = Math.max(1, Math.round(P1_TARGET / (count * 10.5))); // multiplicateur de chakra commun aux 3 clans
       for (const clan of CLANS) {
-        const n = Math.max(1, Math.floor(Math.max(0, g.scores[clan]) / 5));
-        dice[clan] = Array.from({ length: Math.min(n, 12) }, die);
-        dmg += dice[clan].reduce((a, x) => a + x, 0);
+        dice[clan] = Array.from({ length: n[clan] }, d20);
+        sums[clan] = dice[clan].reduce((a, x) => a + x, 0) * mult;
+        dmg += sums[clan];
       }
-      g.boss.p1 = { dice, dmg, at: now };
-      g.boss.hp = Math.max(1, g.boss.hp - dmg);
+      const real = Math.min(dmg, Math.max(0, g.boss.hp - FINAL_HP - P2_MIN)); // laisse toujours du travail au Rasengan
+      g.boss.p1 = { dice, sums, mult, dmg: real, at: now };
+      g.boss.hp -= real;
       break;
     }
     case 'bossP2Start':
       if (!g.boss.p1 || (g.boss.p2 && g.boss.p2.done)) break;
       await db.prepare("DELETE FROM gplay WHERE k LIKE 'tap:%'").run();
-      g.boss.p2 = { start: now + 3000, end: now + 13000, done: false, dmg: 0 };
+      const r = await roster(db, g), ids = Object.keys(r);
+      const phones = Math.max(1, db.demo ? ids.length : ids.filter((k) => r[k].phone).length);
+      const cap = Math.max(0, g.boss.hp - FINAL_HP);
+      g.boss.p2 = { start: now + 3000, end: now + 13000, done: false, dmg: 0, cap, per: Math.max(1, Math.ceil(cap / (phones * TAPS_PER_PHONE))) };
       break;
     case 'bossP2Close': {
       const p2 = g.boss.p2;
       if (!p2 || p2.done) break;
-      p2.dmg = await tapsTotal(db) + (db.demo ? 40 * Object.keys(await roster(db, g)).length + Math.floor(Math.random() * 60) : 0); p2.done = true; p2.at = now;
+      p2.taps = await tapsTotal(db) + (db.demo ? 40 * Object.keys(await roster(db, g)).length + Math.floor(Math.random() * 60) : 0);
+      p2.dmg = Math.min(p2.cap, p2.taps * p2.per); p2.done = true; p2.at = now;
       g.boss.hp = Math.max(1, g.boss.hp - p2.dmg);
       break;
     }
