@@ -11,6 +11,14 @@
     { k: 'vent', n: 'Vent', bg: '#BFE3D4', ink: '#2F6F5E', p: 'M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h7', j: ['Fûton : Contre-vent', 'Fûton : Tornade', 'Fûton : Murmure'] },
   ];
   var CK = {}; CL.forEach(function (c) { CK[c.k] = c; });
+  // Choix des clans : chefs (ordre de l'illustration : Foudre · Feu · Vent), sceaux et personnalités.
+  var CS_ORDER = ['foudre', 'feu', 'vent'];
+  var CHEF = {
+    foudre: { s: '雷', c: '#2F5FD0', p: 'Rapide, stratégique et impitoyable. Il excelle dans la prise de décision et n’hésite pas à agir pour protéger son Clan.' },
+    feu: { s: '火', c: '#C8372D', p: 'Déterminé, charismatique et protecteur. Il place toujours le bien de son Clan et de ses habitants au premier plan.' },
+    vent: { s: '風', c: '#4E7A3A', p: 'Serein, bienveillant et visionnaire. Il privilégie l’harmonie et la paix, et croit en un avenir meilleur pour son Clan.' },
+  };
+  function clanName(k) { return 'Clan ' + CLB[k].pre + ' ' + CK[k].n; }
   var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (K-pop no Jutsu, Hit-Jutsu, Examen Chûnin, Théâtre des ombres ou Voie du ninja). Annoncez-le au maître du jeu avant le début de l’épreuve.';
   function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === st.step ? 'on' : 'used'; }
   var STEPN = ['L’Appel des clans', 'K-pop no Jutsu', 'L’Examen Chûnin', 'Le Théâtre des ombres', 'La Voie du ninja', 'La Bataille des 30 queues', 'La Nuit de la Hokage', 'Hit-Jutsu'];
@@ -90,6 +98,43 @@
     '#g .full{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;color:#fff;transition:background .3s}',
     '#g .cban img{-webkit-mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%);mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%)}#g.peach .cban img{mix-blend-mode:multiply;filter:sepia(.18) saturate(.92) contrast(1.04)}#g.peach .cban:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.8%27 numOctaves=%272%27/%3E%3CfeColorMatrix values=%270 0 0 0 .5 0 0 0 0 .42 0 0 0 0 .3 0 0 0 .35 0%27/%3E%3C/filter%3E%3Crect width=%27200%27 height=%27200%27 filter=%27url(%23n)%27/%3E%3C/svg%3E");mix-blend-mode:multiply;-webkit-mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%);mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%)}',
     '#g .scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}#g .scroll::-webkit-scrollbar{display:none}',
+    /* choix des clans (sélection façon Tekken / Mario Kart) */
+    '#g .cs{position:fixed;inset:0;z-index:40;background:#0f0c0a;color:#F4ECDD;overflow:hidden}#g .cs .kk{color:#f0a090}',
+    '#g .cs-cols{position:absolute;inset:0;display:flex;gap:3px;max-width:460px;margin:0 auto}',
+    '#g .cs-col{position:relative;flex:1;overflow:hidden;border:0;padding:0;background:#222;transition:flex .5s cubic-bezier(.2,.9,.25,1.15),filter .4s;color:#F4ECDD}',
+    '#g .cs-col img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;transition:transform .6s cubic-bezier(.2,.9,.25,1.15)}',
+    '#g .cs-cols.has .cs-col{flex:.62;filter:grayscale(.75) brightness(.5)}#g .cs-cols.has .cs-col.on{flex:2.9;filter:none}#g .cs-col.on img{transform:translateY(-9%)}',
+    '#g .cs-col:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 0 var(--c);transition:box-shadow .4s}#g .cs-col.on:after{box-shadow:inset 0 0 0 4px var(--c),inset 0 0 40px rgba(0,0,0,.25)}',
+    '#g .cs-seal{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%) rotate(-5deg);width:52px;height:52px;border-radius:6px;background:var(--c);color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 28px Mincho30,serif;box-shadow:0 4px 14px rgba(0,0,0,.5);transition:transform .45s cubic-bezier(.2,.9,.25,1.4)}#g .cs-col.on .cs-seal{transform:translateX(-50%) rotate(-5deg) scale(1.25)}',
+    '#g .cs-cnt{position:absolute;top:calc(112px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(15,12,10,.72);border-radius:999px;padding:3px 10px;font-weight:900;font-size:13px;white-space:nowrap}',
+    '#g .cs-full{position:absolute;top:30%;left:-10%;right:-10%;transform:rotate(-12deg);background:rgba(15,12,10,.85);color:#F7E6A8;text-align:center;font-weight:900;letter-spacing:.2em;font-size:13px;padding:6px 0}',
+    '#g .cs-fl{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:2}#g .cs-col.fx .cs-fl{animation:csfl .5s ease-out}@keyframes csfl{0%{opacity:.7}100%{opacity:0}}',
+    '#g .cs-top{position:absolute;left:0;right:0;top:0;z-index:3;padding:calc(46px + env(safe-area-inset-top)) 18px 26px;background:linear-gradient(rgba(15,12,10,.9),transparent);text-align:center;pointer-events:none}#g .cs-t{font:800 24px Mincho30,Georgia,serif}',
+    '#g .cs-sheet{position:absolute;left:0;right:0;bottom:0;z-index:4;max-width:460px;margin:0 auto;background:#F4ECDD;color:#1E1A17;border-radius:14px 14px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .5s cubic-bezier(.2,.9,.25,1.1);box-shadow:0 -10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column}',
+    '#g .cs-sheet.up{transform:none}#g .cs-sheet .kk{color:#C8372D}#g .cs-sheet h2{margin:0 0 6px;font:800 30px/1.05 Mincho30,Georgia,serif}#g .cs-sheet h2:after{content:"";display:block;width:120px;height:6px;margin-top:6px;border-radius:3px;background:var(--c)}',
+    '#g .cs-p{font:700 14px/1.45 Mincho30,Georgia,serif;margin:6px 0 10px;transition:font-size .45s}#g .cs-sheet.up .cs-p{font-size:19px}',
+    '#g .cs-m{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}#g .cs-m span{border:1.5px solid #cbbba3;border-radius:4px;padding:2px 9px;font-weight:700;font-size:14px}',
+    '#g .cs-x{position:absolute;right:12px;top:10px;width:44px;height:44px;border:0;background:none;font-size:22px;color:#7a6a58}',
+    '#g .cs-splash,#g .cs-done{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px calc(28px + env(safe-area-inset-bottom));background-size:cover;background-position:center 30%;transition:opacity .5s,transform .5s}',
+    '#g .cs-splash>*,#g .cs-done>*{position:relative;max-width:420px;width:100%;margin-left:auto;margin-right:auto}#g .cs-splash:before,#g .cs-done:before{content:"";position:absolute;inset:0;max-width:none;background:linear-gradient(transparent 42%,rgba(15,12,10,.96) 80%)}',
+    '#g .cs-splash.off{opacity:0;transform:scale(1.08);pointer-events:none}#g .cs-splash h1{margin:8px auto 6px;font-size:40px;line-height:1.05;color:#F4ECDD}#g .cs-splash p,#g .cs-done p{margin:0 auto 14px;color:#e6d9c2;font-weight:700}',
+    '#g .cs-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#C8372D;margin-right:8px;vertical-align:middle;animation:breathe 1.2s ease-in-out infinite}',
+    '#g .cs-done{align-items:center;text-align:center;background-position:50% 45%;padding-bottom:calc(30px + env(safe-area-inset-bottom))}#g .cs-done h2{margin:0 auto 6px;font:800 30px/1.1 Mincho30,Georgia,serif;color:#F4ECDD}',
+    '#g .cs-stamp{width:110px!important;height:110px;border:5px solid #C8372D;color:#C8372D;background:rgba(244,236,221,.9);border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 64px Mincho30,serif;transform:rotate(-8deg);margin-bottom:16px!important}',
+    '#g .cs-stamp.anim{animation:csst .6s .15s cubic-bezier(.3,1.5,.5,1) both}@keyframes csst{0%{transform:scale(2.6) rotate(-25deg);opacity:0}100%{transform:scale(1) rotate(-8deg);opacity:1}}',
+    '#g .cs-done .btn2{background:rgba(15,12,10,.55);color:#F4ECDD;border-color:#bdae95}',
+    '#g .cs .btn{width:100%}#g .cs-col:focus-visible,#g .cs .btn:focus-visible{outline:3px solid #F7E6A8;outline-offset:-3px}',
+    /* projection du choix des clans */
+    '#g .csp{position:fixed;inset:0;background:#0f0c0a;display:flex;align-items:center;justify-content:center;color:#F4ECDD}',
+    '#g .csp-st{position:relative;width:min(100vw,177.8vh);aspect-ratio:16/9;background:url(/clans/chefs-wide.webp?v=1) center/cover;overflow:hidden;font-size:min(1vw,1.78vh)}',
+    '#g .csp-st:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(15,12,10,.88),rgba(15,12,10,.35) 22%,transparent 34%,transparent 50%,rgba(15,12,10,.92) 82%)}',
+    '#g .csp-top{position:absolute;left:4em;top:3em;right:4em;display:flex;align-items:flex-end;gap:1.6em}#g .csp-sl{width:5.4em;height:5.4em;flex-shrink:0;background:#C8372D;color:#FBF3E6;border-radius:.5em;display:flex;align-items:center;justify-content:center;font:800 2.8em Mincho30,serif;width:1.93em;height:1.93em;border-radius:.18em}',
+    '#g .csp-top h1{margin:0;font:800 5em/1 Mincho30,Georgia,serif;color:#F4ECDD}#g .csp-kk{font:700 1.2em Gothic30,sans-serif;letter-spacing:.22em;color:#f0a090;text-transform:uppercase;margin-bottom:.5em}',
+    '#g .csp-pl{position:absolute;bottom:3em;width:27%;transform:translateX(-50%);background:rgba(244,236,221,.94);color:#1E1A17;border-radius:.4em;padding:1.2em 1.4em;border-top:.4em solid var(--c);transition:box-shadow .4s}#g .csp-pl.al{box-shadow:0 0 0 .3em #F7E6A8,0 0 3em rgba(247,230,168,.5)}',
+    '#g .csp-pl h3{margin:0 0 .5em;font:800 2.1em Mincho30,Georgia,serif;display:flex;justify-content:space-between;align-items:baseline;gap:.4em}#g .csp-pl h3 small{font:900 .55em Gothic30,sans-serif;color:#6b5e52;white-space:nowrap}#g .csp-pl h3 small.f{color:#C8372D}',
+    '#g .csp-nm{display:flex;flex-wrap:wrap;gap:.4em}#g .csp-nm span{font-weight:700;font-size:1.4em;border:.1em solid #cbbba3;border-radius:.25em;padding:.05em .5em}#g .csp-nm span.a{font-family:Mincho30,serif;font-weight:800;background:#1E1A17;color:#F7E6A8;border-color:#1E1A17}',
+    '#g .csp-nm span.new{animation:cspin .6s cubic-bezier(.3,1.5,.5,1)}@keyframes cspin{0%{transform:scale(2);opacity:0}100%{transform:none;opacity:1}}#g .csp-nm i{font-style:normal;color:#8a7b68;font-weight:700;font-size:1.3em}',
+    '#g .csp-lock{animation:pop .7s cubic-bezier(.3,1.5,.5,1) both}',
     /* animations */
     '@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes spin{to{transform:rotate(360deg)}}',
     '@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(244,198,211,.9),0 8px 0 #8f241d}50%{box-shadow:0 0 0 22px rgba(244,198,211,0),0 8px 0 #8f241d}}',
@@ -124,7 +169,7 @@
 
   /* ---------- helpers ---------- */
   var st = null, mode = null, root = null, pollT = null, tickT = null, off = 0, busy = false, lastHtml = '';
-  var pl = { rate: 0, rateAt: 0, seq: null, seqAt: 0, vote: null, voteAt: 0, taps: 0, tapSent: 0, p2: null, joined: '' };
+  var pl = { csK: null, csGo: false, csChange: false, csAt: 0, csBusy: false, rate: 0, rateAt: 0, seq: null, seqAt: 0, vote: null, voteAt: 0, taps: 0, tapSent: 0, p2: null, joined: '' };
   var mj = { sel: null, resetArm: false, upl: 0 };
   var photoUrls = {};
 
@@ -287,10 +332,7 @@
     if (mode === 'ecran' && revealing() && root.getAttribute('data-reveal') === String(st.ouv.drawAt)) return;
     if (mode === 'ecran' && st && st.step === 4 && st.destin && st.destin.stage === 'reveal' && st.destin.shownAt && now() - st.destin.shownAt < 7200 && root.getAttribute('data-dfreeze') === String(st.destin.shownAt + ':' + st.destin.shown)) return;
     if (mode === 'ecran' && introOn() && root.getAttribute('data-intro') === String(st.boss.intro)) return;
-    var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
-    if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Gothic30,Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
-      '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
-      '<button data-g="demoquit" style="border:0;background:#fff;color:#1E1A17;border-radius:999px;height:26px;padding:0 10px;font:800 12px Gothic30,Nunito,sans-serif">Quitter</button></div>';
+    var r = build();
     root.className = r.cls || 'peach';
     if (r.html === lastHtml) return;
     // conserve la saisie en cours
@@ -302,6 +344,15 @@
     if (active) { var e = document.getElementById(active); if (e) e.focus(); }
     root.scrollTop = y;
     if (mode === 'ecran') fxHook();
+  }
+  // Après une animation faite directement dans le DOM : mémorise le rendu équivalent pour ne pas tout redessiner.
+  function syncHtml() { lastHtml = build().html; }
+  function build() {
+    var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
+    if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Gothic30,Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
+      '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
+      '<button data-g="demoquit" style="border:0;background:#fff;color:#1E1A17;border-radius:999px;height:26px;padding:0 10px;font:800 12px Gothic30,Nunito,sans-serif">Quitter</button></div>';
+    return r;
   }
   function tick() {
     if (!root) return;
@@ -337,6 +388,7 @@
     if (!myName()) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><label class="lab" for="g-name">Ton prénom</label><input id="g-name" maxlength="40" autocomplete="given-name"><button class="btn" data-g="pname">Entrer</button></section>');
     if (!st) return wrap('<h1>…</h1>');
     if (!st.on) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><div class="ser" style="font-size:20px">Le jeu n’a pas encore commencé</div><div class="muted">Garde cette page ouverte, elle se mettra à jour toute seule.</div></section><button class="btn2" data-g="home">Retour à l’accueil</button>');
+    if (st.step === 0 && st.sel && st.sel.mode === 'pick' && st.sel.phase !== 'locked') return pSel();
     var c = myClan();
     if (!c) return wrap('<h1>Salut ' + esc(myName()) + ' !</h1><section class="card" style="align-items:center;text-align:center;padding:26px 16px"><div class="ser" style="font-size:22px">Le maître du jeu forme les clans</div><div class="muted">Ton clan apparaîtra ici dans un instant.</div></section>');
     var s = st.step;
@@ -350,6 +402,58 @@
     if (st.timer && now() < st.timer.end + 1000) head += '<div class="row" style="gap:10px">' + cdBar(st.timer.end, st.timer.dur * 1000) + cd(st.timer.end, 'ser', 'font-size:20px;min-width:52px;text-align:right') + '</div>';
     var body = s === 0 ? pClan(c) : s === 1 ? pRythme(c) : s === 2 ? pSavoir() : s === 4 ? pDestin(c) : pHokage();
     return wrap(head + body);
+  }
+  /* ---------- choix des clans (téléphone) ---------- */
+  function pSel() {
+    var S = st.sel, me = myName().trim().toLowerCase(), isA = me === 'alessia';
+    if (!(S.phase === 'open' || (S.phase === 'alessia' && isA))) return csWait(S);
+    if (st.clan && !pl.csChange) return csDone(st.clan, S, me);
+    return csPick(S, isA);
+  }
+  function csScreen(inner) { return { html: '<div class="cs">' + inner + '</div>', cls: 'dark' }; }
+  function csWait(S) {
+    var a = S.alessia, t, sub;
+    if (S.phase === 'alessia') { t = a ? 'Alessia a rejoint le ' + clanName(a) + ' !' : 'Alessia choisit son clan en premier…'; sub = a ? 'Le choix va bientôt s’ouvrir à toi.' : 'Patience, ninja : ton tour arrive juste après.'; }
+    else { t = 'Le maître du jeu va ouvrir le choix des clans.'; sub = 'Garde cette page ouverte, elle se mettra à jour toute seule.'; }
+    return csScreen('<div class="cs-splash" style="background-image:url(/clans/chefs.webp?v=1)"><div class="kk">始まり · La Quête des 30 ans</div><h1 class="ser">Trois chefs.<br>Un seul clan.</h1><p style="font-size:18px;color:#F4ECDD">' + (a ? '' : '<span class="cs-dot"></span>') + esc(t) + '</p><p>' + esc(sub) + '</p></div>');
+  }
+  function csSheet(k, S) {
+    var n = S.count[k] || 0, mine = st.clan === k, full = n >= S.cap && !mine, m = (st.members && st.members[k]) || [], nm = clanName(k);
+    return '<button class="cs-x" data-g="cssel" data-k="' + k + '" aria-label="Fermer">✕</button><div class="kk">' + CHEF[k].s + ' · ' + n + ' / ' + S.cap + ' ninjas</div><h2>' + esc(nm) + '</h2><p class="cs-p">' + esc(CHEF[k].p) + '</p>' +
+      '<div class="cs-m">' + (m.length ? m.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') : '<span>Personne pour l’instant</span>') + '</div>' +
+      '<button class="btn" data-g="cspick" data-k="' + k + '"' + (full || pl.csBusy ? ' disabled' : '') + '>' + (mine ? 'Rester dans le ' + esc(nm) : full ? 'Clan complet' : 'Rejoindre le ' + esc(nm)) + '</button>';
+  }
+  function csPick(S, isA) {
+    var k = pl.csK;
+    var cols = CS_ORDER.map(function (x) {
+      var n = S.count[x] || 0, full = n >= S.cap && st.clan !== x;
+      return '<button class="cs-col' + (k === x ? ' on' : '') + '" data-g="cssel" data-k="' + x + '" style="--c:' + CHEF[x].c + '" aria-label="' + esc(clanName(x)) + '"><img src="/clans/chef-' + x + '.webp?v=1" alt=""><span class="cs-fl"></span><span class="cs-cnt">' + n + ' / ' + S.cap + '</span>' + (full ? '<span class="cs-full">COMPLET</span>' : '') + '<span class="cs-seal">' + CHEF[x].s + '</span></button>';
+    }).join('');
+    var splash = pl.csGo || st.clan ? '' : '<div class="cs-splash" style="background-image:url(/clans/chefs.webp?v=1)"><div class="kk">始まり · La Quête des 30 ans</div><h1 class="ser">Trois chefs.<br>Un seul clan.</h1><p>' + (isA ? 'Tu choisis en premier, future Hokage. Lequel suivras-tu ?' : 'Chaque chef cherche ses ninjas. Lequel suivras-tu ?') + '</p><button class="btn" data-g="csgo">Choisir mon clan</button></div>';
+    return csScreen('<div class="cs-cols' + (k ? ' has' : '') + '">' + cols + '</div><div class="cs-top"><div class="kk">選択 · Le choix du clan</div><div class="cs-t">' + (st.clan ? 'Changer de clan' : 'Choisis ton clan') + '</div></div>' +
+      '<div class="cs-sheet' + (k ? ' up' : '') + '"' + (k ? ' style="--c:' + CHEF[k].c + '"' : '') + '>' + (k ? csSheet(k, S) : '') + '</div>' + splash);
+  }
+  function csDone(k, S, me) {
+    var m = ((st.members && st.members[k]) || []).filter(function (x) { return x.toLowerCase() !== me; });
+    return csScreen('<div class="cs-done" style="background-image:url(/clans/chef-' + k + '.webp?v=1)"><div class="cs-stamp' + (Date.now() - pl.csAt < 4000 ? ' anim' : '') + '">選</div><h2>Bienvenue dans le ' + esc(clanName(k)) + '</h2>' +
+      '<p>' + (m.length ? 'Avec ' + m.map(esc).join(', ') + '.' : 'Personne d’autre pour l’instant : ton clan va vite se remplir.') + '</p>' +
+      '<p style="font-size:14px;color:#bdae95">' + (S.phase === 'alessia' ? 'Les autres ninjas choisiront juste après toi.' : 'Le maître du jeu verrouillera bientôt les clans.') + '</p><button class="btn2" data-g="cschange">Changer de clan</button></div>');
+  }
+  function csSelect(k) {
+    pl.csK = pl.csK === k ? null : k;
+    var cols = root.querySelector('.cs-cols'), sh = root.querySelector('.cs-sheet');
+    if (!cols || !sh) { lastHtml = ''; draw(); return; }
+    cols.classList.toggle('has', !!pl.csK);
+    cols.querySelectorAll('.cs-col').forEach(function (b) {
+      var on = b.getAttribute('data-k') === pl.csK; b.classList.toggle('on', on);
+      if (on) { b.classList.remove('fx'); void b.offsetWidth; b.classList.add('fx'); }
+    });
+    sh.classList.remove('up');
+    if (pl.csK) {
+      sh.style.setProperty('--c', CHEF[pl.csK].c); sh.innerHTML = csSheet(pl.csK, st.sel); void sh.offsetWidth;
+      requestAnimationFrame(function () { sh.classList.add('up'); });
+    } else sh.removeAttribute('style');
+    syncHtml();
   }
   function pClan(c) {
     return '<section style="background:' + c.bg + ';border-radius:24px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid #fff;box-shadow:0 8px 20px rgba(58,51,80,.12)">' +
@@ -565,7 +669,15 @@
       (ov.order && ov.order.length ? '<button class="chip" data-g="ouv" data-v="clans" data-r="1">Rejouer la révélation</button>' : '') + '</div>';
     if (ov.view === 'intro') hp += '<div style="background:#FBF7F2;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px"><div class="lab">À lire à voix haute</div>' + INTRO.map(function (s) { return '<div style="font-weight:700;line-height:1.4">' + esc(s) + '</div>'; }).join('') + '</div>';
     if (ov.view === 'cris') hp += CL.map(function (c) { var cr = (st.cris || {})[c.k]; return '<div class="row" style="background:' + c.bg + ';border-radius:12px;padding:8px 10px"><span style="flex:1;font-weight:800;color:' + c.ink + '">' + esc(c.n) + ' · ' + (cr ? '« ' + esc(cr) + ' »' : 'pas encore de cri') + '</span><button class="chip' + (ov.spot === c.k ? ' on' : '') + '" data-g="spot" data-c="' + c.k + '">Afficher</button></div>'; }).join('');
-    hp += '<div class="muted" style="font-size:12px">« Tirer les clans » lance automatiquement la révélation animée sur l’écran.</div></section>';
+    hp += '</section>';
+    var S = st.selInfo || { phase: 'closed', cap: 1, count: {}, n: 0, mode: 'pick' }, none = ids.filter(function (id) { return !r[id].clan; }).length;
+    var sel = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Choix des clans</span><span class="muted" style="font-size:12px">' + (S.mode === 'draw' ? 'Tirage au sort utilisé' : { closed: 'Fermé', alessia: 'Alessia choisit', open: 'Ouvert à tous', locked: 'Verrouillé' }[S.phase]) + '</span></div>' +
+      '<div class="grid3">' + [['alessia', '1. Alessia'], ['open', '2. Tous'], ['locked', '3. Verrouiller']].map(function (x) { return '<button class="chip' + (S.mode === 'pick' && S.phase === x[0] ? ' on' : '') + '" style="height:42px" data-g="selph" data-v="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="row" style="justify-content:space-between"><span style="font-weight:700">Joueurs attendus</span><span class="row" style="gap:6px"><button class="chip" data-g="seln" data-n="-1" aria-label="Un joueur de moins">−</button><span class="ser" style="font-size:20px;min-width:30px;text-align:center">' + Math.max(S.n, ids.length) + '</span><button class="chip" data-g="seln" data-n="1" aria-label="Un joueur de plus">+</button></span></div>' +
+      '<div class="muted" style="font-size:13px">' + S.cap + ' places par clan · ' + CS_ORDER.map(function (k) { return CK[k].n + ' ' + (S.count[k] || 0) + '/' + S.cap; }).join(' · ') + '</div>' +
+      '<div style="font-weight:700;font-size:14px">' + (S.alessia === null ? 'Alessia n’a pas encore ouvert le jeu (prénom « Alessia »).' : S.alessia ? 'Alessia a choisi le ' + esc(clanName(S.alessia)) + '.' : 'Alessia n’a pas encore choisi.') + (none ? ' · ' + none + ' sans clan' : '') + '</div>' +
+      '<div class="muted" style="font-size:12px">1. Alessia choisit seule sur son téléphone. 2. Tout le monde choisit ; un clan plein affiche COMPLET. 3. Verrouiller fige les clans et affiche « Les clans sont formés ! ». Les joueurs sans téléphone : ajoute-les puis touche leur clan. « Placer les nouveaux » répartit ceux qui restent sans clan.</div></section>';
+    hp = sel + hp;
     var h = hp + '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Joueurs · ' + ids.length + '</span><span class="muted" style="font-size:13px">Feu ' + cnt.feu + ' · Foudre ' + cnt.foudre + ' · Vent ' + cnt.vent + '</span></div>';
     h += ids.length ? ids.map(function (id) {
       var p = r[id], c = p.clan ? CK[p.clan] : null;
@@ -574,7 +686,7 @@
         '<button class="chip" data-g="delp" data-id="' + esc(id) + '" aria-label="Retirer ' + esc(p.name) + '">×</button></div>';
     }).join('') : '<div class="muted">Les joueurs apparaissent quand ils ouvrent le jeu. Ajoute ceux sans téléphone ci-dessous.</div>';
     h += '<div class="row"><input id="g-add" maxlength="40" placeholder="Prénom" aria-label="Prénom à ajouter"><button class="chip on" style="height:44px" data-g="addp">Ajouter</button></div>' +
-      (st.demo ? '<button class="btn2" data-g="demofake">Ajouter 8 joueurs fictifs + toi</button>' : '') + '<div class="grid2"><button class="btn2" data-g="draw">Tirer les clans</button><button class="btn2" data-g="drawRest">Placer les nouveaux</button></div><div class="muted" style="font-size:12px">Touche le clan d’un joueur pour le changer (par exemple pour placer Alessia).</div></section>';
+      (st.demo ? '<button class="btn2" data-g="demofake">Ajouter 8 joueurs fictifs + toi</button>' : '') + '<div class="grid2"><button class="btn2" data-g="drawRest">Placer les nouveaux</button><button class="btn2" data-g="draw">Tirage au sort (secours)</button></div><div class="muted" style="font-size:12px">Touche le clan d’un joueur pour le changer. Le tirage au sort remplace tous les choix et lance la révélation animée.</div></section>';
     h += '<section class="card"><div class="lab">Partie</div><div class="grid2">' + (st.demo ? '' : '<button class="btn2" data-g="on" data-v="' + (st.on ? 0 : 1) + '">' + (st.on ? 'Masquer le jeu' : 'Ouvrir le jeu') + '</button>') + '<button class="btn2" data-g="reset" style="color:#A63A55">' + (mj.resetArm ? 'Confirmer ?' : 'Réinitialiser') + '</button></div><div class="muted" style="font-size:12px">Réinitialiser efface clans, scores et votes (les questions et les photos restent).</div></section>';
     return h + nextBtn();
   }
@@ -807,7 +919,17 @@
   function fxHook() {
     fxJoker(); fxRythme(); fxOmbre(); fxDestin(); fxHokage(); fxIntro(); musicSync();
     if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
-    var o = st.ouv;
+    var o = st.ouv, S = st.selInfo;
+    if (S && S.mode === 'pick' && o.view === 'clans') {
+      if (S.phase === 'locked' && S.lockAt && fired.lockAt !== S.lockAt && now() - S.lockAt < 5000) {
+        fired.lockAt = S.lockAt;
+        setTimeout(function () { var el = root && root.querySelector('[data-csplock]'); fx(el, 'don', { size: 190, dy: 90 }); fx(el, 'burst', { r: 140 }); }, 300);
+      }
+      if (S.alessia && fired.al !== S.alessia) {
+        var firstAl = fired.al === undefined; fired.al = S.alessia;
+        if (!firstAl) setTimeout(function () { var el = root && root.querySelector('[data-csp="' + S.alessia + '"]'); fx(el, 'burst', { r: 120 }); fx(el, 'pon', {}); }, 250);
+      }
+    }
     if (o.view === 'clans' && revealing()) {
       root.setAttribute('data-reveal', String(o.drawAt));
       if (fired.drawAt !== o.drawAt) {
@@ -841,7 +963,8 @@
           '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:' + (spot ? '4.6vw' : '3.2vw') + ';line-height:1.05">' + (cri ? '« ' + esc(cri) + ' »' : '…') + '</div></div>';
       }).join('') + '</div></div>';
     }
-    // clans + révélation
+    if (st.selInfo && st.selInfo.mode === 'pick') return projSel();
+    // clans + révélation (tirage au sort de secours)
     var rev = revealing(), order = o.order || [], el0 = now() - (o.drawAt || 0), r = st.roster || {};
     var cols = { feu: [], foudre: [], vent: [] };
     var ids = rev ? order : Object.keys(r).filter(function (id) { return r[id].clan; }).sort(function (a, b) { return r[a].name.localeCompare(r[b].name, 'fr'); });
@@ -855,6 +978,21 @@
     }).join('') + '</div></div>';
   }
 
+  // Choix des clans sur grand écran : les 3 chefs, les prénoms arrivent en direct sous chacun.
+  var cspSeen = null;
+  function projSel() {
+    var S = st.selInfo, ph = S.phase, mem = st.members || {}, POS = { foudre: 17, feu: 50, vent: 83 };
+    var title = ph === 'closed' ? 'Trois chefs. Un seul clan.' : ph === 'alessia' ? (S.alessia ? 'Alessia rejoint le ' + clanName(S.alessia) + ' !' : 'Alessia choisit son clan…') : ph === 'open' ? 'Choisissez votre clan' : 'Les clans sont formés !';
+    var sub = ph === 'alessia' ? 'La future Hokage choisit en premier' : ph === 'open' ? 'Sur vos téléphones · ' + S.cap + ' places par clan' : 'L’Appel des clans · La Quête des 30 ans';
+    var first = !cspSeen, seen = {};
+    var pl3 = ph === 'closed' ? '' : CS_ORDER.map(function (k) {
+      var names = mem[k] || [], n = names.length, full = n >= S.cap, al = S.alessia === k;
+      return '<div class="csp-pl' + (al && ph === 'alessia' ? ' al' : '') + '" data-csp="' + k + '" style="left:' + POS[k] + '%;--c:' + CHEF[k].c + '"><h3>' + esc(clanName(k)) + '<small' + (full && ph !== 'locked' ? ' class="f"' : '') + '>' + (ph === 'locked' ? n + ' ninja' + (n > 1 ? 's' : '') : full ? 'COMPLET' : n + ' / ' + S.cap) + '</small></h3><div class="csp-nm">' +
+        (n ? names.map(function (x) { var id = k + ':' + x; seen[id] = 1; return '<span class="' + (x.toLowerCase() === 'alessia' ? 'a' : '') + (!first && !cspSeen[id] ? ' new' : '') + '">' + esc(x) + '</span>'; }).join('') : '<i>En attente de ninjas…</i>') + '</div></div>';
+    }).join('');
+    cspSeen = seen;
+    return '<div class="csp"><div class="csp-st"><div class="csp-top"><div class="csp-sl">' + (ph === 'locked' ? '結' : '集') + '</div><div><div class="csp-kk">' + esc(sub) + '</div><h1' + (ph === 'locked' ? ' class="csp-lock" data-csplock="1"' : '') + '>' + esc(title) + '</h1></div></div>' + pl3 + '</div></div>';
+  }
   /* ---------- PROJECTION ---------- */
   // Bandeaux des clans (images détourées, score écrit en direct sur le parchemin de droite).
   var CLB = { feu: { ar: 4.7059, cy: 54.5, ink: '#6a0c02', pre: 'du' }, foudre: { ar: 4.5113, cy: 46, ink: '#012467', pre: 'de la' }, vent: { ar: 4.898, cy: 43, ink: '#334324', pre: 'du' } };
@@ -1127,6 +1265,19 @@
       req('/api/game/seq', { method: 'POST', body: { name: myName(), seq: s2 } }).catch(function (er) { A.toast(A.errMsg(er)); });
       return;
     }
+    if (g === 'csgo') { var sp = root.querySelector('.cs-splash'); pl.csGo = true; if (sp) sp.classList.add('off'); syncHtml(); return; }
+    if (g === 'cssel') { csSelect(d('k')); return; }
+    if (g === 'cschange') { pl.csChange = true; pl.csGo = true; pl.csK = st.clan; lastHtml = ''; draw(); return; }
+    if (g === 'cspick') {
+      var ck = d('k');
+      if (ck === st.clan) { pl.csChange = false; pl.csK = null; lastHtml = ''; draw(); return; }
+      pl.csBusy = true; b.disabled = true;
+      req('/api/game/pick', { method: 'POST', body: { name: myName(), clan: ck } }).then(function () { pl.csBusy = false; pl.csChange = false; pl.csK = null; pl.csAt = Date.now(); poll(); })
+        .catch(function (er) { pl.csBusy = false; A.toast(er && er.code === 'full' ? 'Ce clan vient d’être complété' : er && er.code === 'closed' ? 'Le choix des clans est fermé' : A.errMsg(er)); lastHtml = ''; poll(); });
+      return;
+    }
+    if (g === 'selph') { act('selPhase', { p: d('v') }); return; }
+    if (g === 'seln') { act('selN', { n: Math.max(0, ((st.selInfo && st.selInfo.n) || Object.keys(st.roster || {}).length) + (+d('n'))) }); return; }
     if (g === 'oreveal') { pl.reveal = d('k'); lastHtml = ''; draw(); return; }
     if (g === 'opickp') {
       req('/api/game/opick', { method: 'POST', body: { name: myName(), i: +d('i') } }).then(poll).catch(function (er) { A.toast(er && er.code === 'closed' ? 'Mime déjà choisi' : A.errMsg(er)); poll(); });

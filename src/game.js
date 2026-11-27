@@ -2,6 +2,7 @@
 // État MJ dans kv('game') ; écritures des joueurs dans la table gplay (pas de conflit avec le MJ).
 
 export const CLANS = ['feu', 'foudre', 'vent'];
+const okClan = (c) => CLANS.includes(c);
 
 // Mode démo : même logique, mais sur une partie séparée (kv 'game_demo' + table gplay_demo).
 export function demoDb(db) {
@@ -111,6 +112,8 @@ function fresh() {
     joker: per(() => ({ step: null, at: 0 })), // joker x2 : une épreuve par clan (Rythme à Destin)
     timer: null, // { end, dur }
     ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
+    // Choix des clans : fermé → Alessia choisit seule → ouvert à tous → verrouillé. n = nombre de joueurs attendus (calcule les places).
+    sel: { phase: 'closed', at: 0, lockAt: 0, n: 0, mode: 'pick' },
     savoir: { list: [], idx: 0 },
     ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
     destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
@@ -125,7 +128,7 @@ async function load(db) {
   const row = await db.prepare("SELECT v FROM kv WHERE k='game'").first();
   const g = fresh();
   if (!row) return g;
-  try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) }, echo: { ...g.echo, ...(v.echo || {}) } };
+  try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, sel: { ...g.sel, ...(v.sel || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) }, echo: { ...g.echo, ...(v.echo || {}) } };
     if (!CLANS.some((c) => out.rythme.songs && out.rythme.songs[c])) out.rythme.songs = { feu: SONG, foudre: SONG, vent: SONG };
     return out; } catch (_) { return g; }
 }
@@ -145,7 +148,16 @@ async function roster(db, g) {
     if (!r[id]) { try { r[id] = { name: JSON.parse(row.v).name, clan: null, phone: true }; } catch (_) {} }
     else r[id] = { ...r[id], phone: true };
   }
+  // Clans choisis sur les téléphones (tant que le MJ n'a pas verrouillé)
+  for (const row of await playRows(db, 'pick:')) { const id = row.k.slice(5); if (r[id] && okClan(row.v)) r[id] = { ...r[id], clan: row.v }; }
   return r;
+}
+// Places par clan : un tiers des joueurs (inscrits ou attendus), arrondi au-dessus.
+function selCap(g, r) { return Math.max(1, Math.ceil(Math.max(Object.keys(r).length, g.sel.n | 0) / 3)); }
+function selInfo(g, r) {
+  const count = { feu: 0, foudre: 0, vent: 0 };
+  for (const id in r) if (r[id].clan) count[r[id].clan]++;
+  return { phase: g.sel.phase, at: g.sel.at, lockAt: g.sel.lockAt, mode: g.sel.mode, n: g.sel.n | 0, cap: selCap(g, r), count, alessia: r.alessia ? r.alessia.clan || '' : null };
 }
 function members(r) {
   const m = { feu: [], foudre: [], vent: [], none: [] };
@@ -203,7 +215,7 @@ export async function playerView(db, name, now) {
   const out = {
     on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, joker: g.joker, timer: g.timer,
   };
-  if (g.step === 0) out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '' };
+  if (g.step === 0) { out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '' }; out.sel = selInfo(g, r); out.inRoster = !!(id && r[id]); }
   if (g.step === 1) {
     out.seq = clan ? (await seqs(db))[clan] || [] : [];
     const ry = g.rythme;
@@ -257,6 +269,7 @@ export async function fullView(db, now) {
   if (g.step === 1 && g.rythme.cur) { const v = await rateVotes(db, g.rythme.cur); out.rateCount = v.length; }
   out.rLocked = rLocked(g, now);
   out.cris = await cris(db);
+  out.selInfo = selInfo(g, r);
   if (g.step === 4) { out.destinVotes = await votes(db, g); out.destinCtx = {}; for (const c of CLANS) out.destinCtx[c] = destinCtx(g.destin, c); }
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
   const ph = await db.prepare('SELECT id FROM photos ORDER BY id').all();
@@ -278,6 +291,19 @@ export async function playerAct(db, path, b, now) {
   }
   const r = await roster(db, g);
   const clan = r[id] && r[id].clan;
+  if (path === 'pick') {
+    const ph = g.sel.phase;
+    if (g.step !== 0 || !(ph === 'open' || (ph === 'alessia' && id === 'alessia'))) return { error: 'closed' };
+    if (!r[id]) return { error: 'name' };
+    if (!okClan(b.clan)) return { error: 'clan' };
+    if (b.clan !== clan) {
+      let n = 0;
+      for (const k in r) if (k !== id && r[k].clan === b.clan) n++;
+      if (n >= selCap(g, r)) return { error: 'full' };
+    }
+    await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('pick:' + id, b.clan).run();
+    return { ok: true };
+  }
   if (path === 'tap') {
     const p2 = g.boss.p2;
     if (g.step !== 5 || !p2 || p2.done || now < p2.start - 500 || now > p2.end + 1500) return { error: 'closed' };
@@ -328,7 +354,6 @@ export async function playerAct(db, path, b, now) {
 export async function mjAct(db, b, now) {
   let g = await load(db);
   const t = b.type;
-  const okClan = (c) => CLANS.includes(c);
   const fold = async () => { g.roster = await roster(db, g); };
 
   switch (t) {
@@ -395,10 +420,22 @@ export async function mjAct(db, b, now) {
       if (name && !g.roster[name.toLowerCase()]) g.roster[name.toLowerCase()] = { name, clan: null };
       break;
     }
-    case 'delp': await fold(); delete g.roster[String(b.id)]; await db.prepare('DELETE FROM gplay WHERE k=?').bind('p:' + b.id).run(); break;
-    case 'move': await fold(); if (g.roster[b.id]) g.roster[b.id].clan = okClan(b.clan) ? b.clan : null; break;
+    case 'delp': await fold(); delete g.roster[String(b.id)]; await db.prepare('DELETE FROM gplay WHERE k=? OR k=?').bind('p:' + b.id, 'pick:' + b.id).run(); break;
+    case 'move': await fold(); if (g.roster[b.id]) g.roster[b.id].clan = okClan(b.clan) ? b.clan : null; await db.prepare('DELETE FROM gplay WHERE k=?').bind('pick:' + b.id).run(); break;
+    case 'selPhase': {
+      if (!['closed', 'alessia', 'open', 'locked'].includes(b.p)) break;
+      await fold();
+      await db.prepare("DELETE FROM gplay WHERE k LIKE 'pick:%'").run(); // les choix sont figés dans le roster
+      g.sel.phase = b.p; g.sel.at = now; g.sel.mode = 'pick';
+      if (b.p === 'locked') g.sel.lockAt = now;
+      if (b.p !== 'closed') g.ouv.view = 'clans';
+      break;
+    }
+    case 'selN': g.sel.n = Math.max(0, Math.min(60, b.n | 0)); break;
     case 'draw': {
       await fold();
+      await db.prepare("DELETE FROM gplay WHERE k LIKE 'pick:%'").run();
+      g.sel.mode = 'draw'; g.sel.phase = 'locked'; g.sel.lockAt = 0;
       const ids = shuffle(Object.keys(g.roster));
       const start = Math.floor(Math.random() * 3);
       ids.forEach((id, i) => { g.roster[id].clan = CLANS[(start + i) % 3]; });
