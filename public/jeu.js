@@ -60,35 +60,39 @@
   /* ---------- styles ---------- */
   var css = document.createElement('style');
   css.textContent = [
-    '#g{position:fixed;inset:0;overflow-y:auto;z-index:30;font-family:Nunito,sans-serif;color:#3A3350;-webkit-tap-highlight-color:transparent}',
-    '#g.peach{background-color:#F8D3BE;background-image:radial-gradient(#EFC3A9 1.5px,transparent 1.6px);background-size:18px 18px}',
-    '#g.dark{background:#3A3350;color:#fff}',
+    '@font-face{font-family:Mincho30;src:url(/fonts/mincho-800.woff2) format(\'woff2\');font-weight:800;font-display:swap}@font-face{font-family:Mincho30;src:url(/fonts/mincho-700.woff2) format(\'woff2\');font-weight:400 700;font-display:swap}@font-face{font-family:Gothic30;src:url(/fonts/gothic-500.woff2) format(\'woff2\');font-weight:400 600;font-display:swap}@font-face{font-family:Gothic30;src:url(/fonts/gothic-700.woff2) format(\'woff2\');font-weight:700 800;font-display:swap}@font-face{font-family:Gothic30;src:url(/fonts/gothic-900.woff2) format(\'woff2\');font-weight:900;font-display:swap}',
+    '#g{position:fixed;inset:0;overflow-y:auto;z-index:30;font-family:Gothic30,Nunito,sans-serif;font-weight:500;color:#1E1A17;-webkit-tap-highlight-color:transparent}',
+    '#g.peach{background-color:#F4ECDD;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.9%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3CfeColorMatrix values=%270 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .28 0 0 0 .09 0%27/%3E%3C/filter%3E%3Crect width=%27300%27 height=%27300%27 filter=%27url(%23n)%27/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27600%27 height=%27600%27%3E%3Cfilter id=%27f%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.012 .09%27 numOctaves=%273%27/%3E%3CfeColorMatrix values=%270 0 0 0 .55 0 0 0 0 .45 0 0 0 0 .3 0 0 0 .10 0%27/%3E%3C/filter%3E%3Crect width=%27600%27 height=%27600%27 filter=%27url(%23f)%27/%3E%3C/svg%3E")}',
+    '#g.dark{background:#1E1A17;color:#fff}',
     '#g .w{max-width:460px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));box-sizing:border-box;display:flex;flex-direction:column;gap:14px;min-height:100%}',
-    '#g h1{margin:0;font-family:Caveat,"Bradley Hand",cursive;font-size:40px;font-weight:700;line-height:1}',
-    '#g .hd{display:flex;align-items:center;justify-content:space-between;gap:10px}',
-    '#g .card{background:#fff;border:1.5px solid #E2D9EE;border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;color:#3A3350}',
-    '#g .lab{font-size:12px;font-weight:800;letter-spacing:.06em;color:#6A6280;text-transform:uppercase}',
-    '#g .ser{font-family:Fraunces,Georgia,serif;font-weight:700}',
-    '#g button{font-family:Nunito,sans-serif;cursor:pointer;color:inherit}',
-    '#g .btn{height:54px;border-radius:16px;border:0;background:#6B5B9A;color:#fff;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:18px;box-shadow:0 5px 0 #4E4178;padding:0 16px}',
+    '#g h1{margin:0;font-family:Mincho30,Georgia,serif;font-size:34px;font-weight:800;line-height:1.08;letter-spacing:.005em}',
+    '#g.peach .hd h1:after{content:"";display:block;width:150px;height:10px;margin-top:6px;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 12%27 preserveAspectRatio=%27none%27%3E%3Cpath d=%27M2 7 C40 2 90 4 140 6 S190 8 198 4%27 stroke=%27%23C8372D%27 stroke-width=%275%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") no-repeat center/100% 100%}',
+    '#g .kk{font:700 11px Gothic30,sans-serif;letter-spacing:.22em;color:#C8372D;margin-bottom:6px;text-transform:uppercase}#g .vk{writing-mode:vertical-rl;font-family:Mincho30,serif;font-weight:800;color:#C8372D;letter-spacing:.18em;font-size:20px;line-height:1}',
+    '#g .hd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}',
+    '#g .card{position:relative;background:rgba(255,253,248,.8);border:1.5px solid #2a2420;border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;color:#1E1A17}#g .card:before,#g .card:after{content:"";position:absolute;width:10px;height:10px;border:2px solid #C8372D;pointer-events:none}#g .card:before{left:-5px;top:-5px;border-right:0;border-bottom:0}#g .card:after{right:-5px;bottom:-5px;border-left:0;border-top:0}',
+    '#g .lab{font-size:11px;font-weight:700;letter-spacing:.18em;color:#7a6a58;text-transform:uppercase}',
+    '#g .ser{font-family:Mincho30,Georgia,serif;font-weight:800}',
+    '#g button{font-family:Gothic30,Nunito,sans-serif;cursor:pointer;color:inherit}',
+    '#g .btn{height:54px;border-radius:6px;border:0;background:#C8372D;color:#FBF3E6;font-family:Mincho30,Georgia,serif;font-weight:800;font-size:18px;box-shadow:0 4px 0 #8f241d;padding:0 16px;letter-spacing:.02em}',
     '#g .btn:disabled{opacity:.45}',
-    '#g .btn2{height:46px;border-radius:14px;border:1.5px solid #E2D9EE;background:#fff;font-weight:800;font-size:15px;color:#3A3350;padding:0 14px}',
-    '#g .chip{height:34px;padding:0 12px;border-radius:999px;border:1.5px solid #E2D9EE;background:#fff;font-weight:800;font-size:13px;color:#3A3350;white-space:nowrap}',
-    '#g .chip.on{background:#6B5B9A;color:#fff;border-color:#6B5B9A}',
-    '#g .muted{color:#6A6280;font-weight:700;font-size:14px}',
+    '#g .btn2{height:46px;border-radius:6px;border:1.5px solid #2a2420;background:rgba(255,253,248,.9);font-weight:700;font-size:15px;color:#1E1A17;padding:0 14px}',
+    '#g .chip{height:34px;padding:0 12px;border-radius:4px;border:1.5px solid #cbbba3;background:rgba(255,253,248,.9);font-weight:700;font-size:13px;color:#1E1A17;white-space:nowrap}',
+    '#g .chip.on{background:#1E1A17;color:#F4ECDD;border-color:#1E1A17}',
+    '#g .muted{color:#6b5e52;font-weight:700;font-size:14px}',
     '#g .row{display:flex;align-items:center;gap:8px}',
     '#g .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
     '#g .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
-    '#g input,#g textarea{font-family:Nunito,sans-serif;font-size:16px;border:1.5px solid #E2D9EE;border-radius:12px;padding:10px 12px;background:#fff;color:#3A3350;box-sizing:border-box;width:100%}',
+    '#g input,#g textarea{font-family:Gothic30,Nunito,sans-serif;font-size:16px;border:1.5px solid #d9cbb4;border-radius:12px;padding:10px 12px;background:#fff;color:#1E1A17;box-sizing:border-box;width:100%}',
     '#g textarea{min-height:150px;resize:vertical}',
     '#g .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-weight:800;font-size:13px}',
-    '#g .row>.gbar{flex:1}#g .gbar{height:12px;flex-shrink:0;border-radius:999px;background:#EEE7F5;overflow:hidden;min-width:40px}#g .gbar>i{display:block;height:100%;background:#6B5B9A;border-radius:999px}',
-    '#g.dark .gbar{background:rgba(255,255,255,.14)}#g .hp>i{background:#C0506A}',
+    '#g .row>.gbar{flex:1}#g .gbar{height:12px;flex-shrink:0;border-radius:999px;background:#e6dccb;overflow:hidden;min-width:40px}#g .gbar>i{display:block;height:100%;background:#C8372D;border-radius:999px}',
+    '#g.dark .gbar{background:rgba(255,255,255,.14)}#g .hp>i{background:#C8372D}',
     '#g .full{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;color:#fff;transition:background .3s}',
+    '#g .cban img{-webkit-mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%);mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%)}#g.peach .cban img{mix-blend-mode:multiply;filter:sepia(.18) saturate(.92) contrast(1.04)}#g.peach .cban:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.8%27 numOctaves=%272%27/%3E%3CfeColorMatrix values=%270 0 0 0 .5 0 0 0 0 .42 0 0 0 0 .3 0 0 0 .35 0%27/%3E%3C/filter%3E%3Crect width=%27200%27 height=%27200%27 filter=%27url(%23n)%27/%3E%3C/svg%3E");mix-blend-mode:multiply;-webkit-mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%);mask-image:radial-gradient(ellipse 54% 64% at 50% 50%,#000 72%,transparent 100%)}',
     '#g .scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}#g .scroll::-webkit-scrollbar{display:none}',
     /* animations */
     '@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes spin{to{transform:rotate(360deg)}}',
-    '@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(244,198,211,.9),0 8px 0 #4E4178}50%{box-shadow:0 0 0 22px rgba(244,198,211,0),0 8px 0 #4E4178}}',
+    '@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(244,198,211,.9),0 8px 0 #8f241d}50%{box-shadow:0 0 0 22px rgba(244,198,211,0),0 8px 0 #8f241d}}',
     '@keyframes roll{0%{transform:rotate(0) translateY(0)}25%{transform:rotate(90deg) translateY(-14px)}50%{transform:rotate(180deg)}75%{transform:rotate(270deg) translateY(-8px)}100%{transform:rotate(360deg)}}',
     '@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}@keyframes hit{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}',
     '@keyframes boom{0%{transform:scale(1);opacity:1;filter:none}30%{transform:scale(1.15) rotate(-6deg);filter:brightness(2)}100%{transform:scale(2.4) rotate(14deg);opacity:0;filter:brightness(3) blur(6px)}}',
@@ -96,11 +100,11 @@
     '@keyframes drop{0%{transform:translateY(-40vh) rotate(-12deg);opacity:0}70%{transform:translateY(8px) rotate(3deg);opacity:1}100%{transform:translateY(0) rotate(-4deg)}}',
     '@keyframes ishot{0%{opacity:0}18%{opacity:1}82%{opacity:1}100%{opacity:0}}@keyframes ikbA{from{transform:scale(1.16) translate(-1.5%,1%);filter:blur(6px)}25%{filter:blur(0)}to{transform:scale(1.02) translate(1%,-1%);filter:blur(0)}}@keyframes ikbB{from{transform:scale(1.02) translate(1.5%,0);filter:blur(6px)}25%{filter:blur(0)}to{transform:scale(1.16) translate(-1%,-1.5%);filter:blur(0)}}@keyframes icap{0%,15%{opacity:0;transform:translateY(2vh)}30%,80%{opacity:1;transform:none}100%{opacity:0}}@keyframes ishake{0%,100%{transform:none}20%{transform:translate(-1.2vw,.6vw)}40%{transform:translate(1vw,-.8vw)}60%{transform:translate(-.6vw,.4vw)}80%{transform:translate(.4vw,-.2vw)}}',
     '@keyframes rise{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}@keyframes fadein{from{opacity:0}to{opacity:1}}',
-    '@keyframes upulse{from{transform:scale(1)}to{transform:scale(1.12)}}.urg{animation:upulse .5s ease-in-out infinite alternate;display:inline-block}#g.proj .urg{color:#fff;background:#C0506A!important}',
+    '@keyframes upulse{from{transform:scale(1)}to{transform:scale(1.12)}}.urg{animation:upulse .5s ease-in-out infinite alternate;display:inline-block}#g.proj .urg{color:#fff;background:#C8372D!important}',
     '#g .scr{min-height:100%;background:#2b211a;padding:calc(10px + env(safe-area-inset-top)) 0 calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;display:flex;flex-direction:column}',
     '#g .rod{margin:0 14px;height:12px;border-radius:6px;background:linear-gradient(#7a4a24,#4a2c14);flex-shrink:0}',
-    '#g .paper{flex:1;margin:0 22px;background:linear-gradient(90deg,#d9c39a,#efe0bf 12%,#f3e7cc 50%,#efe0bf 88%,#d9c39a);padding:20px 16px;color:#2b1d12;font-family:Georgia,Fraunces,serif;position:relative;display:flex;flex-direction:column;gap:12px}',
-    '#g .sk{font:700 11px Nunito,Arial,sans-serif;letter-spacing:.22em;color:#8a5a2b;text-transform:uppercase}',
+    '#g .paper{flex:1;margin:0 22px;background:linear-gradient(90deg,#d9c39a,#efe0bf 12%,#f3e7cc 50%,#efe0bf 88%,#d9c39a);padding:20px 16px;color:#2b1d12;font-family:Georgia,Mincho30,Georgia,serif;position:relative;display:flex;flex-direction:column;gap:12px}',
+    '#g .sk{font:700 11px Gothic30,Nunito,Arial,sans-serif;letter-spacing:.22em;color:#8a5a2b;text-transform:uppercase}',
     '#g .scroll3{display:flex;gap:8px;justify-content:center;align-items:flex-start}',
     '#g .scl{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;border:0;background:none;padding:0;color:#2b1d12;font-family:Georgia,serif}',
     '#g .scl i{display:block;width:108%;height:10px;border-radius:5px;background:#4a2c14;flex-shrink:0}',
@@ -113,8 +117,8 @@
     '@media (prefers-reduced-motion:reduce){#g *,.fig *{animation:none!important}}',
     /* projection */
     '#g.proj{overflow:hidden}#g .pw{position:absolute;inset:0;padding:3.2vw 4vw;box-sizing:border-box;display:flex;flex-direction:column;gap:2.4vw}',
-    '#g .pt{font-family:Caveat,cursive;font-weight:700;font-size:7vw;line-height:.95;margin:0}#g .pk{font-size:1.3vw;font-weight:800;letter-spacing:.1em;color:#6A6280;text-transform:uppercase}',
-    '#g .pclock{background:#3A3350;color:#fff;border-radius:2vw;padding:.6vw 2.4vw;font-family:Fraunces,serif;font-weight:700;font-size:5vw;line-height:1}',
+    '#g .pt{font-family:Mincho30,Georgia,serif;font-weight:800;font-size:5.4vw;line-height:1;margin:0}#g .pk{font-size:1.2vw;font-weight:700;letter-spacing:.22em;color:#C8372D;text-transform:uppercase}#g.dark .pk{color:#e6b8a0}#g .pseal{width:5.6vw;height:5.6vw;flex-shrink:0;background:#C8372D;color:#F4ECDD;font-family:Mincho30,serif;font-weight:800;font-size:2.8vw;display:flex;align-items:center;justify-content:center;border-radius:.5vw;transform:rotate(-4deg);box-shadow:0 .3vw .8vw rgba(120,30,20,.25)}#g .pvk{position:absolute;right:2vw;top:3vw;writing-mode:vertical-rl;font-family:Mincho30,serif;font-weight:800;color:#C8372D;letter-spacing:.2em;font-size:2vw;line-height:1;opacity:.9}#g .pbrush{height:.8vw;width:100%;background:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 12%27 preserveAspectRatio=%27none%27%3E%3Cpath d=%27M2 7 C40 2 90 4 140 6 S190 8 198 4%27 stroke=%27%231E1A17%27 stroke-width=%275%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") no-repeat center/100% 100%;opacity:.45;margin-top:.4vw}',
+    '#g .pclock{background:#1E1A17;color:#F4ECDD;border-radius:.6vw;padding:.6vw 2.4vw;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:5vw;line-height:1}',
   ].join('\n');
   document.head.appendChild(css);
 
@@ -170,7 +174,7 @@
   })();
   function fig(k, size, clan, noBubble) {
     size = size || 40;
-    var c = clan ? CK[clan] : null, ink = c ? c.ink : '#3A3350', band = c ? c.bg : '#F4C6D3', skin = '#FDE7DA', P = (POSES[k] || { p: [N] }).p[0];
+    var c = clan ? CK[clan] : null, ink = c ? c.ink : '#1E1A17', band = c ? c.bg : '#F4C6D3', skin = '#FDE7DA', P = (POSES[k] || { p: [N] }).p[0];
     var g = function (i, inner) { return '<g class="j-' + J[i][0] + '" style="transform:' + jt(i, P[i]) + '">' + inner + '</g>'; };
     var seg = function (L, w) { return '<line x1="0" y1="0" x2="0" y2="' + L + '" stroke-width="' + w + '"/>'; };
     var hand = '<circle cx="0" cy="11" r="4.6" fill="' + skin + '" stroke="' + ink + '" stroke-width="2"/>';
@@ -179,7 +183,7 @@
     var head = '<g transform="translate(0,-31)"><circle r="13" fill="' + skin + '" stroke="' + ink + '" stroke-width="2.5"/><path d="M-12.6 -4 H12.6" stroke="' + band + '" stroke-width="6"/>' +
       '<rect x="-5" y="-7" width="10" height="6" rx="1.5" fill="#B9BDC8" stroke="' + ink + '" stroke-width="1"/><path d="M12 -5 l6 -3 M12 -3 l6 2" stroke="' + band + '" stroke-width="2.4"/>' +
       '<circle cx="-4.5" cy="3" r="1.6" fill="' + ink + '" stroke="none"/><circle cx="4.5" cy="3" r="1.6" fill="' + ink + '" stroke="none"/><path d="M-3 7.5 q3 2.5 6 0" stroke-width="1.4"/></g>';
-    var bubble = noBubble ? '' : '<g><circle cx="51" cy="13" r="15" fill="#fff" stroke="#D9CEF0" stroke-width="1.4"/><image href="/vendor/em/' + k + '.png" x="39.5" y="1.5" width="23" height="23"/></g>';
+    var bubble = noBubble ? '' : '<g><circle cx="51" cy="13" r="15" fill="#fff" stroke="#e6d9c2" stroke-width="1.4"/><image href="/vendor/em/' + k + '.png" x="39.5" y="1.5" width="23" height="23"/></g>';
     return '<svg class="fig mv-' + k + '" width="' + size + '" height="' + Math.round(size * 1.4) + '" viewBox="0 0 60 84" fill="none" stroke="' + ink + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;overflow:visible">' +
       g(0, leg(6, 7) + leg(8, 9) + g(1, seg(-17, 9) + ((POSES[k] || {}).back ? arm(2, 3) + arm(4, 5) + head : head + arm(2, 3) + arm(4, 5)))) + bubble + '</svg>';
   }
@@ -197,10 +201,10 @@
   }
   function sgn(m) { return (m > 0 ? '+' : '−') + Math.abs(m); }
   function calcTxt(r) { if (r.roll === null || !r.mods || !r.mods.length) return ''; return r.roll + r.mods.map(function (x) { return ' ' + (x.m > 0 ? '+' : '−') + ' ' + Math.abs(x.m) + ' (' + x.why + ')'; }).join('') + ' = ' + r.total; }
-  function ctxLines(cx, fs) { if (!cx || !cx.lines.length) return ''; return '<div style="border-left:3px solid #8a5a2b;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:3px">' + cx.lines.map(function (l) { return '<div style="font-style:italic;font-size:' + fs + ';line-height:1.4">' + esc(l.t) + (l.m ? ' <b style="font:800 .85em Nunito,Arial,sans-serif;font-style:normal;white-space:nowrap;color:' + (l.m > 0 ? '#2f6b45' : '#b5302a') + '">' + sgn(l.m) + ' au dé</b>' : '') + '</div>'; }).join('') + '</div>'; }
+  function ctxLines(cx, fs) { if (!cx || !cx.lines.length) return ''; return '<div style="border-left:3px solid #8a5a2b;padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:3px">' + cx.lines.map(function (l) { return '<div style="font-style:italic;font-size:' + fs + ';line-height:1.4">' + esc(l.t) + (l.m ? ' <b style="font:800 .85em Gothic30,Nunito,Arial,sans-serif;font-style:normal;white-space:nowrap;color:' + (l.m > 0 ? '#2f6b45' : '#b5302a') + '">' + sgn(l.m) + ' au dé</b>' : '') + '</div>'; }).join('') + '</div>'; }
   function rollSpec(at) { var el = (now() - at) / 1000; var left = 1.6 - el; return left > 0 ? Math.max(1, Math.round(left / 0.4)) + '' : ''; }
   function wheelSvg(idx, size, startIn) {
-    var cols = ['#F4C6D3', '#F7E6A8', '#BFE3D4', '#D9CEF0'], seg = '';
+    var cols = ['#F4C6D3', '#F7E6A8', '#BFE3D4', '#e6d9c2'], seg = '';
     for (var i = 0; i < 4; i++) {
       var a0 = (i * 90 - 90) * Math.PI / 180, a1 = ((i + 1) * 90 - 90) * Math.PI / 180, am = ((i + 0.5) * 90 - 90) * Math.PI / 180;
       seg += '<path d="M50 50 L' + (50 + 46 * Math.cos(a0)).toFixed(2) + ' ' + (50 + 46 * Math.sin(a0)).toFixed(2) + ' A46 46 0 0 1 ' + (50 + 46 * Math.cos(a1)).toFixed(2) + ' ' + (50 + 46 * Math.sin(a1)).toFixed(2) + ' Z" fill="' + cols[i] + '" stroke="#2b1d12" stroke-width="1.2"/>' +
@@ -231,9 +235,9 @@
   }
   function bossSvg(cls, w) {
     return '<svg class="' + cls + '" width="' + w + '" viewBox="0 0 380 330" fill="none" aria-hidden="true" style="max-width:100%;height:auto">' +
-      '<g stroke="#C0506A" stroke-width="7" stroke-linecap="round" opacity=".85"><path d="M190 210 C 120 160, 60 150, 20 90"/><path d="M190 210 C 130 140, 90 100, 70 30"/><path d="M190 210 C 160 130, 150 70, 140 10"/><path d="M190 210 C 200 130, 215 70, 230 10"/><path d="M190 210 C 240 140, 290 100, 310 30"/><path d="M190 210 C 260 160, 320 150, 360 90"/></g>' +
+      '<g stroke="#C8372D" stroke-width="7" stroke-linecap="round" opacity=".85"><path d="M190 210 C 120 160, 60 150, 20 90"/><path d="M190 210 C 130 140, 90 100, 70 30"/><path d="M190 210 C 160 130, 150 70, 140 10"/><path d="M190 210 C 200 130, 215 70, 230 10"/><path d="M190 210 C 240 140, 290 100, 310 30"/><path d="M190 210 C 260 160, 320 150, 360 90"/></g>' +
       '<g stroke="#F4C6D3" stroke-width="3" stroke-linecap="round" opacity=".55"><path d="M190 210 C 100 180, 50 190, 8 150"/><path d="M190 210 C 110 120, 110 60, 100 18"/><path d="M190 210 C 270 120, 270 60, 280 18"/><path d="M190 210 C 280 180, 330 190, 372 150"/></g>' +
-      '<ellipse cx="190" cy="235" rx="110" ry="88" fill="#251F36" stroke="#C0506A" stroke-width="5"/><path d="M118 178 L 98 128 L 150 160 Z M262 178 L 282 128 L 230 160 Z" fill="#251F36" stroke="#C0506A" stroke-width="5" stroke-linejoin="round"/>' +
+      '<ellipse cx="190" cy="235" rx="110" ry="88" fill="#251F36" stroke="#C8372D" stroke-width="5"/><path d="M118 178 L 98 128 L 150 160 Z M262 178 L 282 128 L 230 160 Z" fill="#251F36" stroke="#C8372D" stroke-width="5" stroke-linejoin="round"/>' +
       '<path d="M145 225 q 18 -16 36 0" stroke="#F7E6A8" stroke-width="7" stroke-linecap="round"/><path d="M199 225 q 18 -16 36 0" stroke="#F7E6A8" stroke-width="7" stroke-linecap="round"/><path d="M160 270 q 30 18 60 0" stroke="#F4C6D3" stroke-width="5" stroke-linecap="round"/></svg>';
   }
   function d20s(x, size, rolling) { // petit d20 lisible pour les listes de dés (Boss)
@@ -284,9 +288,9 @@
     if (mode === 'ecran' && st && st.step === 4 && st.destin && st.destin.stage === 'reveal' && st.destin.shownAt && now() - st.destin.shownAt < 7200 && root.getAttribute('data-dfreeze') === String(st.destin.shownAt + ':' + st.destin.shown)) return;
     if (mode === 'ecran' && introOn() && root.getAttribute('data-intro') === String(st.boss.intro)) return;
     var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
-    if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#3A3350;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
+    if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Gothic30,Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
       '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
-      '<button data-g="demoquit" style="border:0;background:#fff;color:#3A3350;border-radius:999px;height:26px;padding:0 10px;font:800 12px Nunito,sans-serif">Quitter</button></div>';
+      '<button data-g="demoquit" style="border:0;background:#fff;color:#1E1A17;border-radius:999px;height:26px;padding:0 10px;font:800 12px Gothic30,Nunito,sans-serif">Quitter</button></div>';
     root.className = r.cls || 'peach';
     if (r.html === lastHtml) return;
     // conserve la saisie en cours
@@ -340,8 +344,8 @@
     if (s === 7) return pEcho(c);
     if (s === 4) return pDestin(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
-    var head = '<div class="hd"><h1>' + esc(STEPN[s]) + '</h1></div>' + banner(c, 91, 'vw', { max: 396, style: 'margin:-2px auto 2px' });
-    if (jk(c.k) === 'on' && jokerOk(s)) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#3A3350;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
+    var head = '<div class="hd"><div><div class="kk">' + esc(KK[s] || '') + '</div><h1>' + esc(STEPN[s]) + '</h1></div><div class="vk">' + (VK[s] || '') + '</div></div>' + banner(c, 91, 'vw', { max: 396, style: 'margin:-2px auto 2px' });
+    if (jk(c.k) === 'on' && jokerOk(s)) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-color:#1E1A17;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#1E1A17;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
     else if (jk(c.k) === 'free' && jokerOk(s)) head += '<div class="muted" style="font-size:13px">Joker x2 encore disponible : annoncez-le avant l’épreuve.</div>';
     if (st.timer && now() < st.timer.end + 1000) head += '<div class="row" style="gap:10px">' + cdBar(st.timer.end, st.timer.dur * 1000) + cd(st.timer.end, 'ser', 'font-size:20px;min-width:52px;text-align:right') + '</div>';
     var body = s === 0 ? pClan(c) : s === 1 ? pRythme(c) : s === 2 ? pSavoir() : s === 4 ? pDestin(c) : pHokage();
@@ -355,14 +359,14 @@
   }
   function jokerCard(c) {
     var s = jk(c.k), j = st.joker[c.k];
-    return '<section class="card" style="flex-direction:row;align-items:center;gap:14px;' + (s === 'on' ? 'background:#3A3350;color:#fff;border-color:#3A3350' : s === 'used' ? 'opacity:.55' : '') + '">' +
-      '<div class="ser" style="width:56px;height:56px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;' + (s === 'on' ? 'background:#F7E6A8;color:#3A3350;animation:breathe 1.2s ease-in-out infinite' : 'background:' + c.bg + ';color:' + c.ink) + '">x2</div>' +
+    return '<section class="card" style="flex-direction:row;align-items:center;gap:14px;' + (s === 'on' ? 'background:#1E1A17;color:#fff;border-color:#1E1A17' : s === 'used' ? 'opacity:.55' : '') + '">' +
+      '<div class="ser" style="width:56px;height:56px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;' + (s === 'on' ? 'background:#F7E6A8;color:#1E1A17;animation:breathe 1.2s ease-in-out infinite' : 'background:' + c.bg + ';color:' + c.ink) + '">x2</div>' +
       '<div style="display:flex;flex-direction:column;gap:3px"><div class="ser" style="font-size:18px">' + (s === 'on' ? 'Joker x2 activé !' : s === 'used' ? 'Joker utilisé · ' + esc(STEPS_S[j.step]) : 'Votre joker x2') + '</div>' +
-      '<div style="font-size:13px;font-weight:700;' + (s === 'on' ? 'color:#D9CEF0' : 'color:#6A6280') + '">' + (s === 'on' ? 'Vos points comptent double sur cette épreuve' : s === 'used' ? 'Il a déjà servi' : JOKER_TXT) + '</div></div></section>';
+      '<div style="font-size:13px;font-weight:700;' + (s === 'on' ? 'color:#e6d9c2' : 'color:#6b5e52') + '">' + (s === 'on' ? 'Vos points comptent double sur cette épreuve' : s === 'used' ? 'Il a déjà servi' : JOKER_TXT) + '</div></div></section>';
   }
   function pCri(c) {
     var cur = st.ouv ? st.ouv.cri : '';
-    return '<section class="card"><label class="lab" for="g-cri">Cri de guerre du clan</label>' + (cur ? '<div style="font-family:Caveat,cursive;font-weight:700;font-size:30px;line-height:1.1;color:' + c.ink + '">« ' + esc(cur) + ' »</div>' : '<div class="muted">Inventez votre cri, un seul par clan : il s’affichera en grand sur l’écran.</div>') +
+    return '<section class="card"><label class="lab" for="g-cri">Cri de guerre du clan</label>' + (cur ? '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:30px;line-height:1.1;color:' + c.ink + '">« ' + esc(cur) + ' »</div>' : '<div class="muted">Inventez votre cri, un seul par clan : il s’affichera en grand sur l’écran.</div>') +
       '<div class="row"><input id="g-cri" maxlength="60" placeholder="' + (cur ? 'Modifier le cri' : 'Votre cri') + '" aria-label="Cri de guerre"><button class="chip on" style="height:44px" data-g="cri">Valider</button></div></section>';
   }
   function curSeq() { return pl.seq && Date.now() - pl.seqAt < 5000 ? pl.seq : (st.seq || []); }
@@ -371,7 +375,7 @@
     var res = ry.results || {}, h = '';
     if (ry.cur) {
       var dc = CK[ry.cur];
-      if (ry.cur === c.k) h += '<section class="card" style="align-items:center;text-align:center;gap:8px;background:' + c.bg + ';border:2px solid #fff;padding:24px 16px"><div style="font-family:Caveat,cursive;font-size:54px;font-weight:700;line-height:1">C’est à vous !</div><div class="ser" style="font-size:19px">' + (ry.stage === 'vote' ? 'Le public vous note…' : 'Montrez votre chorégraphie') + '</div></section>';
+      if (ry.cur === c.k) h += '<section class="card" style="align-items:center;text-align:center;gap:8px;background:' + c.bg + ';border:2px solid #fff;padding:24px 16px"><div style="font-family:Mincho30,Georgia,serif;font-size:54px;font-weight:700;line-height:1">C’est à vous !</div><div class="ser" style="font-size:19px">' + (ry.stage === 'vote' ? 'Le public vous note…' : 'Montrez votre chorégraphie') + '</div></section>';
       else if (ry.stage === 'vote') {
         var mine = pl.rate && Date.now() - pl.rateAt < 4000 ? pl.rate : ry.myRate;
         h += '<section class="card" style="align-items:center;text-align:center;gap:12px;padding:22px 14px"><div class="lab">Note la danse du clan</div><div class="ser" style="font-size:26px;color:' + dc.ink + '">' + esc(dc.n) + '</div><div class="row" style="gap:4px;justify-content:center">' +
@@ -383,15 +387,15 @@
     if (ry.cur) return h;
     var slots = [0, 1, 2, 3].map(function (i) {
       var m = MK[seq[i]];
-      return '<button data-g="unseq" data-i="' + i + '"' + (lock ? ' disabled' : '') + ' style="height:64px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;' + (m ? 'background:#fff;border:2px solid #6B5B9A' : 'background:rgba(255,255,255,.5);border:2px dashed #D9CEF0') + '"><span style="font-size:11px;font-weight:800;color:#6A6280">' + (i + 1) + '</span><span class="ser" style="font-size:13px;line-height:1.1">' + (m ? esc(m.t) : '—') + '</span></button>';
+      return '<button data-g="unseq" data-i="' + i + '"' + (lock ? ' disabled' : '') + ' style="height:64px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;' + (m ? 'background:#fff;border:2px solid #C8372D' : 'background:rgba(255,255,255,.5);border:2px dashed #e6d9c2') + '"><span style="font-size:11px;font-weight:800;color:#6b5e52">' + (i + 1) + '</span><span class="ser" style="font-size:13px;line-height:1.1">' + (m ? esc(m.t) : '—') + '</span></button>';
     }).join('');
     var grid = MOVES.map(function (m) {
       var used = seq.indexOf(m.k) >= 0;
       if (lock && !used) return '';
-      return '<button data-g="seq" data-k="' + m.k + '"' + (lock ? ' disabled' : '') + ' style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:76px;border-radius:14px;text-align:left;' + (used ? 'background:#E9E3F6;border:2px solid #6B5B9A' : 'background:#fff;border:1.5px solid #E2D9EE') + (full && !used ? ';opacity:.5' : '') + '">' + fig(m.k, 60, c.k) +
-        '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="ser" style="font-size:15px;line-height:1.1">' + esc(m.t) + '</span><span style="font-size:11.5px;font-weight:700;color:#6A6280;line-height:1.2">' + esc(m.d) + '</span></span></button>';
+      return '<button data-g="seq" data-k="' + m.k + '"' + (lock ? ' disabled' : '') + ' style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:76px;border-radius:14px;text-align:left;' + (used ? 'background:#E9E3F6;border:2px solid #C8372D' : 'background:#fff;border:1.5px solid #d9cbb4') + (full && !used ? ';opacity:.5' : '') + '">' + fig(m.k, 60, c.k) +
+        '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="ser" style="font-size:15px;line-height:1.1">' + esc(m.t) + '</span><span style="font-size:11.5px;font-weight:700;color:#6b5e52;line-height:1.2">' + esc(m.d) + '</span></span></button>';
     }).join('');
-    return h + (lock ? '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;font-weight:800">Chorégraphie verrouillée, place au spectacle !</div>' : '<div class="muted">Choisissez 4 mouvements dans l’ordre, 2 temps chacun. Le clan partage la même chorégraphie.' + (ry.lockAt ? ' Elle se verrouille à la fin du chrono.' : '') + '</div>') +
+    return h + (lock ? '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-color:#1E1A17;font-weight:800">Chorégraphie verrouillée, place au spectacle !</div>' : '<div class="muted">Choisissez 4 mouvements dans l’ordre, 2 temps chacun. Le clan partage la même chorégraphie.' + (ry.lockAt ? ' Elle se verrouille à la fin du chrono.' : '') + '</div>') +
       '<div class="grid3" style="grid-template-columns:repeat(4,minmax(0,1fr))">' + slots + '</div><div class="grid2">' + grid + '</div>' +
       (full && !lock ? '<div class="card" style="align-items:center;background:#E3F3EC;border-color:#BFE3D4;color:#2F6F5E;font-weight:800">Chorégraphie prête, répétez !</div>' : '');
   }
@@ -404,16 +408,16 @@
     var o = st.ombre || {}, ch = o.choose;
     if (ch && ch.options.length) {
       var show = ch.me || pl.reveal === o.end + ':' + ch.mname;
-      var h2 = '<div class="full" style="background:#6B5B9A;gap:18px">';
-      if (!show) h2 += '<div class="ser" style="font-size:24px;max-width:300px">C’est ' + esc(ch.mname) + ' qui mime</div><div style="font-weight:800;opacity:.85">Passe ton téléphone à ' + esc(ch.mname) + '</div><button data-g="oreveal" data-k="' + esc(o.end + ':' + ch.mname) + '" style="margin-top:10px;height:56px;padding:0 22px;border-radius:16px;border:0;background:#fff;color:#3A3350;font-family:Fraunces,serif;font-weight:700;font-size:18px">Je suis ' + esc(ch.mname) + ' : voir les mimes</button>';
-      else h2 += '<div class="ser" style="font-size:24px">Choisis ton mime</div>' + ch.options.map(function (x) { return '<button data-g="opickp" data-i="' + x.i + '" style="width:min(320px,86vw);min-height:58px;border-radius:16px;border:0;background:#fff;color:#3A3350;font-family:Fraunces,serif;font-weight:700;font-size:20px;padding:8px 14px">' + esc(x.t) + '</button>'; }).join('') + '<div style="font-weight:700;opacity:.8">45 secondes dès que tu choisis</div>';
+      var h2 = '<div class="full" style="background:#C8372D;gap:18px">';
+      if (!show) h2 += '<div class="ser" style="font-size:24px;max-width:300px">C’est ' + esc(ch.mname) + ' qui mime</div><div style="font-weight:800;opacity:.85">Passe ton téléphone à ' + esc(ch.mname) + '</div><button data-g="oreveal" data-k="' + esc(o.end + ':' + ch.mname) + '" style="margin-top:10px;height:56px;padding:0 22px;border-radius:16px;border:0;background:#fff;color:#1E1A17;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:18px">Je suis ' + esc(ch.mname) + ' : voir les mimes</button>';
+      else h2 += '<div class="ser" style="font-size:24px">Choisis ton mime</div>' + ch.options.map(function (x) { return '<button data-g="opickp" data-i="' + x.i + '" style="width:min(320px,86vw);min-height:58px;border-radius:16px;border:0;background:#fff;color:#1E1A17;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:20px;padding:8px 14px">' + esc(x.t) + '</button>'; }).join('') + '<div style="font-weight:700;opacity:.8">45 secondes dès que tu choisis</div>';
       return { cls: 'dark', html: h2 + '</div>' };
     }
     var open = o.state === 'green', run = o.state !== 'wait' && o.end;
     return { cls: 'dark', html: '<div class="full" style="background:' + (open ? '#2F7D64' : '#B8445F') + ';gap:22px">' +
       (run ? '<div class="ser" style="font-size:64px;line-height:1">' + cdu(o.end, '', 'padding:4px 14px;border-radius:16px') + '</div>' : '') +
-      '<div style="font-family:Fraunces,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div>' +
-      (o.mine ? '<button data-g="ohold" style="position:absolute;bottom:calc(26px + env(safe-area-inset-bottom));height:44px;padding:0 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:800;font-size:14px;user-select:none;-webkit-user-select:none">Maintenir pour revoir le mime</button><div id="g-hold" style="display:none;position:absolute;inset:0;background:#3A3350;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:34px;padding:24px;text-align:center">' + esc(o.mine) + '</div>' : '') + '</div>' };
+      '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div>' +
+      (o.mine ? '<button data-g="ohold" style="position:absolute;bottom:calc(26px + env(safe-area-inset-bottom));height:44px;padding:0 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:800;font-size:14px;user-select:none;-webkit-user-select:none">Maintenir pour revoir le mime</button><div id="g-hold" style="display:none;position:absolute;inset:0;background:#1E1A17;align-items:center;justify-content:center;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:34px;padding:24px;text-align:center">' + esc(o.mine) + '</div>' : '') + '</div>' };
   }
   /* ---------- Écho (Hitster) ---------- */
   function echoInfo() {
@@ -422,12 +426,12 @@
   }
   function pEcho(c) {
     var x = echoInfo();
-    if (x.done) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div class="ser" style="font-size:30px">Fin de l’épreuve</div><div style="font-weight:800;opacity:.85">Regardez l’écran</div></div>' };
-    if (x.wait) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div style="font-weight:800;opacity:.85">Carte ' + (x.card + 1) + ' / 6</div><div class="ser" style="font-size:30px;line-height:1.15">' + (x.play.k === c.k ? 'À vous de piocher !' : 'Au tour du clan ' + CLB[x.play.k].pre + ' ' + esc(x.play.n)) + '</div></div>' };
+    if (x.done) return { cls: 'dark', html: '<div class="full" style="background:#C8372D;gap:14px"><div class="ser" style="font-size:30px">Fin de l’épreuve</div><div style="font-weight:800;opacity:.85">Regardez l’écran</div></div>' };
+    if (x.wait) return { cls: 'dark', html: '<div class="full" style="background:#C8372D;gap:14px"><div style="font-weight:800;opacity:.85">Carte ' + (x.card + 1) + ' / 6</div><div class="ser" style="font-size:30px;line-height:1.15">' + (x.play.k === c.k ? 'À vous de piocher !' : 'Au tour du clan ' + CLB[x.play.k].pre + ' ' + esc(x.play.n)) + '</div></div>' };
     var open = x.run ? x.play.k === c.k : true;
     return { cls: 'dark', html: '<div class="full" style="background:' + (open ? '#2F7D64' : '#B8445F') + ';gap:22px">' +
       (x.run ? '<div class="ser" style="font-size:64px;line-height:1">' + cdu(x.e.end, '', 'padding:4px 14px;border-radius:16px') + '</div>' : '') +
-      '<div style="font-family:Fraunces,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div></div>' };
+      '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:40px;line-height:1.1;letter-spacing:.02em">Buzzer<br>' + (open ? 'OUVERT' : 'FERMÉ') + '</div></div>' };
   }
   function mEcho() {
     var x = echoInfo(), res = x.e.res || [], h = '';
@@ -446,7 +450,7 @@
     return h + nextBtn();
   }
   function projEcho() {
-    var x = echoInfo(), p = x.play, ink = p ? p.ink : '#3A3350', C = 150.8;
+    var x = echoInfo(), p = x.play, ink = p ? p.ink : '#1E1A17', C = 150.8;
     var f = x.wait ? 1 : x.run ? Math.max(0, (x.e.end - now()) / 45000) : 0;
     var pie = '<svg viewBox="0 0 100 100" style="width:24vw;height:24vw;display:block"><circle cx="50" cy="50" r="48" fill="#fff" stroke="' + ink + '" stroke-width="2"/><circle ' + (x.run ? 'data-pie="' + x.e.end + '" data-dur="45000" ' : '') + 'cx="50" cy="50" r="24" fill="none" stroke="' + ink + '" stroke-width="48" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - f)).toFixed(2) + '" transform="rotate(-90 50 50) scale(1 -1) translate(0 -100)" style="transition:stroke-dashoffset .3s linear' + (x.run ? '' : ';transition:none') + '"/></svg>';
     var left = x.done ? '<div class="ser" style="font-size:4vw;text-align:center">Fin de l’épreuve</div>' :
@@ -470,10 +474,10 @@
         '<div class="sk">' + esc(['Prudent', 'Audacieux', 'Fou'][' ABC'.indexOf(r.opt) - 1]) + (r.roll === null ? ' · assuré' : ' · difficulté ' + r.dd) + '</div>' +
         (r.roll === null ? '<div class="stamp" style="width:84px;height:84px;font-size:44px;animation:stampin .5s ease-out both">成</div>' :
           d20svg(r.roll, 128, rs) + '<div class="stamp" style="width:76px;height:76px;font-size:40px;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div>') +
-        (calcTxt(r) ? '<div style="font:800 14px Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
+        (calcTxt(r) ? '<div style="font:800 14px Gothic30,Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
         '<div style="font-size:28px;font-weight:700;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.ok ? 'Réussite !' : 'Échec…') + '</div>' +
         '<div style="font-style:italic;font-size:16px;line-height:1.5;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
-        '<div style="font:800 15px Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + ' point' + (Math.abs(r.pts) > 1 ? 's' : '') + (r.double ? ' · ×2 dernier carrefour' : '') + (r.joker ? ' · joker' : '') + '</div>' +
+        '<div style="font:800 15px Gothic30,Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + ' point' + (Math.abs(r.pts) > 1 ? 's' : '') + (r.double ? ' · ×2 dernier carrefour' : '') + (r.joker ? ' · joker' : '') + '</div>' +
         (r.gage ? '<div style="border:2px dashed #b5302a;border-radius:10px;padding:10px 12px;font-size:15px;line-height:1.45;animation:fadeup .5s ' + (del + 5.8).toFixed(2) + 's both"><b style="color:#b5302a">Gage :</b> ' + emo(r.gage) + '</div>' : '') + '</div>';
       return scrollWrap(h);
     }
@@ -492,12 +496,12 @@
     var dying = b.dead && b.deadAt && now() - b.deadAt < 2600;
     var txt = b.dead ? 'Alessia a terrassé Sanjûbi !' : b.p2 && b.p2.done ? 'Le coup final revient à Alessia…' : b.p1 ? 'Préparez-vous pour le Rasengan collectif' : 'Les clans attaquent Sanjûbi';
     var p1 = b.p1, rolling = p1 && p1.at && now() - p1.at < 1600, mine = '';
-    if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#3A3350;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
+    if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#1E1A17;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
     if (b.intro && now() - b.intro < 25500 && !b.p1) return { cls: 'dark', html: '<div class="full" style="background:#1d1626;gap:16px"><img src="/sanjubi/face.webp" alt="" style="width:150px;height:150px;border-radius:50%;object-fit:cover;filter:brightness(.7);animation:pop .6s ease-out both"><div class="ser" style="font-size:28px">Regardez l’écran…</div></div>' };
-    if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px">' + faceImg(200, true) + '<div style="font-family:Caveat,cursive;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#D9CEF0;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
+    if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px">' + faceImg(200, true) + '<div style="font-family:Mincho30,Georgia,serif;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#e6d9c2;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
     return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Sanjûbi</h1></div>' + banner(c, 91, 'vw', { max: 396 }) +
       faceImg(p1 ? 170 : 240, false, 'boss' + (dying ? ' boom' : '')) + mine +
-      '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#D9CEF0"><span>POINTS DE VIE</span><span>' + fmt(b.hp) + ' / 2 026</span></div>' + hpBar(b.hp) + '</div>' +
+      '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#e6d9c2"><span>POINTS DE VIE</span><span>' + fmt(b.hp) + ' / 2 026</span></div>' + hpBar(b.hp) + '</div>' +
       '<div class="ser" style="font-size:22px;line-height:1.3">' + txt + '</div></div>' };
   }
   // Portrait de Sanjûbi sur les téléphones ; version grise et fissurée après la victoire.
@@ -512,14 +516,14 @@
     var key = p2.start; if (pl.p2 !== key) { pl.p2 = key; pl.taps = 0; pl.tapSent = 0; }
     return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Rasengan</h1></div>' + banner(c, 91, 'vw', { max: 396 }) +
       '<div class="ser" style="font-size:22px">' + (wait ? 'Prêts ? Ça commence dans…' : run ? 'Tape le plus vite possible !' : 'Terminé !') + '</div>' +
-      '<div class="row" style="gap:12px"><div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#D9CEF0">Temps</div><div class="ser" style="font-size:30px">' + cd(wait ? p2.start : p2.end) + '</div></div>' +
-      '<div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#D9CEF0">Tes tapes</div><div class="ser" style="font-size:30px" id="g-taps">' + pl.taps + '</div></div></div>' +
+      '<div class="row" style="gap:12px"><div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#e6d9c2">Temps</div><div class="ser" style="font-size:30px">' + cd(wait ? p2.start : p2.end) + '</div></div>' +
+      '<div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#e6d9c2">Tes tapes</div><div class="ser" style="font-size:30px" id="g-taps">' + pl.taps + '</div></div></div>' +
       '<button data-g="tap" aria-label="Taper" ' + (run ? '' : 'disabled') + ' style="margin-top:14px;width:270px;height:270px;border-radius:50%;border:0;padding:0;touch-action:manipulation;background:radial-gradient(circle at 40% 38%,#fff 0%,#CFE9FF 22%,#7FB6F0 52%,#5B4B8A 100%);box-shadow:0 0 60px rgba(127,182,240,.55);display:flex;align-items:center;justify-content:center;' + (run ? '' : 'opacity:.5') + '">' +
       '<svg width="210" height="210" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="3" stroke-linecap="round" aria-hidden="true" style="animation:spin ' + (run ? '.6s' : '3s') + ' linear infinite"><path d="M50 14a36 36 0 0 1 36 36"/><path d="M86 50a36 36 0 0 1-36 36"/><path d="M50 86a36 36 0 0 1-36-36"/><path d="M14 50a36 36 0 0 1 36-36"/><path d="M50 28a22 22 0 0 1 22 22"/><path d="M50 72a22 22 0 0 1-22-22"/></svg></button>' +
-      '<div style="font-weight:800;color:#F7E6A8">1 tape = ' + fmt(p2.per || 1) + ' dégâts</div><div class="muted" style="color:#D9CEF0">Pas de téléphone ? Tape sur celui de ton voisin, à deux</div></div>' };
+      '<div style="font-weight:800;color:#F7E6A8">1 tape = ' + fmt(p2.per || 1) + ' dégâts</div><div class="muted" style="color:#e6d9c2">Pas de téléphone ? Tape sur celui de ton voisin, à deux</div></div>' };
   }
   function pHokage() {
-    return '<section class="card" style="align-items:center;text-align:center;padding:26px 16px;gap:8px"><div style="font-family:Caveat,cursive;font-size:52px;font-weight:700;line-height:1">Alessia est Hokage !</div><div class="ser" style="font-size:18px">Regardez l’écran, place aux souvenirs</div></section>';
+    return '<section class="card" style="align-items:center;text-align:center;padding:26px 16px;gap:8px"><div style="font-family:Mincho30,Georgia,serif;font-size:52px;font-weight:700;line-height:1">Alessia est Hokage !</div><div class="ser" style="font-size:18px">Regardez l’écran, place aux souvenirs</div></section>';
   }
   function flushTaps() {
     if (pl.taps > pl.tapSent && myName()) {
@@ -565,7 +569,7 @@
     var h = hp + '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Joueurs · ' + ids.length + '</span><span class="muted" style="font-size:13px">Feu ' + cnt.feu + ' · Foudre ' + cnt.foudre + ' · Vent ' + cnt.vent + '</span></div>';
     h += ids.length ? ids.map(function (id) {
       var p = r[id], c = p.clan ? CK[p.clan] : null;
-      return '<div class="row" style="gap:8px;border-top:1.5px dashed #EEE7F5;padding-top:8px"><span style="flex:1;font-weight:800">' + esc(p.name) + (p.phone ? ' <span class="muted" style="font-size:12px">· tél.</span>' : '') + '</span>' +
+      return '<div class="row" style="gap:8px;border-top:1.5px dashed #e6dccb;padding-top:8px"><span style="flex:1;font-weight:800">' + esc(p.name) + (p.phone ? ' <span class="muted" style="font-size:12px">· tél.</span>' : '') + '</span>' +
         '<button class="chip" data-g="move" data-id="' + esc(id) + '" style="' + (c ? 'background:' + c.bg + ';border-color:' + c.bg + ';color:' + c.ink : '') + '">' + (c ? esc(c.n) : 'Sans clan') + '</button>' +
         '<button class="chip" data-g="delp" data-id="' + esc(id) + '" aria-label="Retirer ' + esc(p.name) + '">×</button></div>';
     }).join('') : '<div class="muted">Les joueurs apparaissent quand ils ouvrent le jeu. Ajoute ceux sans téléphone ci-dessous.</div>';
@@ -581,7 +585,7 @@
     h += CL.map(function (c) {
       var s = (st.seqs || {})[c.k] || [], r = res[c.k], cur = ry.cur === c.k, other = ry.cur && !cur;
       var btn = cur ? (ry.stage === 'dance' ? '<button class="chip on" data-g="rvote">Ouvrir le vote</button>' : '<button class="chip on" data-g="rreveal">Révéler · ' + (st.rateCount || 0) + ' vote' + ((st.rateCount || 0) > 1 ? 's' : '') + '</button>') : '<button class="chip" data-g="rstage" data-c="' + c.k + '"' + (other ? ' disabled style="opacity:.45"' : '') + '>' + (r ? 'Redanser' : 'En piste') + '</button>';
-      return '<div style="background:' + c.bg + ';border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;' + (cur ? 'box-shadow:0 0 0 3px #3A3350' : '') + '"><div class="row" style="justify-content:space-between"><span class="ser" style="font-size:16px;color:' + c.ink + '">' + esc(c.n) + (r ? ' · ' + String(r.avg).replace('.', ',') + '/5 · +' + r.pts : '') + '</span>' + btn + '</div>' +
+      return '<div style="background:' + c.bg + ';border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;' + (cur ? 'box-shadow:0 0 0 3px #1E1A17' : '') + '"><div class="row" style="justify-content:space-between"><span class="ser" style="font-size:16px;color:' + c.ink + '">' + esc(c.n) + (r ? ' · ' + String(r.avg).replace('.', ',') + '/5 · +' + r.pts : '') + '</span>' + btn + '</div>' +
         '<div style="font-weight:700;font-size:14px">' + (s.length ? s.map(function (k, i) { return (i + 1) + '. ' + esc(MK[k].t); }).join(' · ') : 'Pas encore choisie') + '</div>' +
         (songs[c.k] ? '<div class="row" style="gap:6px">' + (ry.music && ry.music.clan === c.k ? '<button class="chip" data-g="music" data-c="' + c.k + '" data-on="0">Couper la musique</button>' : '<button class="chip" data-g="music" data-c="' + c.k + '" data-on="1">Musique</button>') + '</div>' : '') + '</div>';
     }).join('') + '<div class="muted" style="font-size:12px">En piste : la musique du clan démarre sur l’écran. Après la danse, ouvre le vote : les 2 autres clans notent sur 5 depuis leurs téléphones, la moyenne arrondie devient leurs points.</div></section>';
@@ -612,22 +616,22 @@
       h += '<button class="btn" data-g="onext">Mime suivant : clan ' + CLB[nextClan.k].pre + ' ' + esc(nextClan.n) + '</button></section>';
     } else if (c.mime === null) {
       h += '<div class="ser" style="font-size:18px">' + esc(c.mname || 'Le mimeur') + ' (' + esc(CK[c.clan].n) + ') choisit son mime sur un téléphone de son clan…</div>' +
-        (mj.showOpts ? c.options.map(function (i) { return '<button class="btn2" style="height:56px;font-family:Fraunces,serif;font-size:18px" data-g="opick" data-i="' + i + '">' + esc(st.mimes[i]) + '</button>'; }).join('') : '<button class="btn2" data-g="oshow">Pas de téléphone ? Choisir sur ma console</button>') + '</section>';
+        (mj.showOpts ? c.options.map(function (i) { return '<button class="btn2" style="height:56px;font-family:Mincho30,Georgia,serif;font-size:18px" data-g="opick" data-i="' + i + '">' + esc(st.mimes[i]) + '</button>'; }).join('') : '<button class="btn2" data-g="oshow">Pas de téléphone ? Choisir sur ma console</button>') + '</section>';
     } else {
       var over = now() > c.end;
       h += '<div class="lab">Mimeur · ' + esc(c.mname || '') + ' · clan ' + CLB[c.clan].pre + ' ' + esc(CK[c.clan].n) + '</div><div class="ser" style="font-size:28px;text-align:center">' + esc(st.mimes[c.mime]) + '</div><div class="row" style="gap:10px">' + cdBar(c.end, 45000) + cdu(c.end, 'ser', 'font-size:22px;min-width:50px;text-align:right;border-radius:8px;padding:0 4px') + '</div></section>';
       h += '<div class="lab">Qui a levé la main ?</div>' + CL.map(function (k) {
         var red = c.red[k.k], sel = mj.sel === k.k;
-        return '<button data-g="osel" data-c="' + k.k + '" ' + (red ? 'disabled' : '') + ' style="height:56px;display:flex;align-items:center;gap:10px;padding:0 18px;border-radius:16px;font-family:Fraunces,serif;font-weight:700;font-size:19px;' + (red ? 'background:#F3D5DC;color:#A63A55;border:2px solid #E7B3C0' : 'background:' + k.bg + ';color:' + k.ink + ';border:' + (sel ? '3px solid #3A3350' : '2px solid transparent')) + '"><span style="flex:1;text-align:left">' + esc(k.n) + '</span><span style="font-family:Nunito,sans-serif;font-size:13px;font-weight:800">' + (red ? 'Bloqué' : sel ? 'Interrogé' : 'Peut répondre') + '</span></button>';
+        return '<button data-g="osel" data-c="' + k.k + '" ' + (red ? 'disabled' : '') + ' style="height:56px;display:flex;align-items:center;gap:10px;padding:0 18px;border-radius:16px;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:19px;' + (red ? 'background:#F3D5DC;color:#A63A55;border:2px solid #E7B3C0' : 'background:' + k.bg + ';color:' + k.ink + ';border:' + (sel ? '3px solid #1E1A17' : '2px solid transparent')) + '"><span style="flex:1;text-align:left">' + esc(k.n) + '</span><span style="font-family:Gothic30,Nunito,sans-serif;font-size:13px;font-weight:800">' + (red ? 'Bloqué' : sel ? 'Interrogé' : 'Peut répondre') + '</span></button>';
       }).join('');
-      h += '<div class="grid2"><button data-g="ojudge" data-ok="0" ' + (mj.sel ? '' : 'disabled') + ' style="height:60px;border-radius:18px;border:2px solid #C0506A;background:#fff;color:#A63A55;font-family:Fraunces,serif;font-weight:700;font-size:21px">Faux</button><button data-g="ojudge" data-ok="1" ' + (mj.sel ? '' : 'disabled') + ' style="height:60px;border-radius:18px;border:0;background:#3E8E74;color:#fff;font-family:Fraunces,serif;font-weight:700;font-size:21px;box-shadow:0 5px 0 #2C6B57">Vrai</button></div>';
+      h += '<div class="grid2"><button data-g="ojudge" data-ok="0" ' + (mj.sel ? '' : 'disabled') + ' style="height:60px;border-radius:18px;border:2px solid #C8372D;background:#fff;color:#A63A55;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:21px">Faux</button><button data-g="ojudge" data-ok="1" ' + (mj.sel ? '' : 'disabled') + ' style="height:60px;border-radius:18px;border:0;background:#3E8E74;color:#fff;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:21px;box-shadow:0 5px 0 #2C6B57">Vrai</button></div>';
       h += '<button class="btn2" data-g="oskip">' + (over ? 'Temps écoulé : mime suivant' : 'Passer ce mime') + '</button>';
     }
     return h + nextBtn();
   }
   function mDestin() {
     var d = st.destin, sc = st.destinScenes[d.c], v = st.destinVotes || {}, res = d.results || {};
-    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Carrefour ' + (d.c + 1) + ' / 3</span>' + (d.c === 2 ? '<span class="pill" style="background:#3A3350;color:#F7E6A8">Points ×2</span>' : '') + '</div><div class="ser" style="font-size:20px">' + esc(sc.title) + '</div>' +
+    var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Carrefour ' + (d.c + 1) + ' / 3</span>' + (d.c === 2 ? '<span class="pill" style="background:#1E1A17;color:#F7E6A8">Points ×2</span>' : '') + '</div><div class="ser" style="font-size:20px">' + esc(sc.title) + '</div>' +
       '<div style="background:#FFF6D9;border-radius:12px;padding:10px 12px;font-weight:700;line-height:1.45">À lire : ' + esc(sc.text) + '</div>' +
       sc.opts.map(function (o, i) { return '<div style="font-weight:700;font-size:14px"><b>' + 'ABC'[i] + '</b> · ' + esc(o.t) + ' <span class="muted" style="font-size:12px">(' + esc(sc.tags[i]) + ')</span></div>'; }).join('') + '</section>';
     var cxs = st.destinCtx || {};
@@ -644,7 +648,7 @@
         if (i >= d.shown) return i === d.shown ? '<button class="btn" data-g="dshow" style="background:' + c.ink + ';box-shadow:0 5px 0 rgba(0,0,0,.25)">Révéler : clan ' + CLB[c.k].pre + ' ' + esc(c.n) + '</button>' : '<div class="muted">Clan ' + CLB[c.k].pre + ' ' + esc(c.n) + ' · en attente</div>';
         return '<div style="background:' + c.bg + ';border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div style="font-weight:800">' + esc(c.n) + ' · ' + r.opt + (r.roll === null ? ' · assuré' : ' · d20 ' + (r.mod ? r.roll + ' ' + sgn(r.mod).replace(/^([+−])/, '$1 ') + ' = ' + r.total : r.roll) + ' / ' + r.dd) + ' · ' + (r.pts > 0 ? '+' : '') + r.pts + '</div><div style="font-weight:700;font-size:14px">À lire : ' + esc(r.text) + '</div>' + (r.gage ? '<div style="font-weight:800;color:#A63A55;font-size:14px">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
       }).join('') + '</section>';
-      if (d.shown >= 3) h += d.c < 2 ? '<button class="btn" data-g="dnext">Carrefour suivant</button>' : '<section class="card" style="background:#3A3350;color:#fff;border-color:#3A3350"><div class="lab" style="color:#D9CEF0">À lire pour conclure</div><div style="font-weight:700;line-height:1.45">' + esc(st.destinOutro) + '</div></section>' + nextBtn();
+      if (d.shown >= 3) h += d.c < 2 ? '<button class="btn" data-g="dnext">Carrefour suivant</button>' : '<section class="card" style="background:#1E1A17;color:#fff;border-color:#1E1A17"><div class="lab" style="color:#e6d9c2">À lire pour conclure</div><div style="font-weight:700;line-height:1.45">' + esc(st.destinOutro) + '</div></section>' + nextBtn();
     }
     return h;
   }
@@ -661,8 +665,8 @@
       h += '</section>';
     }
     if (p2 && p2.done) {
-      h += b.dead ? '<section class="card" style="align-items:center;background:#3A3350;color:#fff;border:0"><div style="font-family:Caveat,cursive;font-size:48px;color:#F7E6A8">Vaincu !</div></section>' + nextBtn()
-        : '<section class="card" style="align-items:center;gap:14px;background:#3A3350;color:#fff;border:0;padding:22px 16px"><div class="ser" style="font-size:20px">Tends le téléphone à Alessia</div><button data-g="bfinal" aria-label="Coup final" style="width:200px;height:200px;border-radius:50%;border:6px solid #F4C6D3;background:#6B5B9A;color:#fff;font-family:Fraunces,serif;font-weight:700;font-size:24px;line-height:1.15;animation:pulse 1.6s ease-in-out infinite">Coup<br>final</button></section>';
+      h += b.dead ? '<section class="card" style="align-items:center;background:#1E1A17;color:#fff;border:0"><div style="font-family:Mincho30,Georgia,serif;font-size:48px;color:#F7E6A8">Vaincu !</div></section>' + nextBtn()
+        : '<section class="card" style="align-items:center;gap:14px;background:#1E1A17;color:#fff;border:0;padding:22px 16px"><div class="ser" style="font-size:20px">Tends le téléphone à Alessia</div><button data-g="bfinal" aria-label="Coup final" style="width:200px;height:200px;border-radius:50%;border:6px solid #F4C6D3;background:#C8372D;color:#fff;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:24px;line-height:1.15;animation:pulse 1.6s ease-in-out infinite">Coup<br>final</button></section>';
     }
     return h;
   }
@@ -681,7 +685,7 @@
       '<div class="row" style="gap:8px;align-items:center"><span class="lab" style="width:54px">Durée</span>' + [3, 5, 8].map(function (d) { return '<button class="' + ((h.dur || 5) === d ? 'btn' : 'btn2') + '" style="' + hb + '" data-g="hdur" data-d="' + d + '">' + d + ' s</button>'; }).join('') + '</div>' +
       '<div class="lab">Musique du diaporama (lien YouTube)</div><div class="row" style="gap:8px"><input id="g-hmusic" inputmode="url" placeholder="https://youtu.be/…?t=30" value="' + esc(h.music || '') + '" style="flex:1;min-width:0"><button class="btn2" style="height:44px;width:auto;padding:0 16px" data-g="hmusic">OK</button></div>' +
       '<label class="btn2" style="display:flex;align-items:center;justify-content:center;cursor:pointer">' + (mj.upl ? 'Envoi… ' + mj.upl + ' restante' + (mj.upl > 1 ? 's' : '') : 'Ajouter des photos') + '<input id="g-file" type="file" accept="image/*" multiple style="display:none"></label>' +
-      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">' + ph.map(function (id, i) { var on = v === 'slides' && i === cur; return '<div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#EEE7F5;' + (on ? 'box-shadow:0 0 0 3px #3A3350' : '') + '"><img data-ph="' + id + '" alt="" data-g="hgo" data-i="' + i + '" style="width:100%;height:100%;object-fit:cover;cursor:pointer"><button data-g="pdel" data-id="' + id + '" aria-label="Supprimer la photo" style="position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(58,51,80,.8);color:#fff;font-weight:800;padding:0">×</button></div>'; }).join('') + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">' + ph.map(function (id, i) { var on = v === 'slides' && i === cur; return '<div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#e6dccb;' + (on ? 'box-shadow:0 0 0 3px #1E1A17' : '') + '"><img data-ph="' + id + '" alt="" data-g="hgo" data-i="' + i + '" style="width:100%;height:100%;object-fit:cover;cursor:pointer"><button data-g="pdel" data-id="' + id + '" aria-label="Supprimer la photo" style="position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(58,51,80,.8);color:#fff;font-weight:800;padding:0">×</button></div>'; }).join('') + '</div>' +
       '<div class="muted" style="font-size:12px">Touche une photo pour l’afficher. Les photos ne sont visibles qu’avec le code admin.</div></section>';
     setTimeout(loadThumbs, 0);
     return out;
@@ -828,13 +832,13 @@
     var o = st.ouv || { view: 'intro' };
     if (o.view === 'intro') {
       return '<div class="pw" style="justify-content:center;gap:2vw;padding:4vw 8vw"><div class="pk" style="animation:rise .8s ease-out both">La Quête des 30 ans</div>' +
-        INTRO.map(function (s, i) { var last = i === INTRO.length - 1; return '<div class="ser" style="font-size:' + (last ? '4.4vw' : '2.5vw') + ';line-height:1.3;font-weight:' + (last ? 700 : 600) + ';' + (last ? 'font-family:Caveat,cursive;' : '') + 'animation:rise 1s ' + (0.6 + i * 2.2) + 's ease-out both">' + esc(s) + '</div>'; }).join('') + '</div>';
+        INTRO.map(function (s, i) { var last = i === INTRO.length - 1; return '<div class="ser" style="font-size:' + (last ? '4.4vw' : '2.5vw') + ';line-height:1.3;font-weight:' + (last ? 700 : 600) + ';' + (last ? 'font-family:Mincho30,Georgia,serif;' : '') + 'animation:rise 1s ' + (0.6 + i * 2.2) + 's ease-out both">' + esc(s) + '</div>'; }).join('') + '</div>';
     }
     if (o.view === 'cris') {
       return '<div class="pw">' + pHeader('Cris de guerre', 'L’Appel des clans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var cri = (st.cris || {})[c.k], spot = o.spot === c.k, dim = o.spot && !spot;
-        return '<div data-spot="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center;transition:transform .4s,opacity .4s;' + (spot ? 'transform:scale(1.08);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.4' : '') + '">' + banner(c, 27, 'vw') +
-          '<div style="font-family:Caveat,cursive;font-weight:700;font-size:' + (spot ? '4.6vw' : '3.2vw') + ';line-height:1.05">' + (cri ? '« ' + esc(cri) + ' »' : '…') + '</div></div>';
+        return '<div data-spot="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center;transition:transform .4s,opacity .4s;' + (spot ? 'transform:scale(1.08);box-shadow:0 0 0 .4vw #1E1A17' : '') + (dim ? ';opacity:.4' : '') + '">' + banner(c, 27, 'vw') +
+          '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:' + (spot ? '4.6vw' : '3.2vw') + ';line-height:1.05">' + (cri ? '« ' + esc(cri) + ' »' : '…') + '</div></div>';
       }).join('') + '</div></div>';
     }
     // clans + révélation
@@ -846,7 +850,7 @@
       return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:1.4vw 1.4vw 2vw;display:flex;flex-direction:column;align-items:center;gap:1vw;text-align:center">' + banner(c, 27, 'vw') +
         cols[c.k].map(function (id) {
           var i = order.indexOf(id), d = rev ? (1200 + i * 900 - el0) / 1000 : 0, al = id === 'alessia';
-          return '<div data-rid="' + esc(id) + '" style="font-weight:800;font-size:' + (al ? '3vw' : '2.2vw') + ';line-height:1.35;' + (al ? 'font-family:Caveat,cursive;color:#3A3350;' : '') + (rev ? 'animation:pop .55s ' + d.toFixed(2) + 's cubic-bezier(.3,1.6,.5,1) both' : '') + '">' + esc(r[id].name) + '</div>';
+          return '<div data-rid="' + esc(id) + '" style="font-weight:800;font-size:' + (al ? '3vw' : '2.2vw') + ';line-height:1.35;' + (al ? 'font-family:Mincho30,Georgia,serif;color:#1E1A17;' : '') + (rev ? 'animation:pop .55s ' + d.toFixed(2) + 's cubic-bezier(.3,1.6,.5,1) both' : '') + '">' + esc(r[id].name) + '</div>';
         }).join('') + '</div>';
     }).join('') + '</div></div>';
   }
@@ -861,8 +865,8 @@
     var W = o.max ? 'min(' + w + u + ',' + o.max + 'px)' : w + u;
     return '<div class="cban" style="position:relative;flex-shrink:0;width:' + W + ';aspect-ratio:' + b.ar + ';' + (o.style || '') + '">' +
       '<img src="/clans/' + c.k + '.webp?v=1" alt="Clan ' + b.pre + ' ' + esc(c.n) + '" style="position:absolute;inset:0;width:100%;height:100%;display:block">' +
-      (o.noScore ? '' : '<div style="position:absolute;left:85.6%;top:' + b.cy + '%;transform:translate(-50%,-50%);display:flex;align-items:baseline;gap:.16em;color:' + b.ink + ';font-family:Nunito,Arial,sans-serif;font-weight:900;line-height:1;font-size:' + fs + ';white-space:nowrap"><span>' + sc + '</span><span style="font-size:.36em;font-weight:900;letter-spacing:.02em">PTS</span></div>') +
-      (jk(c.k) === 'on' && !o.noJoker ? '<span data-jk="' + c.k + '" class="ser" style="position:absolute;right:2%;top:-6%;background:#3A3350;color:#F7E6A8;border-radius:.6em;padding:.15em .55em;font-size:' + (o.max ? 'min(' + (w * 0.045).toFixed(2) + u + ',' + (o.max * 0.045).toFixed(1) + 'px)' : (w * 0.045).toFixed(2) + u) + ';box-shadow:0 .2em .6em rgba(0,0,0,.3)">x2</span>' : '') + '</div>';
+      (o.noScore ? '' : '<div style="position:absolute;z-index:2;left:85.6%;top:' + b.cy + '%;transform:translate(-50%,-50%);display:flex;align-items:baseline;gap:.16em;color:' + b.ink + ';font-family:Gothic30,Nunito,Arial,sans-serif;font-weight:900;line-height:1;font-size:' + fs + ';white-space:nowrap"><span>' + sc + '</span><span style="font-size:.36em;font-weight:900;letter-spacing:.02em">PTS</span></div>') +
+      (jk(c.k) === 'on' && !o.noJoker ? '<span data-jk="' + c.k + '" class="ser" style="position:absolute;z-index:3;right:2%;top:-6%;background:#1E1A17;color:#F7E6A8;border-radius:.6em;padding:.15em .55em;font-size:' + (o.max ? 'min(' + (w * 0.045).toFixed(2) + u + ',' + (o.max * 0.045).toFixed(1) + 'px)' : (w * 0.045).toFixed(2) + u) + ';box-shadow:0 .2em .6em rgba(0,0,0,.3)">x2</span>' : '') + '</div>';
   }
   function pScores(big) {
     if (!big) return '<div style="display:flex;gap:1.6vw;justify-content:center;align-items:center">' + CL.map(function (c) { return banner(c, 29, 'vw'); }).join('') + '</div>';
@@ -871,11 +875,16 @@
       return '<div style="background:' + c.bg + ';border:.25vw solid #fff;border-radius:2.4vw;display:flex;' + (big ? 'flex-direction:column;justify-content:center' : 'flex-direction:row;justify-content:space-between;padding:1vw 2vw') + ';align-items:center;gap:.6vw;box-shadow:0 1vw 2vw rgba(58,51,80,.12)">' +
         '<div class="row" style="gap:.8vw">' + ico(c, big ? '64' : '36') + '<span class="ser" style="font-size:' + (big ? '2.8vw' : '2vw') + ';color:' + c.ink + '">' + esc(c.n) + '</span></div>' +
         '<span class="ser" style="font-size:' + (big ? '8.5vw' : '3.6vw') + ';line-height:1">' + st.scores[c.k] + '</span>' +
-        (js === 'on' ? '<span data-jk="' + c.k + '" class="ser" style="background:#3A3350;color:#F7E6A8;border-radius:1vw;padding:.3vw 1vw;font-size:' + (big ? '2.4vw' : '1.8vw') + '">x2</span>' : '') + '</div>';
+        (js === 'on' ? '<span data-jk="' + c.k + '" class="ser" style="background:#1E1A17;color:#F7E6A8;border-radius:1vw;padding:.3vw 1vw;font-size:' + (big ? '2.4vw' : '1.8vw') + '">x2</span>' : '') + '</div>';
     }).join('') + '</div>';
   }
+  // Habillage japonais : sceau rouge, kanji vertical et coup de pinceau (style « Washi & encre »).
+  var SEAL = { 0: '集', 1: '一', 7: '二', 2: '三', 3: '四', 4: '五', 5: '戦', 6: '祝' };
+  var VK = { 0: '一族', 1: '舞の術', 7: '音の術', 2: '中忍試験', 3: '影絵', 4: '忍道', 5: '決戦', 6: '火影' };
+  var KK = { 0: '始まり · La Quête des 30 ans', 1: '第一の試練 · Épreuve 1', 7: '第二の試練 · Épreuve 2', 2: '第三の試練 · Épreuve 3', 3: '第四の試練 · Épreuve 4', 4: '第五の試練 · Épreuve 5', 5: '決戦 · Épreuve finale', 6: '祝 · La fête' };
   function pHeader(title, kicker, right) {
-    return '<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:2vw"><div><div class="pk">' + kicker + '</div><h1 class="pt">' + title + '</h1></div>' + (right || '') + '</div>';
+    var s = st ? st.step : 0;
+    return '<div><div style="display:flex;align-items:flex-end;justify-content:space-between;gap:2vw;padding-right:4vw"><div style="display:flex;align-items:flex-end;gap:1.6vw"><div class="pseal">' + (SEAL[s] || '忍') + '</div><div><div class="pk">' + kicker + '</div><h1 class="pt">' + title + '</h1></div></div>' + (right || '') + '</div><div class="pbrush"></div></div><div class="pvk">' + (VK[s] || '') + '</div>';
   }
   function timerRight() { return st.timer && now() < st.timer.end + 1000 ? cd(st.timer.end, 'pclock') : ''; }
   function vProj() {
@@ -891,10 +900,10 @@
       var ry = st.rythme || {}, res = ry.results || {};
       h = pHeader('K-pop no Jutsu', 'Épreuve 1 / 6', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var q = (st.seqs || {})[c.k] || [], cur = ry.cur === c.k, r = res[c.k], dim = ry.cur && !cur;
-        return '<div data-rr="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw;transition:transform .4s,opacity .4s;' + (cur ? 'transform:scale(1.04);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.45' : '') + '"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
-          (cur ? '<div class="ser" style="text-align:center;background:#3A3350;color:#fff;border-radius:1vw;padding:.5vw;font-size:1.7vw">' + (ry.stage === 'vote' ? 'Vote du public · ' + (st.rateCount || 0) : 'En piste !') + '</div>' : '') +
+        return '<div data-rr="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:1.6vw;display:flex;flex-direction:column;gap:1vw;transition:transform .4s,opacity .4s;' + (cur ? 'transform:scale(1.04);box-shadow:0 0 0 .4vw #1E1A17' : '') + (dim ? ';opacity:.45' : '') + '"><div class="row" style="gap:.8vw">' + ico(c, '40') + '<span class="ser" style="font-size:2.4vw;color:' + c.ink + '">' + esc(c.n) + '</span><span class="ser" style="margin-left:auto;font-size:2.4vw">' + st.scores[c.k] + '</span></div>' +
+          (cur ? '<div class="ser" style="text-align:center;background:#1E1A17;color:#fff;border-radius:1vw;padding:.5vw;font-size:1.7vw">' + (ry.stage === 'vote' ? 'Vote du public · ' + (st.rateCount || 0) : 'En piste !') + '</div>' : '') +
           (r ? '<div style="display:flex;flex-direction:column;align-items:center;gap:.3vw;background:#fff;border-radius:1.2vw;padding:.8vw"><span class="row" style="gap:.2vw">' + stars(r.avg, 34) + '</span><span class="ser" style="font-size:2vw">' + String(r.avg).replace('.', ',') + ' / 5 · +' + r.pts + (r.joker ? ' (x2)' : '') + '</span></div>' : '') +
-          (q.length ? q.map(function (k, i) { return '<div class="row" style="gap:1vw;background:#fff;border-radius:1.2vw;padding:.4vw 1vw;color:#3A3350">' + fig(k, 62, c.k) + '<span class="ser" style="font-size:1.7vw">' + (i + 1) + '. ' + esc(MK[k].t) + '</span></div>'; }).join('') : '<div style="font-weight:800;font-size:1.6vw;color:#6A6280">Chorégraphie en préparation…</div>') + '</div>';
+          (q.length ? q.map(function (k, i) { return '<div class="row" style="gap:1vw;background:#fff;border-radius:1.2vw;padding:.4vw 1vw;color:#1E1A17">' + fig(k, 62, c.k) + '<span class="ser" style="font-size:1.7vw">' + (i + 1) + '. ' + esc(MK[k].t) + '</span></div>'; }).join('') : '<div style="font-weight:800;font-size:1.6vw;color:#6b5e52">Chorégraphie en préparation…</div>') + '</div>';
       }).join('') + '</div>';
     } else if (s === 2) {
       var sv = st.savoir, q = sv.list[sv.idx];
@@ -907,8 +916,8 @@
       var finished = endAll && tnow > endAll && cnt.feu === cnt.foudre && cnt.foudre === cnt.vent && (!c || c.done);
       var right = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (running ? cdu(c.end, 'pclock') : '') + (endAll && !finished ? '<span class="pk">Épreuve ' + cd(endAll) + '</span>' : '') + '</div>';
       var mid;
-      if (finished) mid = '<div style="font-family:Caveat,cursive;font-weight:700;font-size:7vw">Fin de l’épreuve !</div>';
-      else if (running) mid = '<div class="pk">Mimeur · ' + esc(c.mname || '') + ' · clan ' + CLB[c.clan].pre + ' ' + esc(CK[c.clan].n) + '</div><div class="row" style="gap:2vw">' + CL.map(function (k) { var red = c.red[k.k]; return '<div data-ot="' + k.k + '" style="width:18vw;height:9vw;border-radius:2vw;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:2.6vw;color:#fff;transition:background .3s;background:' + (red ? '#B8445F' : '#2F7D64') + '">' + esc(k.n) + '</div>'; }).join('') + '</div>';
+      if (finished) mid = '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:7vw">Fin de l’épreuve !</div>';
+      else if (running) mid = '<div class="pk">Mimeur · ' + esc(c.mname || '') + ' · clan ' + CLB[c.clan].pre + ' ' + esc(CK[c.clan].n) + '</div><div class="row" style="gap:2vw">' + CL.map(function (k) { var red = c.red[k.k]; return '<div data-ot="' + k.k + '" style="width:18vw;height:9vw;border-radius:2vw;display:flex;align-items:center;justify-content:center;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:2.6vw;color:#fff;transition:background .3s;background:' + (red ? '#B8445F' : '#2F7D64') + '">' + esc(k.n) + '</div>'; }).join('') + '</div>';
       else if (c && (c.done || timeout)) mid = '<div data-oban="1" style="display:flex;flex-direction:column;align-items:center;gap:1vw;animation:pop .6s ease-out both"><div class="pk" style="font-size:1.8vw">' + (c.winner ? 'Trouvé par le clan ' + CLB[c.winner].pre + ' ' + esc(CK[c.winner].n) + ' !' : timeout ? 'Temps écoulé !' : 'Personne n’a trouvé') + '</div>' +
           '<div class="ser" style="font-size:6vw;line-height:1.1">' + esc(st.mimes[c.mime]) + '</div>' + (c.winner ? '<div class="ser" style="font-size:2.2vw;color:#2F6F5E">' + (c.winner === c.clan ? esc(CK[c.clan].n) + ' +2' : esc(CK[c.clan].n) + ' +1 · ' + esc(CK[c.winner].n) + ' +1') + '</div>' : '') + '</div>';
       else if (c) mid = '<div class="ser" style="font-size:3.4vw">' + esc(c.mname || 'Le mimeur') + ' choisit son mime…</div>';
@@ -924,7 +933,7 @@
     var d = st.destin, sc = st.destinScenes[d.c], res = d.results || {}, tnow = now();
     var cols = ['#2f6b45', '#9a6a12', '#b5302a'], inner;
     var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2vw"><div><div class="sk" style="font-size:1.1vw">Épreuve 5 / 6 · La Voie du ninja · Carrefour ' + ['一', '二', '三'][d.c] + '</div><div style="font-size:4.4vw;font-weight:700;line-height:1.05;margin-top:.4vw">' + esc(sc.title) + '</div></div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">POINTS ×2</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (d.c === 2 ? '<span class="stamp" style="font-size:1.4vw;padding:.4vw 1vw;border-width:.25vw;font-family:Gothic30,Nunito,Arial,sans-serif;font-weight:800;transform:rotate(4deg)">POINTS ×2</span>' : '') + (d.stage === 'vote' && tnow <= d.voteEnd ? cdu(d.voteEnd, 'pclock') : '') + '</div></div>';
     if (d.stage !== 'reveal') {
       inner = head + '<div style="font-style:italic;font-size:1.9vw;line-height:1.45;max-width:80%">' + esc(sc.text) + '</div>' +
         '<div style="display:flex;gap:3vw;justify-content:center;flex:1;align-items:flex-start">' + sc.opts.map(function (o, i) {
@@ -941,9 +950,9 @@
         return '<div data-dr="' + k.k + '" style="background:rgba(255,255,255,.45);border:.2vw solid ' + k.ink + ';border-radius:1.6vw;padding:1.4vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9vw;text-align:center">' +
           '<div class="ser" style="font-size:2.2vw;color:' + k.ink + '">' + esc(k.n) + ' · ' + ['一', '二', '三'][' ABC'.indexOf(r.opt) - 1] + '</div><div style="font-size:1.3vw;line-height:1.3">' + esc(sc.opts[' ABC'.indexOf(r.opt) - 1].t) + '</div>' +
           (r.roll === null ? '<div class="stamp" style="width:7vw;height:7vw;font-size:3.6vw;animation:stampin .5s ease-out both">成</div>' : '<div style="display:flex;align-items:center;gap:1.2vw">' + d20svg(r.roll, '8vw', rs).replace('width="8vw" height="8vw"', 'style="width:8vw;height:8vw"') + '<div class="stamp" style="width:5.6vw;height:5.6vw;font-size:3vw;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div></div>') +
-          (calcTxt(r) ? '<div style="font:800 1.3vw Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
+          (calcTxt(r) ? '<div style="font:800 1.3vw Gothic30,Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
           '<div style="font-style:italic;font-size:1.35vw;line-height:1.4;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
-          '<div style="font:800 1.8vw Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + (r.double ? ' (×2)' : '') + '</div>' +
+          '<div style="font:800 1.8vw Gothic30,Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + (r.double ? ' (×2)' : '') + '</div>' +
           (r.gage && !(latest && tnow - d.shownAt < 7200) ? '<div style="font-size:1.25vw;line-height:1.35;color:#b5302a;font-weight:700">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
       }).join('') + '</div>' + (d.c === 2 && d.shown >= 3 ? '<div style="text-align:center;font-style:italic;font-size:1.9vw;line-height:1.4">' + esc(st.destinOutro) + '</div>' : '');
       if (wheelOn) {
@@ -972,13 +981,13 @@
       var d = (i * SHOT_MS / 1000 - el).toFixed(2), last = i === SHOTS.length - 1;
       h += '<div style="position:absolute;inset:0;opacity:0;animation:ishot ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's ease-in-out both">' +
         '<img src="/sanjubi/' + x[0] + '.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:' + x[1] + ';animation:' + (i % 2 ? 'ikbB' : 'ikbA') + ' ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's linear both">' +
-        '<div style="position:absolute;left:0;right:0;bottom:12vh;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:' + (last ? '5.4vw' : '3.4vw') + ';color:#fff;text-shadow:0 .3vw 1.6vw rgba(0,0,0,.9);padding:0 8vw;opacity:0;animation:icap ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's ease-out both">' + esc(x[2]) + '</div></div>';
+        '<div style="position:absolute;left:0;right:0;bottom:12vh;text-align:center;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:' + (last ? '5.4vw' : '3.4vw') + ';color:#fff;text-shadow:0 .3vw 1.6vw rgba(0,0,0,.9);padding:0 8vw;opacity:0;animation:icap ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's ease-out both">' + esc(x[2]) + '</div></div>';
     });
     var t0 = (SHOTS.length * SHOT_MS / 1000 - el).toFixed(2), f6 = ((SHOTS.length - 1) * SHOT_MS / 1000 - el).toFixed(2);
     h += '<div style="position:absolute;inset:0;background:#fff;opacity:0;animation:flash .9s ' + f6 + 's ease-out both;pointer-events:none"></div>';
     h += '<div style="position:absolute;inset:0;opacity:0;animation:fadein 1s ' + t0 + 's ease-out both"><img src="/sanjubi/village.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:ikbA 7s ' + t0 + 's linear both"><div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(20,10,20,.35),rgba(20,10,20,.85))"></div>' +
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center"><div style="font:800 1.6vw Nunito,sans-serif;letter-spacing:.3em;color:#F7E6A8;opacity:0;animation:rise .8s ' + (+t0 + 1.2).toFixed(2) + 's ease-out both">ÉPREUVE FINALE</div>' +
-      '<div style="font-family:Fraunces,Georgia,serif;font-weight:700;font-size:8vw;line-height:1;color:#fff;text-shadow:0 .4vw 2vw rgba(0,0,0,.8);animation:pop .7s ' + (+t0 + 0.4).toFixed(2) + 's cubic-bezier(.3,1.5,.5,1) both">La Bataille<br>des 30 queues</div></div></div>';
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center"><div style="font:800 1.6vw Gothic30,Nunito,sans-serif;letter-spacing:.3em;color:#F7E6A8;opacity:0;animation:rise .8s ' + (+t0 + 1.2).toFixed(2) + 's ease-out both">ÉPREUVE FINALE</div>' +
+      '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:8vw;line-height:1;color:#fff;text-shadow:0 .4vw 2vw rgba(0,0,0,.8);animation:pop .7s ' + (+t0 + 0.4).toFixed(2) + 's cubic-bezier(.3,1.5,.5,1) both">La Bataille<br>des 30 queues</div></div></div>';
     h += '<div style="position:absolute;left:0;right:0;top:0;height:7vh;background:#000;z-index:5"></div><div style="position:absolute;left:0;right:0;bottom:0;height:7vh;background:#000;z-index:5"></div>';
     return { cls: 'dark proj', html: '<div data-introwrap style="position:absolute;inset:0;overflow:hidden;background:#000">' + h + '</div>' };
   }
@@ -999,21 +1008,21 @@
     var rolling = b.p1 && b.p1.at && t - b.p1.at < 1600;
     var hit = b.p1 && b.p1.at && t - b.p1.at >= 1600 && t - b.p1.at < 2200;
     var right;
-    if (b.dead && !dying) right = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;flex:1;text-align:center;animation:pop .8s ease-out both"><div style="font-family:Caveat,cursive;font-weight:700;font-size:11vw;color:#F7E6A8;line-height:1">Vaincu !</div><div class="ser" style="font-size:3vw">Alessia a terrassé Sanjûbi</div></div>';
+    if (b.dead && !dying) right = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;flex:1;text-align:center;animation:pop .8s ease-out both"><div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:11vw;color:#F7E6A8;line-height:1">Vaincu !</div><div class="ser" style="font-size:3vw">Alessia a terrassé Sanjûbi</div></div>';
     else {
       var liveDmg = p2 && !p2.done ? Math.min(p2.cap || 0, (st.tapsLive || 0) * (p2.per || 1)) : 0, hpNow = b.hp - liveDmg;
-      right = '<div style="display:flex;flex-direction:column;gap:.8vw"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="pk" style="color:#D9CEF0">Points de vie</span><span class="ser" style="font-size:3.4vw">' + fmt(hpNow) + ' <span style="font-size:1.8vw;color:#D9CEF0">/ 2 026</span></span></div>' + hpBar(hpNow, 26) + '</div>';
+      right = '<div style="display:flex;flex-direction:column;gap:.8vw"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="pk" style="color:#e6d9c2">Points de vie</span><span class="ser" style="font-size:3.4vw">' + fmt(hpNow) + ' <span style="font-size:1.8vw;color:#e6d9c2">/ 2 026</span></span></div>' + hpBar(hpNow, 26) + '</div>';
       if (p2 && !p2.done) {
         var wait = t < p2.start, run = t < p2.end;
         var frac = p2.cap ? Math.min(1, liveDmg / p2.cap) : 0;
-        right += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vw;text-align:center"><div class="row" style="gap:2vw;align-items:center"><div class="pk" style="color:#D9CEF0">Phase 2 · Rasengan collectif · 1 tape = ' + fmt(p2.per || 1) + ' dégâts</div>' + (run ? '<div class="pclock" style="background:#fff;color:#3A3350;font-size:2.6vw;padding:.3vw 1.2vw">' + cd(wait ? p2.start : p2.end) + '</div>' : '') + '</div>' +
+        right += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vw;text-align:center"><div class="row" style="gap:2vw;align-items:center"><div class="pk" style="color:#e6d9c2">Phase 2 · Rasengan collectif · 1 tape = ' + fmt(p2.per || 1) + ' dégâts</div>' + (run ? '<div class="pclock" style="background:#fff;color:#1E1A17;font-size:2.6vw;padding:.3vw 1.2vw">' + cd(wait ? p2.start : p2.end) + '</div>' : '') + '</div>' +
           '<div style="height:24vw;display:flex;align-items:center;justify-content:center">' + orb((6 + 18 * frac).toFixed(1) + 'vw', run ? '.5s' : '3s') + '</div>' +
           '<div class="ser" style="font-size:2.6vw">' + (wait ? 'Préparez vos doigts…' : run ? 'Tapez tous !' : 'Terminé !') + ' · ' + fmt(st.tapsLive || 0) + ' tapes · <span style="color:#F7E6A8">−' + fmt(liveDmg) + '</span></div></div>';
       } else if (b.p1) {
         var mult = b.p1.mult || 1;
-        right += '<div class="row" style="justify-content:space-between"><span class="pk" style="color:#D9CEF0">Phase 1 · toutes les attaques en même temps</span><span class="pill" style="background:#F7E6A8;color:#3A3350;font-size:1.4vw;padding:.3vw 1vw">Chakra ×' + mult + '</span></div><div style="display:flex;flex-direction:column;gap:1vw">' + CL.map(function (c) {
+        right += '<div class="row" style="justify-content:space-between"><span class="pk" style="color:#e6d9c2">Phase 1 · toutes les attaques en même temps</span><span class="pill" style="background:#F7E6A8;color:#1E1A17;font-size:1.4vw;padding:.3vw 1vw">Chakra ×' + mult + '</span></div><div style="display:flex;flex-direction:column;gap:1vw">' + CL.map(function (c) {
           var dice = b.p1.dice[c.k], sum = b.p1.sums ? b.p1.sums[c.k] : dice.reduce(function (a, x) { return a + x; }, 0);
-          return '<div class="row" style="gap:1.4vw;padding:.8vw 1.6vw;border-radius:1.6vw;background:' + c.bg + ';color:#3A3350"><span class="ser" style="width:8vw;font-size:2.2vw">' + esc(c.n) + '</span><div class="row" style="gap:.4vw;flex:1;flex-wrap:wrap">' +
+          return '<div class="row" style="gap:1.4vw;padding:.8vw 1.6vw;border-radius:1.6vw;background:' + c.bg + ';color:#1E1A17"><span class="ser" style="width:8vw;font-size:2.2vw">' + esc(c.n) + '</span><div class="row" style="gap:.4vw;flex:1;flex-wrap:wrap">' +
             dice.map(function (x) { return d20s(x, '4vw', rolling); }).join('') +
             '</div><span class="ser" style="font-size:2.4vw;white-space:nowrap">' + (rolling ? '' : '−' + fmt(sum)) + '</span></div>';
         }).join('') + '</div>' + (p2 && p2.done && !b.dead ? '<div class="ser" style="font-size:2.2vw;color:#F7E6A8">Rasengan : ' + fmt(p2.taps || 0) + ' tapes × ' + fmt(p2.per || 1) + ' = −' + fmt(p2.dmg) + ' · Plus que ' + fmt(b.hp) + ' PV : le coup final revient à Alessia !</div>' : '');
@@ -1021,7 +1030,7 @@
     }
     var flash = dying && t - st.boss.deadAt < 900 ? '<div style="position:absolute;inset:0;background:#fff;animation:flash .9s ease-out forwards;pointer-events:none"></div>' : '';
     return { cls: 'dark proj', html: '<div aria-hidden="true" style="position:absolute;inset:0;background:#231c33 url(/sanjubi/village-bg.webp) center/cover"></div><div class="pw" style="flex-direction:row;gap:4vw;align-items:stretch;position:relative;z-index:1"><div style="' + (b.dead && !dying ? 'display:none;' : '') + 'width:40vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw">' +
-      (b.dead && !dying ? '' : bossImg('boss' + (dying ? ' boom' : hit ? ' hit' : '')) + '<div style="font-family:Caveat,cursive;font-weight:700;font-size:5vw;line-height:1">Sanjûbi</div><div class="pk" style="color:#D9CEF0">Le démon à 30 queues</div>') + '</div>' +
+      (b.dead && !dying ? '' : bossImg('boss' + (dying ? ' boom' : hit ? ' hit' : '')) + '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:5vw;line-height:1">Sanjûbi</div><div class="pk" style="color:#e6d9c2">Le démon à 30 queues</div>') + '</div>' +
       '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2vw">' + right + '</div></div>' + flash };
   }
   function hokCur() {
@@ -1031,7 +1040,7 @@
   function rnd(i) { var x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); }
   // Pluie de confettis (positions fixes pour que l'écran ne se redessine pas à chaque rafraîchissement).
   function confetti(n) {
-    var cols = ['#F9C3AE', '#F7E3A0', '#BFE3D4', '#F4C6D3', '#C0506A', '#F7E6A8', '#7FB6F0'], h = '';
+    var cols = ['#F9C3AE', '#F7E3A0', '#BFE3D4', '#F4C6D3', '#C8372D', '#F7E6A8', '#7FB6F0'], h = '';
     for (var i = 0; i < n; i++) h += '<i style="position:absolute;top:0;left:' + (rnd(i) * 100).toFixed(1) + '%;width:' + (0.6 + rnd(i + 50) * 0.7).toFixed(2) + 'vw;height:' + (1 + rnd(i + 90) * 0.9).toFixed(2) + 'vw;background:' + cols[i % cols.length] + ';border-radius:.2vw;opacity:.9;animation:conf ' + (4 + rnd(i + 7) * 4).toFixed(2) + 's ' + (rnd(i + 3) * 6).toFixed(2) + 's linear infinite both"></i>';
     return '<div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:5">' + h + '</div>';
   }
@@ -1039,16 +1048,16 @@
     var k = 0;
     return txt.split(' ').map(function (w) { return '<span style="display:inline-block;white-space:nowrap">' + w.split('').map(function (ch) { return '<span style="display:inline-block;animation:rise .5s ' + (start + (k++) * step).toFixed(2) + 's cubic-bezier(.3,1.6,.5,1) both">' + esc(ch) + '</span>'; }).join('') + '</span>'; }).join(' ');
   }
-  var CROWN = '<svg viewBox="0 0 100 70" style="width:100%;height:auto;display:block" aria-hidden="true"><path d="M8 60 L4 16 L28 36 L50 6 L72 36 L96 16 L92 60 Z" fill="#F7C948" stroke="#8a5a00" stroke-width="4" stroke-linejoin="round"/><rect x="8" y="56" width="84" height="10" rx="3" fill="#E5A92A" stroke="#8a5a00" stroke-width="4"/><circle cx="50" cy="38" r="6" fill="#C0506A"/><circle cx="26" cy="46" r="4.5" fill="#7FB6F0"/><circle cx="74" cy="46" r="4.5" fill="#BFE3D4"/></svg>';
+  var CROWN = '<svg viewBox="0 0 100 70" style="width:100%;height:auto;display:block" aria-hidden="true"><path d="M8 60 L4 16 L28 36 L50 6 L72 36 L96 16 L92 60 Z" fill="#F7C948" stroke="#8a5a00" stroke-width="4" stroke-linejoin="round"/><rect x="8" y="56" width="84" height="10" rx="3" fill="#E5A92A" stroke="#8a5a00" stroke-width="4"/><circle cx="50" cy="38" r="6" fill="#C8372D"/><circle cx="26" cy="46" r="4.5" fill="#7FB6F0"/><circle cx="74" cy="46" r="4.5" fill="#BFE3D4"/></svg>';
   function projHokage() {
     var v = (st.hokage && st.hokage.view) || 'ceremony';
     if (v === 'podium') return projPodium();
     if (v === 'speech') return projSpeech();
     if (v === 'slides') return projSlides();
     return { cls: 'peach proj', html: '<div class="pw" style="flex-direction:row;align-items:center;gap:5vw;position:relative"><div style="position:relative;width:32vw;flex-shrink:0;padding-top:6vw">' +
-      '<div style="background:#fff;padding:1.4vw 1.4vw 5vw;transform:rotate(-3deg);box-shadow:0 1.4vw 3vw rgba(58,51,80,.22);position:relative"><img src="/photo.jpg" alt="Alessia" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><div style="position:absolute;bottom:1vw;left:0;right:0;text-align:center;font-family:Caveat,cursive;font-weight:700;font-size:3vw">Hokage Alessia</div></div>' +
-      '<svg data-hat width="80%" viewBox="0 0 300 150" aria-hidden="true" style="position:absolute;top:0;left:10%;animation:drop 1.1s .3s cubic-bezier(.3,1.4,.5,1) both"><path d="M150 10 L 290 120 Q 150 150 10 120 Z" fill="#fff" stroke="#3A3350" stroke-width="5" stroke-linejoin="round"/><path d="M150 10 L 222 66 Q 150 82 78 66 Z" fill="#C0506A"/><text x="150" y="112" text-anchor="middle" font-family="serif" font-size="40" font-weight="700" fill="#C0506A">火</text></svg></div>' +
-      '<div style="flex:1;display:flex;flex-direction:column;gap:1.6vw"><div class="pk" style="animation:rise .8s 1.2s ease-out both">Sanjûbi est vaincu</div><h1 class="pt" style="font-size:9vw;line-height:1.05">' + letters('Alessia', 1.5, 0.07) + '<br>' + letters('est Hokage !', 2.05, 0.07) + '</h1><div class="ser" style="font-size:2.4vw;font-weight:600;line-height:1.3;animation:rise .8s 3.1s ease-out both">L’élève de Kakashi a 30 ans et veille désormais sur le village.</div></div>' + confetti(70) + '</div>' };
+      '<div style="background:#fff;padding:1.4vw 1.4vw 5vw;transform:rotate(-3deg);box-shadow:0 1.4vw 3vw rgba(58,51,80,.22);position:relative"><img src="/photo.jpg" alt="Alessia" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><div style="position:absolute;bottom:1vw;left:0;right:0;text-align:center;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:3vw">Hokage Alessia</div></div>' +
+      '<svg data-hat width="80%" viewBox="0 0 300 150" aria-hidden="true" style="position:absolute;top:0;left:10%;animation:drop 1.1s .3s cubic-bezier(.3,1.4,.5,1) both"><path d="M150 10 L 290 120 Q 150 150 10 120 Z" fill="#fff" stroke="#1E1A17" stroke-width="5" stroke-linejoin="round"/><path d="M150 10 L 222 66 Q 150 82 78 66 Z" fill="#C8372D"/><text x="150" y="112" text-anchor="middle" font-family="serif" font-size="40" font-weight="700" fill="#C8372D">火</text></svg></div>' +
+      '<div style="flex:1;display:flex;flex-direction:column;gap:1.6vw"><div class="pk" style="animation:rise .8s 1.2s ease-out both">Sanjûbi est vaincu</div><h1 class="pt" style="font-size:6.6vw;line-height:1.1">' + letters('Alessia', 1.5, 0.07) + '<br>' + letters('est Hokage !', 2.05, 0.07) + '</h1><div class="ser" style="font-size:2.4vw;font-weight:600;line-height:1.3;animation:rise .8s 3.1s ease-out both">L’élève de Kakashi a 30 ans et veille désormais sur le village.</div></div>' + confetti(70) + '</div>' };
   }
   function projPodium() {
     var sc = st.scores, r = st.roster || {}, ranked = CL.slice().sort(function (a, b) { return sc[b.k] - sc[a.k]; });
@@ -1060,13 +1069,13 @@
       return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1vw;text-align:center">' +
         '<div style="display:flex;flex-direction:column;align-items:center;gap:.6vw;animation:rise .7s ' + (d + 0.5).toFixed(1) + 's ease-out both">' +
         (rk === 1 ? '<div data-crown style="width:9vw;animation:crown 1s 3.3s cubic-bezier(.3,1.4,.5,1) both">' + CROWN + '</div>' : '') + banner(c, rk === 1 ? 26 : 22, 'vw', { noJoker: true, score: sc[c.k] }) +
-        '<div style="font-weight:700;font-size:1.3vw;line-height:1.35;max-width:24vw;color:#3A3350">' + names.map(esc).join(' · ') + '</div></div>' +
+        '<div style="font-weight:700;font-size:1.3vw;line-height:1.35;max-width:24vw;color:#1E1A17">' + names.map(esc).join(' · ') + '</div></div>' +
         '<div style="width:100%;height:' + H[rk] + 'vw;background:' + c.bg + ';border:.3vw solid #fff;border-bottom:0;border-radius:1.6vw 1.6vw 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4vw;transform-origin:bottom;animation:grow .9s ' + d.toFixed(1) + 's cubic-bezier(.3,1.3,.5,1) both;box-shadow:0 1vw 2vw rgba(58,51,80,.15)">' +
         '<span class="ser" style="font-size:' + (rk === 1 ? '7vw' : '5vw') + ';line-height:1;color:' + c.ink + '">' + rk + '</span></div></div>';
     }).join('');
     var title = winners.length > 1 ? 'Égalité au sommet : ' + winners.map(function (c) { return c.n; }).join(' et ') + ' !' : 'Victoire du clan ' + CLB[winners[0].k].pre + ' ' + winners[0].n + ' !';
     return { cls: 'peach proj', html: '<div class="pw" style="gap:1.6vw;position:relative"><div style="display:flex;flex-direction:column;gap:.6vw"><div class="pk">Le podium des clans</div><h1 class="pt" style="font-size:4.6vw;animation:rise .8s 3.9s ease-out both">' + esc(title) + '</h1></div>' +
-      '<div style="flex:1;display:flex;align-items:flex-end;gap:2vw;padding:0 4vw;border-bottom:.4vw solid #3A3350">' + cols + '</div></div>' };
+      '<div style="flex:1;display:flex;align-items:flex-end;gap:2vw;padding:0 4vw;border-bottom:.4vw solid #1E1A17">' + cols + '</div></div>' };
   }
   function projSpeech() {
     var t = ((st.hokage && st.hokage.speech) || '').trim() || '…';
@@ -1077,12 +1086,12 @@
   function projSlides() {
     var ph = st.photos || [], n = ph.length, h = st.hokage, cur = hokCur();
     if (cur >= n) return { cls: 'dark proj', html: '<div class="pw" style="justify-content:center;align-items:center;text-align:center;gap:2.4vw;position:relative">' + confetti(80) +
-      '<div style="font-family:Caveat,cursive;font-weight:700;font-size:10vw;line-height:1;color:#F7E6A8;animation:pop 1s ease-out both;position:relative;z-index:6">Joyeux anniversaire<br>Alessia ' + emo('🫰') + '</div><div class="ser" style="font-size:2.6vw;animation:rise .8s 1s ease-out both;position:relative;z-index:6">30 ans · Hokage du village</div></div>' };
+      '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:10vw;line-height:1;color:#F7E6A8;animation:pop 1s ease-out both;position:relative;z-index:6">Joyeux anniversaire<br>Alessia ' + emo('🫰') + '</div><div class="ser" style="font-size:2.6vw;animation:rise .8s 1s ease-out both;position:relative;z-index:6">30 ans · Hokage du village</div></div>' };
     var id = ph[cur], rot = cur % 2 ? 2.4 : -2.4;
     setTimeout(function () { var img = root && root.querySelector('img[data-sl]'); if (img && !img.src) photoUrl(id).then(function (u) { img.src = u; }).catch(function () {}); if (cur + 1 < n) photoUrl(ph[cur + 1]).catch(function () {}); }, 0);
     return { cls: 'dark proj', html: '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#4a3f66,#231c33);display:flex;align-items:center;justify-content:center">' +
       '<div style="background:#fff;padding:1.1vw 1.1vw 4vw;transform:rotate(' + rot + 'deg);box-shadow:0 2vw 4vw rgba(0,0,0,.45);animation:fadein .8s ease-out both"><div style="overflow:hidden;display:flex"><img data-sl="' + id + '" alt="" style="display:block;max-height:76vh;max-width:74vw;animation:kb ' + ((h.dur || 5) + 1) + 's linear both"></div></div>' +
-      '<div style="position:absolute;left:2vw;bottom:1.6vw;font:800 1.3vw Nunito,Arial,sans-serif;color:rgba(255,255,255,.55)">' + (cur + 1) + ' / ' + n + (h.paused ? ' · pause' : '') + '</div></div>' };
+      '<div style="position:absolute;left:2vw;bottom:1.6vw;font:800 1.3vw Gothic30,Nunito,Arial,sans-serif;color:rgba(255,255,255,.55)">' + (cur + 1) + ' / ' + n + (h.paused ? ' · pause' : '') + '</div></div>' };
   }
 
   /* ---------- interactions ---------- */
