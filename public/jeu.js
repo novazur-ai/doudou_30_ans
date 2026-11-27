@@ -853,7 +853,7 @@
 
   /* ---------- PROJECTION ---------- */
   // Bandeaux des clans (images détourées, score écrit en direct sur le parchemin de droite).
-  var CLB = { feu: { ar: 4.7059, cy: 54.5, ink: '#6a0c02', pre: 'du' }, foudre: { ar: 4.5113, cy: 50, ink: '#012467', pre: 'de la' }, vent: { ar: 4.898, cy: 48, ink: '#334324', pre: 'du' } };
+  var CLB = { feu: { ar: 4.7059, cy: 54.5, ink: '#6a0c02', pre: 'du' }, foudre: { ar: 4.5113, cy: 46, ink: '#012467', pre: 'de la' }, vent: { ar: 4.898, cy: 43, ink: '#334324', pre: 'du' } };
   // w : largeur (nombre) dans l'unité u ('vw' ou 'px'), max : largeur maximale en px (facultatif).
   function banner(c, w, u, o) {
     o = o || {}; var b = CLB[c.k], sc = o.score === undefined ? st.scores[c.k] : o.score, big = String(sc).length > 2;
