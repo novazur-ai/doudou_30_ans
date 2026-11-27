@@ -115,7 +115,7 @@ function fresh() {
     ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
     destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: SONG, foudre: SONG, vent: SONG }, songEnd: SONG_END, music: null },
-    boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0 },
+    boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0, intro: 0 },
     echo: { card: 0, start: 0, end: 0, res: [] },
     hokage: { view: 'ceremony', viewAt: 0, speech: '', music: '', dur: 5, idx: 0, idxAt: 0, paused: false },
   };
@@ -243,7 +243,7 @@ export async function playerView(db, name, now) {
     let mine = 0;
     if (id) { const t = await db.prepare('SELECT v FROM gplay WHERE k=?').bind('tap:' + id).first(); mine = t ? +t.v : 0; }
     const p1 = b.p1 ? { at: b.p1.at, mult: b.p1.mult || 1, dmg: b.p1.dmg, dice: clan && b.p1.dice[clan] ? b.p1.dice[clan] : [], sum: clan && b.p1.sums ? b.p1.sums[clan] : 0 } : null;
-    out.boss = { hp: b.hp, dead: b.dead, deadAt: b.deadAt, p1, p2: b.p2 ? { start: b.p2.start, end: b.p2.end, done: !!b.p2.done, per: b.p2.per || 1, dmg: b.p2.dmg } : null, mine };
+    out.boss = { hp: b.hp, dead: b.dead, deadAt: b.deadAt, intro: b.intro || 0, p1, p2: b.p2 ? { start: b.p2.start, end: b.p2.end, done: !!b.p2.done, per: b.p2.per || 1, dmg: b.p2.dmg } : null, mine };
   }
   return out;
 }
@@ -499,6 +499,7 @@ export async function mjAct(db, b, now) {
       if (g.destin.c < DESTIN.length - 1 && g.destin.stage === 'reveal' && g.destin.shown >= 3) g.destin = { c: g.destin.c + 1, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: { ...(g.destin.hist || {}), [g.destin.c]: g.destin.results } };
       break;
 
+    case 'bossIntro': g.boss.intro = b.on ? now : 0; break; // cinématique « Le Réveil de Sanjûbi » sur la projection
     case 'bossP1': {
       if (g.boss.p1) break;
       const n = {}, dice = {}, sums = {};

@@ -94,6 +94,7 @@
     '@keyframes boom{0%{transform:scale(1);opacity:1;filter:none}30%{transform:scale(1.15) rotate(-6deg);filter:brightness(2)}100%{transform:scale(2.4) rotate(14deg);opacity:0;filter:brightness(3) blur(6px)}}',
     '@keyframes flash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}@keyframes pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}',
     '@keyframes drop{0%{transform:translateY(-40vh) rotate(-12deg);opacity:0}70%{transform:translateY(8px) rotate(3deg);opacity:1}100%{transform:translateY(0) rotate(-4deg)}}',
+    '@keyframes ishot{0%{opacity:0}18%{opacity:1}82%{opacity:1}100%{opacity:0}}@keyframes ikbA{from{transform:scale(1.16) translate(-1.5%,1%);filter:blur(6px)}25%{filter:blur(0)}to{transform:scale(1.02) translate(1%,-1%);filter:blur(0)}}@keyframes ikbB{from{transform:scale(1.02) translate(1.5%,0);filter:blur(6px)}25%{filter:blur(0)}to{transform:scale(1.16) translate(-1%,-1.5%);filter:blur(0)}}@keyframes icap{0%,15%{opacity:0;transform:translateY(2vh)}30%,80%{opacity:1;transform:none}100%{opacity:0}}@keyframes ishake{0%,100%{transform:none}20%{transform:translate(-1.2vw,.6vw)}40%{transform:translate(1vw,-.8vw)}60%{transform:translate(-.6vw,.4vw)}80%{transform:translate(.4vw,-.2vw)}}',
     '@keyframes rise{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}@keyframes fadein{from{opacity:0}to{opacity:1}}',
     '@keyframes upulse{from{transform:scale(1)}to{transform:scale(1.12)}}.urg{animation:upulse .5s ease-in-out infinite alternate;display:inline-block}#g.proj .urg{color:#fff;background:#C0506A!important}',
     '#g .scr{min-height:100%;background:#2b211a;padding:calc(10px + env(safe-area-inset-top)) 0 calc(10px + env(safe-area-inset-bottom));box-sizing:border-box;display:flex;flex-direction:column}',
@@ -281,6 +282,7 @@
     if (!root || !mode) return;
     if (mode === 'ecran' && revealing() && root.getAttribute('data-reveal') === String(st.ouv.drawAt)) return;
     if (mode === 'ecran' && st && st.step === 4 && st.destin && st.destin.stage === 'reveal' && st.destin.shownAt && now() - st.destin.shownAt < 7200 && root.getAttribute('data-dfreeze') === String(st.destin.shownAt + ':' + st.destin.shown)) return;
+    if (mode === 'ecran' && introOn() && root.getAttribute('data-intro') === String(st.boss.intro)) return;
     var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
     if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#3A3350;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
       '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
@@ -311,6 +313,7 @@
   function needsTimeRedraw(t) {
     var ph = '';
     if (st.step === 3 && st.ombre) { var end = st.ombre.cur ? st.ombre.cur.end : st.ombre.end; ph += 'o' + (end && t > end ? 1 : 0) + (st.ombre.startAt && t > st.ombre.startAt + 600000 ? 'f' : ''); }
+    if (st.step === 5 && st.boss && st.boss.intro) ph += 'i' + (introOn() ? 1 : 0);
     if (st.step === 7 && st.echo) ph += 'e' + (st.echo.start ? (t > st.echo.end ? 2 : 1) : 0);
     if (st.step === 4 && st.destin) ph += 'd' + (st.destin.shownAt && t - st.destin.shownAt < 7200 ? 1 : 0) + (st.destin.voteEnd && t > st.destin.voteEnd ? 'v' : '');
     if (st.step === 5 && st.boss) {
@@ -490,11 +493,19 @@
     var txt = b.dead ? 'Alessia a terrassé Sanjûbi !' : b.p2 && b.p2.done ? 'Le coup final revient à Alessia…' : b.p1 ? 'Préparez-vous pour le Rasengan collectif' : 'Les clans attaquent Sanjûbi';
     var p1 = b.p1, rolling = p1 && p1.at && now() - p1.at < 1600, mine = '';
     if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#3A3350;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
-    if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px"><div style="font-family:Caveat,cursive;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#D9CEF0;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
+    if (b.intro && now() - b.intro < 25500 && !b.p1) return { cls: 'dark', html: '<div class="full" style="background:#1d1626;gap:16px"><img src="/sanjubi/face.webp" alt="" style="width:150px;height:150px;border-radius:50%;object-fit:cover;filter:brightness(.7);animation:pop .6s ease-out both"><div class="ser" style="font-size:28px">Regardez l’écran…</div></div>' };
+    if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px">' + faceImg(200, true) + '<div style="font-family:Caveat,cursive;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#D9CEF0;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
     return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Sanjûbi</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>' +
-      bossSvg('boss' + (dying ? ' boom' : ''), p1 ? 190 : 280) + mine +
+      faceImg(p1 ? 170 : 240, false, 'boss' + (dying ? ' boom' : '')) + mine +
       '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#D9CEF0"><span>POINTS DE VIE</span><span>' + fmt(b.hp) + ' / 2 026</span></div>' + hpBar(b.hp) + '</div>' +
       '<div class="ser" style="font-size:22px;line-height:1.3">' + txt + '</div></div>' };
+  }
+  // Portrait de Sanjûbi sur les téléphones ; version grise et fissurée après la victoire.
+  function faceImg(w, beaten, cls) {
+    var img = '<img class="' + (cls || '') + '" src="/sanjubi/face.webp" alt="Sanjûbi" style="width:' + w + 'px;height:' + w + 'px;border-radius:50%;object-fit:cover;display:block;' + (beaten ? 'filter:grayscale(1) brightness(.75) contrast(1.15)' : 'box-shadow:0 0 0 4px #F7C948,0 0 40px rgba(255,140,40,.55)') + '">';
+    if (!beaten) return img;
+    return '<div style="position:relative;width:' + w + 'px;height:' + w + 'px;animation:pop .6s ease-out both">' + img +
+      '<svg viewBox="0 0 100 100" style="position:absolute;inset:0" aria-hidden="true" fill="none" stroke="#f3eee6" stroke-width="1.6" stroke-linejoin="round"><path d="M46 2 L52 20 L44 33 L55 47 L47 60 L58 74 L50 98"/><path d="M52 20 L66 26 L74 22"/><path d="M44 33 L30 38 L22 34"/><path d="M55 47 L72 52"/><path d="M47 60 L31 66 L26 76"/></svg></div>';
   }
   function pRasengan(c, p2) {
     var t = now(), wait = t < p2.start, run = t >= p2.start && t < p2.end;
@@ -640,6 +651,7 @@
   function mBoss() {
     var b = st.boss, p2 = b.p2, t = now();
     var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Sanjûbi</span><b class="ser">' + fmt(b.hp) + ' / 2 026</b></div>' + hpBar(b.hp) + '</section>';
+    if (!b.p1) h += '<section class="card"><div class="lab">Cinématique · Le Réveil de Sanjûbi</div>' + (introOn() ? '<div style="font-weight:800">En cours sur l’écran · ' + Math.ceil((b.intro + INTRO_MS - t) / 1000) + ' s</div><button class="btn2" data-g="bintro" data-on="0">Passer la cinématique</button>' : '<div class="muted">25 s plein écran sur la projection, avant le combat. Les téléphones affichent « Regardez l’écran ».</div><button class="btn" data-g="bintro" data-on="1">' + (b.intro ? 'Relancer' : 'Lancer') + ' le Réveil de Sanjûbi</button>') + '</section>';
     h += '<section class="card"><div class="lab">Phase 1 · attaques</div>' + (b.p1 ? CL.map(function (c) { return '<div style="font-weight:700;font-size:14px"><b style="color:' + c.ink + '">' + esc(c.n) + '</b> : (' + b.p1.dice[c.k].join(' + ') + ') × ' + (b.p1.mult || 1) + ' = ' + fmt(b.p1.sums ? b.p1.sums[c.k] : 0) + '</div>'; }).join('') + '<div style="font-weight:800">Total : ' + fmt(b.p1.dmg) + ' dégâts</div>' : '<div class="muted">1 attaque par tranche de 5 points (au moins 1 par clan, 12 max), chaque attaque = un d20 multiplié par le chakra. Tous les dés roulent en même temps. Le Rasengan finit le travail jusqu’à 30 PV.</div><button class="btn" data-g="bp1">Lancer toutes les attaques</button>') + '</section>';
     if (b.p1) {
       h += '<section class="card"><div class="lab">Phase 2 · Rasengan</div>';
@@ -789,7 +801,7 @@
     }, Math.max(0, d.shownAt + 1650 - now()));
   }
   function fxHook() {
-    fxJoker(); fxRythme(); fxOmbre(); fxDestin(); fxHokage(); musicSync();
+    fxJoker(); fxRythme(); fxOmbre(); fxDestin(); fxHokage(); fxIntro(); musicSync();
     if (!st || st.step !== 0 || !st.ouv) { root.removeAttribute('data-reveal'); return; }
     var o = st.ouv;
     if (o.view === 'clans' && revealing()) {
@@ -856,7 +868,8 @@
   function vProj() {
     if (!st) return { html: '', cls: 'peach proj' };
     var s = st.step, h = '', cls = 'peach proj';
-    if ((s === 4 || s === 5) && !sanjPre) { sanjPre = new Image(); sanjPre.src = SANJ; } // préchargement avant la bataille
+    if ((s === 4 || s === 5) && !sanjPre) { sanjPre = new Image(); sanjPre.src = SANJ; ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'village', 'village-bg'].forEach(function (k) { new Image().src = '/sanjubi/' + k + '.webp'; }); } // préchargement avant la bataille
+    if (s === 5 && introOn()) return projIntro();
     if (s === 6) return projHokage();
     if (s === 7) return projEcho();
     if (s === 5) return projBoss();
@@ -928,6 +941,45 @@
     }
     return { cls: 'dark proj', html: '<div class="pw" style="padding:0;gap:0;background:#2b211a"><div class="rod" style="margin:1.2vw 2vw 0"></div><div class="paper" style="margin:0 3vw;padding:2.2vw 3vw;gap:1.6vw">' + inner + '</div><div class="rod" style="margin:0 2vw 1.2vw"></div></div>' };
   }
+
+  /* ---------- Le Réveil de Sanjûbi : cinématique de ~25 s avant la bataille ---------- */
+  var INTRO_MS = 25500, SHOT_MS = 3200;
+  var SHOTS = [
+    ['r1', '50% 40%', 'Au cœur de la nuit, une ombre se dresse sur le village…'],
+    ['r2', '50% 35%', 'Un hurlement déchire le ciel.'],
+    ['r3', '40% 45%', 'Les flammes dévorent les toits.'],
+    ['r4', '60% 45%', 'Il a senti l’odeur des 30 bougies.'],
+    ['r5', '50% 18%', 'Trente queues. Trente flammes. Une seule colère.'],
+    ['r6', '50% 50%', 'Sanjûbi s’est réveillé.']
+  ];
+  function introOn() { var b = st && st.step === 5 && st.boss; return !!(b && b.intro && now() - b.intro < INTRO_MS); }
+  function projIntro() {
+    var el = (now() - st.boss.intro) / 1000, h = '';
+    SHOTS.forEach(function (x, i) {
+      var d = (i * SHOT_MS / 1000 - el).toFixed(2), last = i === SHOTS.length - 1;
+      h += '<div style="position:absolute;inset:0;opacity:0;animation:ishot ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's ease-in-out both">' +
+        '<img src="/sanjubi/' + x[0] + '.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:' + x[1] + ';animation:' + (i % 2 ? 'ikbB' : 'ikbA') + ' ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's linear both">' +
+        '<div style="position:absolute;left:0;right:0;bottom:12vh;text-align:center;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:' + (last ? '5.4vw' : '3.4vw') + ';color:#fff;text-shadow:0 .3vw 1.6vw rgba(0,0,0,.9);padding:0 8vw;opacity:0;animation:icap ' + ((SHOT_MS + 800) / 1000) + 's ' + d + 's ease-out both">' + esc(x[2]) + '</div></div>';
+    });
+    var t0 = (SHOTS.length * SHOT_MS / 1000 - el).toFixed(2), f6 = ((SHOTS.length - 1) * SHOT_MS / 1000 - el).toFixed(2);
+    h += '<div style="position:absolute;inset:0;background:#fff;opacity:0;animation:flash .9s ' + f6 + 's ease-out both;pointer-events:none"></div>';
+    h += '<div style="position:absolute;inset:0;opacity:0;animation:fadein 1s ' + t0 + 's ease-out both"><img src="/sanjubi/village.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:ikbA 7s ' + t0 + 's linear both"><div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(20,10,20,.35),rgba(20,10,20,.85))"></div>' +
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vw;text-align:center"><div style="font:800 1.6vw Nunito,sans-serif;letter-spacing:.3em;color:#F7E6A8;opacity:0;animation:rise .8s ' + (+t0 + 1.2).toFixed(2) + 's ease-out both">ÉPREUVE FINALE</div>' +
+      '<div style="font-family:Fraunces,Georgia,serif;font-weight:700;font-size:8vw;line-height:1;color:#fff;text-shadow:0 .4vw 2vw rgba(0,0,0,.8);animation:pop .7s ' + (+t0 + 0.4).toFixed(2) + 's cubic-bezier(.3,1.5,.5,1) both">La Bataille<br>des 30 queues</div></div></div>';
+    h += '<div style="position:absolute;left:0;right:0;top:0;height:7vh;background:#000;z-index:5"></div><div style="position:absolute;left:0;right:0;bottom:0;height:7vh;background:#000;z-index:5"></div>';
+    return { cls: 'dark proj', html: '<div data-introwrap style="position:absolute;inset:0;overflow:hidden;background:#000">' + h + '</div>' };
+  }
+  var firedI = '';
+  function fxIntro() {
+    if (!introOn()) { root.removeAttribute('data-intro'); return; }
+    var at = st.boss.intro; root.setAttribute('data-intro', String(at));
+    if (firedI === String(at)) return; firedI = String(at);
+    var el = now() - at;
+    [[(SHOTS.length - 1) * SHOT_MS + 150, 'don'], [SHOTS.length * SHOT_MS + 500, 'don']].forEach(function (x) {
+      if (x[0] < el) return;
+      setTimeout(function () { var w = root && root.querySelector('[data-introwrap]'); if (!w || !introOn()) return; fx(w, x[1], { size: 300 }); w.style.animation = 'none'; void w.offsetWidth; w.style.animation = 'ishake .5s ease-out'; }, x[0] - el);
+    });
+  }
   function projBoss() {
     var b = st.boss, t = now(), p2 = b.p2;
     var dying = b.dead && b.deadAt && t - b.deadAt < 2600;
@@ -955,7 +1007,7 @@
       } else right += '<div style="flex:1;display:flex;align-items:center"><div class="ser" style="font-size:3.4vw;line-height:1.3">Sanjûbi menace le village.<br>Les clans se préparent à l’attaque…</div></div>';
     }
     var flash = dying && t - st.boss.deadAt < 900 ? '<div style="position:absolute;inset:0;background:#fff;animation:flash .9s ease-out forwards;pointer-events:none"></div>' : '';
-    return { cls: 'dark proj', html: '<div class="pw" style="flex-direction:row;gap:4vw;align-items:stretch"><div style="' + (b.dead && !dying ? 'display:none;' : '') + 'width:40vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw">' +
+    return { cls: 'dark proj', html: '<div aria-hidden="true" style="position:absolute;inset:0;background:#231c33 url(/sanjubi/village-bg.webp) center/cover"></div><div class="pw" style="flex-direction:row;gap:4vw;align-items:stretch;position:relative;z-index:1"><div style="' + (b.dead && !dying ? 'display:none;' : '') + 'width:40vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw">' +
       (b.dead && !dying ? '' : bossImg('boss' + (dying ? ' boom' : hit ? ' hit' : '')) + '<div style="font-family:Caveat,cursive;font-weight:700;font-size:5vw;line-height:1">Sanjûbi</div><div class="pk" style="color:#D9CEF0">Le démon à 30 queues</div>') + '</div>' +
       '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2vw">' + right + '</div></div>' + flash };
   }
@@ -1120,6 +1172,7 @@
     if (g === 'bp2s') { act('bossP2Start'); return; }
     if (g === 'bp2c') { act('bossP2Close'); return; }
     if (g === 'bfinal') { act('bossFinal'); try { if (navigator.vibrate) navigator.vibrate([60, 40, 120]); } catch (_) {} return; }
+    if (g === 'bintro') { act('bossIntro', { on: d('on') === '1' }); return; }
     if (g === 'estart') { act('echoStart'); return; }
     if (g === 'escore') { act('echoScore', { clan: d('c') }); return; }
     if (g === 'ego') { act('echoGo', { i: +d('i') }); return; }
