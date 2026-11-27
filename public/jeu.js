@@ -222,6 +222,12 @@
     var b = extra || {}; b.type = type;
     return req('/api/game/act', { method: 'POST', body: b, auth: true }).then(function (s) { setState(s); }).catch(function (er) { A.toast(A.errMsg(er)); });
   }
+  // Illustration de Sanjûbi (fond transparent) pour l'écran de projection ; préchargée pour ne pas apparaître en retard.
+  var SANJ = '/sanjubi.webp?v=1', sanjPre = null;
+  function bossImg(cls) {
+    if (!sanjPre) { sanjPre = new Image(); sanjPre.src = SANJ; }
+    return '<img class="' + cls + '" src="' + SANJ + '" alt="Sanjûbi, le démon à 30 queues" style="width:100%;height:auto;max-height:56vh;object-fit:contain;filter:drop-shadow(0 0 2.2vw rgba(255,150,50,.35))">';
+  }
   function bossSvg(cls, w) {
     return '<svg class="' + cls + '" width="' + w + '" viewBox="0 0 380 330" fill="none" aria-hidden="true" style="max-width:100%;height:auto">' +
       '<g stroke="#C0506A" stroke-width="7" stroke-linecap="round" opacity=".85"><path d="M190 210 C 120 160, 60 150, 20 90"/><path d="M190 210 C 130 140, 90 100, 70 30"/><path d="M190 210 C 160 130, 150 70, 140 10"/><path d="M190 210 C 200 130, 215 70, 230 10"/><path d="M190 210 C 240 140, 290 100, 310 30"/><path d="M190 210 C 260 160, 320 150, 360 90"/></g>' +
@@ -850,6 +856,7 @@
   function vProj() {
     if (!st) return { html: '', cls: 'peach proj' };
     var s = st.step, h = '', cls = 'peach proj';
+    if ((s === 4 || s === 5) && !sanjPre) { sanjPre = new Image(); sanjPre.src = SANJ; } // préchargement avant la bataille
     if (s === 6) return projHokage();
     if (s === 7) return projEcho();
     if (s === 5) return projBoss();
@@ -944,12 +951,12 @@
           return '<div class="row" style="gap:1.4vw;padding:.8vw 1.6vw;border-radius:1.6vw;background:' + c.bg + ';color:#3A3350"><span class="ser" style="width:8vw;font-size:2.2vw">' + esc(c.n) + '</span><div class="row" style="gap:.4vw;flex:1;flex-wrap:wrap">' +
             dice.map(function (x) { return d20s(x, '4vw', rolling); }).join('') +
             '</div><span class="ser" style="font-size:2.4vw;white-space:nowrap">' + (rolling ? '' : '−' + fmt(sum)) + '</span></div>';
-        }).join('') + '</div>' + (p2 && p2.done ? '<div class="ser" style="font-size:2.2vw;color:#F7E6A8">Rasengan : ' + fmt(p2.taps || 0) + ' tapes × ' + fmt(p2.per || 1) + ' = −' + fmt(p2.dmg) + ' · Plus que ' + fmt(b.hp) + ' PV : le coup final revient à Alessia !</div>' : '');
+        }).join('') + '</div>' + (p2 && p2.done && !b.dead ? '<div class="ser" style="font-size:2.2vw;color:#F7E6A8">Rasengan : ' + fmt(p2.taps || 0) + ' tapes × ' + fmt(p2.per || 1) + ' = −' + fmt(p2.dmg) + ' · Plus que ' + fmt(b.hp) + ' PV : le coup final revient à Alessia !</div>' : '');
       } else right += '<div style="flex:1;display:flex;align-items:center"><div class="ser" style="font-size:3.4vw;line-height:1.3">Sanjûbi menace le village.<br>Les clans se préparent à l’attaque…</div></div>';
     }
     var flash = dying && t - st.boss.deadAt < 900 ? '<div style="position:absolute;inset:0;background:#fff;animation:flash .9s ease-out forwards;pointer-events:none"></div>' : '';
-    return { cls: 'dark proj', html: '<div class="pw" style="flex-direction:row;gap:4vw;align-items:stretch"><div style="' + (b.dead && !dying ? 'display:none;' : '') + 'width:34vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw">' +
-      (b.dead && !dying ? '' : bossSvg('boss' + (dying ? ' boom' : hit ? ' hit' : ''), '100%') + '<div style="font-family:Caveat,cursive;font-weight:700;font-size:5vw;line-height:1">Sanjûbi</div><div class="pk" style="color:#D9CEF0">Le démon à 30 queues</div>') + '</div>' +
+    return { cls: 'dark proj', html: '<div class="pw" style="flex-direction:row;gap:4vw;align-items:stretch"><div style="' + (b.dead && !dying ? 'display:none;' : '') + 'width:40vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw">' +
+      (b.dead && !dying ? '' : bossImg('boss' + (dying ? ' boom' : hit ? ' hit' : '')) + '<div style="font-family:Caveat,cursive;font-weight:700;font-size:5vw;line-height:1">Sanjûbi</div><div class="pk" style="color:#D9CEF0">Le démon à 30 queues</div>') + '</div>' +
       '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2vw">' + right + '</div></div>' + flash };
   }
   function hokCur() {
