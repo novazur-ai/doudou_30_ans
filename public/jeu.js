@@ -7,7 +7,7 @@
 
   var CL = [
     { k: 'feu', n: 'Feu', bg: '#F9C3AE', ink: '#8E3A1F', p: 'M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 1 1 2 2 3 4 0-3 0-5 0-7z', j: ['Katon : Renaissance', 'Katon : Brasier', 'Katon : Lueur'] },
-    { k: 'foudre', n: 'Foudre', bg: '#F7E3A0', ink: '#6E5300', p: 'M13 2L4 14h7l-1 8 9-12h-7z', j: ['Raiton : Second éclair', 'Raiton : Chidori', 'Raiton : Flash'] },
+    { k: 'foudre', n: 'Foudre', bg: '#C9DAF5', ink: '#1F3F8A', p: 'M13 2L4 14h7l-1 8 9-12h-7z', j: ['Raiton : Second éclair', 'Raiton : Chidori', 'Raiton : Flash'] },
     { k: 'vent', n: 'Vent', bg: '#BFE3D4', ink: '#2F6F5E', p: 'M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h7', j: ['Fûton : Contre-vent', 'Fûton : Tornade', 'Fûton : Murmure'] },
   ];
   var CK = {}; CL.forEach(function (c) { CK[c.k] = c; });
@@ -340,7 +340,7 @@
     if (s === 7) return pEcho(c);
     if (s === 4) return pDestin(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
-    var head = '<div class="hd"><h1>' + esc(STEPN[s]) + '</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + ico(c, 16) + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>';
+    var head = '<div class="hd"><h1>' + esc(STEPN[s]) + '</h1></div>' + banner(c, 91, 'vw', { max: 396, style: 'margin:-2px auto 2px' });
     if (jk(c.k) === 'on' && jokerOk(s)) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#3A3350;color:#fff;border-color:#3A3350;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#3A3350;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
     else if (jk(c.k) === 'free' && jokerOk(s)) head += '<div class="muted" style="font-size:13px">Joker x2 encore disponible : annoncez-le avant l’épreuve.</div>';
     if (st.timer && now() < st.timer.end + 1000) head += '<div class="row" style="gap:10px">' + cdBar(st.timer.end, st.timer.dur * 1000) + cd(st.timer.end, 'ser', 'font-size:20px;min-width:52px;text-align:right') + '</div>';
@@ -349,7 +349,7 @@
   }
   function pClan(c) {
     return '<section style="background:' + c.bg + ';border-radius:24px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid #fff;box-shadow:0 8px 20px rgba(58,51,80,.12)">' +
-      '<div style="animation:breathe 1.6s ease-in-out infinite">' + ico(c, 60) + '</div><div class="lab" style="color:' + c.ink + '">Tu es dans le</div><div class="ser" style="font-size:32px">Clan du ' + esc(c.n) + '</div>' +
+      '<div class="lab" style="color:' + c.ink + '">Tu es dans le</div><div class="ser" style="font-size:32px">Clan ' + CLB[c.k].pre + ' ' + esc(c.n) + '</div>' +
       '<div style="font-weight:700;color:' + c.ink + '">' + st.members[c.k].map(esc).join(' · ') + '</div></section>' +
       jokerCard(c) + pCri(c);
   }
@@ -376,7 +376,7 @@
         var mine = pl.rate && Date.now() - pl.rateAt < 4000 ? pl.rate : ry.myRate;
         h += '<section class="card" style="align-items:center;text-align:center;gap:12px;padding:22px 14px"><div class="lab">Note la danse du clan</div><div class="ser" style="font-size:26px;color:' + dc.ink + '">' + esc(dc.n) + '</div><div class="row" style="gap:4px;justify-content:center">' +
           [1, 2, 3, 4, 5].map(function (n) { return '<button data-g="rate" data-n="' + n + '" aria-label="' + n + ' sur 5" style="border:0;background:none;padding:2px">' + star(mine >= n, 52) + '</button>'; }).join('') + '</div><div class="muted">' + (mine ? 'Ta note : ' + mine + ' / 5 · tu peux encore changer' : 'Touche une étoile') + '</div></section>';
-      } else h += '<section class="card" style="align-items:center;text-align:center;gap:6px;padding:22px 14px"><div class="lab">En piste</div><div class="ser" style="font-size:26px;color:' + dc.ink + '">Le clan du ' + esc(dc.n) + ' danse !</div><div class="muted">Prépare-toi à le noter.</div></section>';
+      } else h += '<section class="card" style="align-items:center;text-align:center;gap:6px;padding:22px 14px"><div class="lab">En piste</div><div class="ser" style="font-size:26px;color:' + dc.ink + '">Le clan ' + CLB[dc.k].pre + ' ' + esc(dc.n) + ' danse !</div><div class="muted">Prépare-toi à le noter.</div></section>';
     }
     var done = CL.filter(function (k) { return res[k.k]; });
     if (done.length) h += '<section class="card"><div class="lab">Notes du public</div>' + done.map(function (k) { var r = res[k.k]; return '<div class="row" style="justify-content:space-between"><span class="ser" style="color:' + k.ink + '">' + esc(k.n) + '</span><span class="row" style="gap:2px">' + stars(r.avg, 18) + '</span><b>' + String(r.avg).replace('.', ',') + ' · +' + r.pts + '</b></div>'; }).join('') + '</section>';
@@ -423,7 +423,7 @@
   function pEcho(c) {
     var x = echoInfo();
     if (x.done) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div class="ser" style="font-size:30px">Fin de l’épreuve</div><div style="font-weight:800;opacity:.85">Regardez l’écran</div></div>' };
-    if (x.wait) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div style="font-weight:800;opacity:.85">Carte ' + (x.card + 1) + ' / 6</div><div class="ser" style="font-size:30px;line-height:1.15">' + (x.play.k === c.k ? 'À vous de piocher !' : 'Au tour du clan du ' + esc(x.play.n)) + '</div></div>' };
+    if (x.wait) return { cls: 'dark', html: '<div class="full" style="background:#6B5B9A;gap:14px"><div style="font-weight:800;opacity:.85">Carte ' + (x.card + 1) + ' / 6</div><div class="ser" style="font-size:30px;line-height:1.15">' + (x.play.k === c.k ? 'À vous de piocher !' : 'Au tour du clan ' + CLB[x.play.k].pre + ' ' + esc(x.play.n)) + '</div></div>' };
     var open = x.run ? x.play.k === c.k : true;
     return { cls: 'dark', html: '<div class="full" style="background:' + (open ? '#2F7D64' : '#B8445F') + ';gap:22px">' +
       (x.run ? '<div class="ser" style="font-size:64px;line-height:1">' + cdu(x.e.end, '', 'padding:4px 14px;border-radius:16px') + '</div>' : '') +
@@ -436,7 +436,7 @@
     else {
       var p = x.play, others = CL.filter(function (c) { return c.k !== p.k; });
       h += '<section class="card" style="background:' + p.bg + ';border-color:' + p.bg + '"><div class="row" style="justify-content:space-between"><span class="lab" style="color:' + p.ink + '">Tour ' + (x.card < 3 ? 1 : 2) + ' · carte ' + (x.card + 1) + ' / 6</span>' + (x.run ? cdu(x.e.end, 'ser', 'font-size:24px;padding:0 8px;border-radius:8px') : x.open ? '<b style="color:' + p.ink + '">Aux autres clans</b>' : '') + '</div>' +
-        '<div class="ser" style="font-size:22px;color:' + p.ink + '">Clan du ' + esc(p.n) + '</div>' +
+        '<div class="ser" style="font-size:22px;color:' + p.ink + '">Clan ' + CLB[p.k].pre + ' ' + esc(p.n) + '</div>' +
         (x.wait ? '<button class="btn" data-g="estart">Lancer les 45 s</button>' :
           '<button class="btn" data-g="escore" data-c="' + p.k + '">Trouvé · +2 ' + esc(p.n) + '</button><div class="row" style="gap:8px">' + others.map(function (c) { return '<button class="btn2" style="flex:1;height:46px;color:' + c.ink + '" data-g="escore" data-c="' + c.k + '">+1 ' + esc(c.n) + '</button>'; }).join('') + '<button class="btn2" style="flex:1;height:46px" data-g="escore" data-c="">Personne</button></div>') +
         '</section>';
@@ -451,10 +451,10 @@
     var pie = '<svg viewBox="0 0 100 100" style="width:24vw;height:24vw;display:block"><circle cx="50" cy="50" r="48" fill="#fff" stroke="' + ink + '" stroke-width="2"/><circle ' + (x.run ? 'data-pie="' + x.e.end + '" data-dur="45000" ' : '') + 'cx="50" cy="50" r="24" fill="none" stroke="' + ink + '" stroke-width="48" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - f)).toFixed(2) + '" transform="rotate(-90 50 50) scale(1 -1) translate(0 -100)" style="transition:stroke-dashoffset .3s linear' + (x.run ? '' : ';transition:none') + '"/></svg>';
     var left = x.done ? '<div class="ser" style="font-size:4vw;text-align:center">Fin de l’épreuve</div>' :
       '<div style="display:flex;flex-direction:column;align-items:center;gap:1.4vw;width:30vw;flex-shrink:0;text-align:center">' + pie +
-      '<div class="ser" style="font-size:2.8vw;color:' + ink + '">' + (x.run ? cd(x.e.end, '', 'font-size:3.4vw') : x.open ? 'Aux autres clans !' : 'Clan du ' + esc(p.n) + ' : piochez !') + '</div></div>';
-    var scores = '<div style="display:flex;flex-direction:column;gap:1.4vw;flex:1">' + CL.map(function (c) {
+      '<div class="ser" style="font-size:2.8vw;color:' + ink + '">' + (x.run ? cd(x.e.end, '', 'font-size:3.4vw') : x.open ? 'Aux autres clans !' : 'Clan ' + CLB[p.k].pre + ' ' + esc(p.n) + ' : piochez !') + '</div></div>';
+    var scores = '<div style="display:flex;flex-direction:column;gap:1.2vw;flex:1;align-items:center">' + CL.map(function (c) {
       var on = p && p.k === c.k && !x.open;
-      return '<div style="background:' + c.bg + ';border-radius:2vw;padding:1.4vw 2.4vw;display:flex;align-items:center;gap:1.4vw;transition:transform .4s;' + (on ? 'box-shadow:0 0 0 .4vw #3A3350;transform:scale(1.03)' : '') + '">' + ico(c, '52') + '<span class="ser" style="font-size:3vw;color:' + c.ink + '">' + esc(c.n) + '</span>' + (jk(c.k) === 'on' ? '<span class="ser" style="background:#3A3350;color:#F7E6A8;border-radius:1vw;padding:.2vw .9vw;font-size:1.8vw">x2</span>' : '') + '<span class="ser" style="margin-left:auto;font-size:6vw;line-height:1">' + st.scores[c.k] + '</span></div>';
+      return banner(c, 50, 'vw', { style: 'transition:transform .4s,opacity .4s,filter .4s;' + (on ? 'transform:scale(1.06);filter:drop-shadow(0 0 1.2vw rgba(255,255,255,.75))' : p && !x.open ? 'filter:saturate(.5) brightness(.85)' : '') });
     }).join('') + '</div>';
     return { cls: 'peach proj', html: '<div class="pw">' + pHeader('Hit-Jutsu', 'Épreuve 2 / 6 · ' + (x.done ? '6 cartes jouées' : 'Tour ' + (x.card < 3 ? 1 : 2) + ' · carte ' + (x.card + 1) + ' / 6'), '') +
       '<div style="flex:1;display:flex;align-items:center;gap:5vw;padding:0 3vw">' + left + scores + '</div></div>' };
@@ -484,7 +484,7 @@
       var on = mine === o.k;
       return '<button class="scl" data-g="vote" data-k="' + o.k + '"' + (vote ? '' : ' disabled') + '><i></i><b style="min-height:' + (on ? 330 : 270) + 'px;' + (on ? 'outline:3px solid #b5302a;outline-offset:-3px;' : '') + (vote || on ? '' : 'opacity:.75') + '"><span style="font-size:28px;color:' + cols[i] + '">' + ['一', '二', '三'][i] + '</span><span style="font-size:15px;line-height:1.3">' + esc(o.t) + '</span>' + dTag(i, cols[i], '10.5px', '30px') + (on ? '<span class="stamp" style="margin-top:auto;width:44px;height:44px;font-size:24px;animation:stampin .4s ease-out both">選</span>' : '') + '</b><i></i></button>';
     }).join('') + '</div>';
-    var status = d.stage === 'story' ? 'Écoutez le récit… le vote va s’ouvrir' : vote ? 'Clan du ' + esc(c.n) + ' · ' + cdu(d.voteEnd, '', 'border-radius:6px;padding:0 4px') : 'Votes verrouillés';
+    var status = d.stage === 'story' ? 'Écoutez le récit… le vote va s’ouvrir' : vote ? 'Clan ' + CLB[c.k].pre + ' ' + esc(c.n) + ' · ' + cdu(d.voteEnd, '', 'border-radius:6px;padding:0 4px') : 'Votes verrouillés';
     return scrollWrap(head + '<div style="font-style:italic;font-size:15px;line-height:1.5">' + esc(d.text) + '</div>' + ctxLines(d.ctx, '14px') + scrolls + foot(status));
   }
   function pBoss(c) {
@@ -495,7 +495,7 @@
     if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#3A3350;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
     if (b.intro && now() - b.intro < 25500 && !b.p1) return { cls: 'dark', html: '<div class="full" style="background:#1d1626;gap:16px"><img src="/sanjubi/face.webp" alt="" style="width:150px;height:150px;border-radius:50%;object-fit:cover;filter:brightness(.7);animation:pop .6s ease-out both"><div class="ser" style="font-size:28px">Regardez l’écran…</div></div>' };
     if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px">' + faceImg(200, true) + '<div style="font-family:Caveat,cursive;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#D9CEF0;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
-    return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Sanjûbi</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + esc(c.n) + ' · ' + st.scores[c.k] + ' pts</span></div>' +
+    return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Sanjûbi</h1></div>' + banner(c, 91, 'vw', { max: 396 }) +
       faceImg(p1 ? 170 : 240, false, 'boss' + (dying ? ' boom' : '')) + mine +
       '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#D9CEF0"><span>POINTS DE VIE</span><span>' + fmt(b.hp) + ' / 2 026</span></div>' + hpBar(b.hp) + '</div>' +
       '<div class="ser" style="font-size:22px;line-height:1.3">' + txt + '</div></div>' };
@@ -510,7 +510,7 @@
   function pRasengan(c, p2) {
     var t = now(), wait = t < p2.start, run = t >= p2.start && t < p2.end;
     var key = p2.start; if (pl.p2 !== key) { pl.p2 = key; pl.taps = 0; pl.tapSent = 0; }
-    return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Rasengan</h1><span class="pill" style="background:' + c.bg + ';color:' + c.ink + '">' + esc(c.n) + '</span></div>' +
+    return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Rasengan</h1></div>' + banner(c, 91, 'vw', { max: 396 }) +
       '<div class="ser" style="font-size:22px">' + (wait ? 'Prêts ? Ça commence dans…' : run ? 'Tape le plus vite possible !' : 'Terminé !') + '</div>' +
       '<div class="row" style="gap:12px"><div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#D9CEF0">Temps</div><div class="ser" style="font-size:30px">' + cd(wait ? p2.start : p2.end) + '</div></div>' +
       '<div style="background:rgba(255,255,255,.1);border-radius:16px;padding:10px 18px"><div class="lab" style="color:#D9CEF0">Tes tapes</div><div class="ser" style="font-size:30px" id="g-taps">' + pl.taps + '</div></div></div>' +
@@ -609,13 +609,13 @@
       (finished ? '<div style="background:#E3F3EC;color:#2F6F5E;border-radius:12px;padding:10px 12px;font-weight:800">Fin de l’épreuve : 10 minutes passées et tous les clans sont passés autant de fois.</div>' : '');
     if (!c || c.done) {
       if (c && c.done) h += '<div style="font-weight:800;color:#2F6F5E">' + (c.winner ? 'Trouvé par ' + esc(CK[c.winner].n) + (c.winner === c.clan ? ' : +2' : ' : +1 et ' + esc(CK[c.clan].n) + ' +1') : 'Pas trouvé, pas de point') + ' · « ' + esc(st.mimes[c.mime]) + ' »</div>';
-      h += '<button class="btn" data-g="onext">Mime suivant : clan du ' + esc(nextClan.n) + '</button></section>';
+      h += '<button class="btn" data-g="onext">Mime suivant : clan ' + CLB[nextClan.k].pre + ' ' + esc(nextClan.n) + '</button></section>';
     } else if (c.mime === null) {
       h += '<div class="ser" style="font-size:18px">' + esc(c.mname || 'Le mimeur') + ' (' + esc(CK[c.clan].n) + ') choisit son mime sur un téléphone de son clan…</div>' +
         (mj.showOpts ? c.options.map(function (i) { return '<button class="btn2" style="height:56px;font-family:Fraunces,serif;font-size:18px" data-g="opick" data-i="' + i + '">' + esc(st.mimes[i]) + '</button>'; }).join('') : '<button class="btn2" data-g="oshow">Pas de téléphone ? Choisir sur ma console</button>') + '</section>';
     } else {
       var over = now() > c.end;
-      h += '<div class="lab">Mimeur · ' + esc(c.mname || '') + ' · clan du ' + esc(CK[c.clan].n) + '</div><div class="ser" style="font-size:28px;text-align:center">' + esc(st.mimes[c.mime]) + '</div><div class="row" style="gap:10px">' + cdBar(c.end, 45000) + cdu(c.end, 'ser', 'font-size:22px;min-width:50px;text-align:right;border-radius:8px;padding:0 4px') + '</div></section>';
+      h += '<div class="lab">Mimeur · ' + esc(c.mname || '') + ' · clan ' + CLB[c.clan].pre + ' ' + esc(CK[c.clan].n) + '</div><div class="ser" style="font-size:28px;text-align:center">' + esc(st.mimes[c.mime]) + '</div><div class="row" style="gap:10px">' + cdBar(c.end, 45000) + cdu(c.end, 'ser', 'font-size:22px;min-width:50px;text-align:right;border-radius:8px;padding:0 4px') + '</div></section>';
       h += '<div class="lab">Qui a levé la main ?</div>' + CL.map(function (k) {
         var red = c.red[k.k], sel = mj.sel === k.k;
         return '<button data-g="osel" data-c="' + k.k + '" ' + (red ? 'disabled' : '') + ' style="height:56px;display:flex;align-items:center;gap:10px;padding:0 18px;border-radius:16px;font-family:Fraunces,serif;font-weight:700;font-size:19px;' + (red ? 'background:#F3D5DC;color:#A63A55;border:2px solid #E7B3C0' : 'background:' + k.bg + ';color:' + k.ink + ';border:' + (sel ? '3px solid #3A3350' : '2px solid transparent')) + '"><span style="flex:1;text-align:left">' + esc(k.n) + '</span><span style="font-family:Nunito,sans-serif;font-size:13px;font-weight:800">' + (red ? 'Bloqué' : sel ? 'Interrogé' : 'Peut répondre') + '</span></button>';
@@ -641,7 +641,7 @@
     } else {
       h += '<section class="card"><div class="lab">Révélations</div>' + d.order.map(function (k, i) {
         var c = CK[k], r = res[k];
-        if (i >= d.shown) return i === d.shown ? '<button class="btn" data-g="dshow" style="background:' + c.ink + ';box-shadow:0 5px 0 rgba(0,0,0,.25)">Révéler : clan du ' + esc(c.n) + '</button>' : '<div class="muted">Clan du ' + esc(c.n) + ' · en attente</div>';
+        if (i >= d.shown) return i === d.shown ? '<button class="btn" data-g="dshow" style="background:' + c.ink + ';box-shadow:0 5px 0 rgba(0,0,0,.25)">Révéler : clan ' + CLB[c.k].pre + ' ' + esc(c.n) + '</button>' : '<div class="muted">Clan ' + CLB[c.k].pre + ' ' + esc(c.n) + ' · en attente</div>';
         return '<div style="background:' + c.bg + ';border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px"><div style="font-weight:800">' + esc(c.n) + ' · ' + r.opt + (r.roll === null ? ' · assuré' : ' · d20 ' + (r.mod ? r.roll + ' ' + sgn(r.mod).replace(/^([+−])/, '$1 ') + ' = ' + r.total : r.roll) + ' / ' + r.dd) + ' · ' + (r.pts > 0 ? '+' : '') + r.pts + '</div><div style="font-weight:700;font-size:14px">À lire : ' + esc(r.text) + '</div>' + (r.gage ? '<div style="font-weight:800;color:#A63A55;font-size:14px">Gage : ' + emo(r.gage) + '</div>' : '') + '</div>';
       }).join('') + '</section>';
       if (d.shown >= 3) h += d.c < 2 ? '<button class="btn" data-g="dnext">Carrefour suivant</button>' : '<section class="card" style="background:#3A3350;color:#fff;border-color:#3A3350"><div class="lab" style="color:#D9CEF0">À lire pour conclure</div><div style="font-weight:700;line-height:1.45">' + esc(st.destinOutro) + '</div></section>' + nextBtn();
@@ -833,7 +833,7 @@
     if (o.view === 'cris') {
       return '<div class="pw">' + pHeader('Cris de guerre', 'L’Appel des clans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var cri = (st.cris || {})[c.k], spot = o.spot === c.k, dim = o.spot && !spot;
-        return '<div data-spot="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center;transition:transform .4s,opacity .4s;' + (spot ? 'transform:scale(1.08);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.4' : '') + '">' + ico(c, '64') + '<div class="ser" style="font-size:2.6vw;color:' + c.ink + '">Clan du ' + esc(c.n) + '</div>' +
+        return '<div data-spot="' + c.k + '" style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;text-align:center;transition:transform .4s,opacity .4s;' + (spot ? 'transform:scale(1.08);box-shadow:0 0 0 .4vw #3A3350' : '') + (dim ? ';opacity:.4' : '') + '">' + banner(c, 27, 'vw') +
           '<div style="font-family:Caveat,cursive;font-weight:700;font-size:' + (spot ? '4.6vw' : '3.2vw') + ';line-height:1.05">' + (cri ? '« ' + esc(cri) + ' »' : '…') + '</div></div>';
       }).join('') + '</div></div>';
     }
@@ -843,7 +843,7 @@
     var ids = rev ? order : Object.keys(r).filter(function (id) { return r[id].clan; }).sort(function (a, b) { return r[a].name.localeCompare(r[b].name, 'fr'); });
     ids.forEach(function (id) { if (r[id] && r[id].clan) cols[r[id].clan].push(id); });
     return '<div class="pw">' + pHeader('Les clans', 'L’Appel des clans · La Quête des 30 ans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
-      return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:2vw;display:flex;flex-direction:column;align-items:center;gap:1vw;text-align:center">' + ico(c, '72') + '<div class="ser" style="font-size:3vw">Clan du ' + esc(c.n) + '</div>' +
+      return '<div style="background:' + c.bg + ';border-radius:2.4vw;padding:1.4vw 1.4vw 2vw;display:flex;flex-direction:column;align-items:center;gap:1vw;text-align:center">' + banner(c, 27, 'vw') +
         cols[c.k].map(function (id) {
           var i = order.indexOf(id), d = rev ? (1200 + i * 900 - el0) / 1000 : 0, al = id === 'alessia';
           return '<div data-rid="' + esc(id) + '" style="font-weight:800;font-size:' + (al ? '3vw' : '2.2vw') + ';line-height:1.35;' + (al ? 'font-family:Caveat,cursive;color:#3A3350;' : '') + (rev ? 'animation:pop .55s ' + d.toFixed(2) + 's cubic-bezier(.3,1.6,.5,1) both' : '') + '">' + esc(r[id].name) + '</div>';
@@ -852,7 +852,20 @@
   }
 
   /* ---------- PROJECTION ---------- */
+  // Bandeaux des clans (images détourées, score écrit en direct sur le parchemin de droite).
+  var CLB = { feu: { ar: 4.7059, cy: 54.5, ink: '#6a0c02', pre: 'du' }, foudre: { ar: 4.5113, cy: 50, ink: '#012467', pre: 'de la' }, vent: { ar: 4.898, cy: 48, ink: '#334324', pre: 'du' } };
+  // w : largeur (nombre) dans l'unité u ('vw' ou 'px'), max : largeur maximale en px (facultatif).
+  function banner(c, w, u, o) {
+    o = o || {}; var b = CLB[c.k], sc = o.score === undefined ? st.scores[c.k] : o.score, big = String(sc).length > 2;
+    var k = (big ? 0.38 : 0.47) / b.ar, fs = o.max ? 'min(' + (w * k).toFixed(2) + u + ',' + (o.max * k).toFixed(1) + 'px)' : (w * k).toFixed(2) + u;
+    var W = o.max ? 'min(' + w + u + ',' + o.max + 'px)' : w + u;
+    return '<div class="cban" style="position:relative;flex-shrink:0;width:' + W + ';aspect-ratio:' + b.ar + ';' + (o.style || '') + '">' +
+      '<img src="/clans/' + c.k + '.webp?v=1" alt="Clan ' + b.pre + ' ' + esc(c.n) + '" style="position:absolute;inset:0;width:100%;height:100%;display:block">' +
+      (o.noScore ? '' : '<div style="position:absolute;left:85.6%;top:' + b.cy + '%;transform:translate(-50%,-50%);display:flex;align-items:baseline;gap:.16em;color:' + b.ink + ';font-family:Nunito,Arial,sans-serif;font-weight:900;line-height:1;font-size:' + fs + ';white-space:nowrap"><span>' + sc + '</span><span style="font-size:.36em;font-weight:900;letter-spacing:.02em">PTS</span></div>') +
+      (jk(c.k) === 'on' && !o.noJoker ? '<span data-jk="' + c.k + '" class="ser" style="position:absolute;right:2%;top:-6%;background:#3A3350;color:#F7E6A8;border-radius:.6em;padding:.15em .55em;font-size:' + (o.max ? 'min(' + (w * 0.045).toFixed(2) + u + ',' + (o.max * 0.045).toFixed(1) + 'px)' : (w * 0.045).toFixed(2) + u) + ';box-shadow:0 .2em .6em rgba(0,0,0,.3)">x2</span>' : '') + '</div>';
+  }
   function pScores(big) {
+    if (!big) return '<div style="display:flex;gap:1.6vw;justify-content:center;align-items:center">' + CL.map(function (c) { return banner(c, 29, 'vw'); }).join('') + '</div>';
     return '<div class="grid3" style="gap:2vw;' + (big ? 'flex:1' : '') + '">' + CL.map(function (c) {
       var js = jk(c.k);
       return '<div style="background:' + c.bg + ';border:.25vw solid #fff;border-radius:2.4vw;display:flex;' + (big ? 'flex-direction:column;justify-content:center' : 'flex-direction:row;justify-content:space-between;padding:1vw 2vw') + ';align-items:center;gap:.6vw;box-shadow:0 1vw 2vw rgba(58,51,80,.12)">' +
@@ -895,8 +908,8 @@
       var right = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.6vw">' + (running ? cdu(c.end, 'pclock') : '') + (endAll && !finished ? '<span class="pk">Épreuve ' + cd(endAll) + '</span>' : '') + '</div>';
       var mid;
       if (finished) mid = '<div style="font-family:Caveat,cursive;font-weight:700;font-size:7vw">Fin de l’épreuve !</div>';
-      else if (running) mid = '<div class="pk">Mimeur · ' + esc(c.mname || '') + ' · clan du ' + esc(CK[c.clan].n) + '</div><div class="row" style="gap:2vw">' + CL.map(function (k) { var red = c.red[k.k]; return '<div data-ot="' + k.k + '" style="width:18vw;height:9vw;border-radius:2vw;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:2.6vw;color:#fff;transition:background .3s;background:' + (red ? '#B8445F' : '#2F7D64') + '">' + esc(k.n) + '</div>'; }).join('') + '</div>';
-      else if (c && (c.done || timeout)) mid = '<div data-oban="1" style="display:flex;flex-direction:column;align-items:center;gap:1vw;animation:pop .6s ease-out both"><div class="pk" style="font-size:1.8vw">' + (c.winner ? 'Trouvé par le clan du ' + esc(CK[c.winner].n) + ' !' : timeout ? 'Temps écoulé !' : 'Personne n’a trouvé') + '</div>' +
+      else if (running) mid = '<div class="pk">Mimeur · ' + esc(c.mname || '') + ' · clan ' + CLB[c.clan].pre + ' ' + esc(CK[c.clan].n) + '</div><div class="row" style="gap:2vw">' + CL.map(function (k) { var red = c.red[k.k]; return '<div data-ot="' + k.k + '" style="width:18vw;height:9vw;border-radius:2vw;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:700;font-size:2.6vw;color:#fff;transition:background .3s;background:' + (red ? '#B8445F' : '#2F7D64') + '">' + esc(k.n) + '</div>'; }).join('') + '</div>';
+      else if (c && (c.done || timeout)) mid = '<div data-oban="1" style="display:flex;flex-direction:column;align-items:center;gap:1vw;animation:pop .6s ease-out both"><div class="pk" style="font-size:1.8vw">' + (c.winner ? 'Trouvé par le clan ' + CLB[c.winner].pre + ' ' + esc(CK[c.winner].n) + ' !' : timeout ? 'Temps écoulé !' : 'Personne n’a trouvé') + '</div>' +
           '<div class="ser" style="font-size:6vw;line-height:1.1">' + esc(st.mimes[c.mime]) + '</div>' + (c.winner ? '<div class="ser" style="font-size:2.2vw;color:#2F6F5E">' + (c.winner === c.clan ? esc(CK[c.clan].n) + ' +2' : esc(CK[c.clan].n) + ' +1 · ' + esc(CK[c.winner].n) + ' +1') + '</div>' : '') + '</div>';
       else if (c) mid = '<div class="ser" style="font-size:3.4vw">' + esc(c.mname || 'Le mimeur') + ' choisit son mime…</div>';
       else mid = '<div class="ser" style="font-size:3.4vw">Prochain mime…</div>';
@@ -935,7 +948,7 @@
       }).join('') + '</div>' + (d.c === 2 && d.shown >= 3 ? '<div style="text-align:center;font-style:italic;font-size:1.9vw;line-height:1.4">' + esc(st.destinOutro) + '</div>' : '');
       if (wheelOn) {
         var r2 = res[lastK], startIn = (d.shownAt + 1800 - tnow) / 1000;
-        inner += '<div style="position:absolute;inset:0;background:rgba(43,29,18,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;color:#f3e7cc;animation:fadein .4s ' + Math.max(0, startIn - 0.4).toFixed(2) + 's both"><div class="sk" style="color:#e9d6ad;font-size:1.4vw">Gage pour le clan du ' + esc(CK[lastK].n) + '</div>' + wheelSvg(r2.gageIdx, '30vw', startIn) +
+        inner += '<div style="position:absolute;inset:0;background:rgba(43,29,18,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;color:#f3e7cc;animation:fadein .4s ' + Math.max(0, startIn - 0.4).toFixed(2) + 's both"><div class="sk" style="color:#e9d6ad;font-size:1.4vw">Gage pour le clan ' + CLB[lastK].pre + ' ' + esc(CK[lastK].n) + '</div>' + wheelSvg(r2.gageIdx, '30vw', startIn) +
           '<div style="font-size:2.2vw;max-width:70%;text-align:center;line-height:1.35;animation:fadeup .6s ' + (startIn + 4.1).toFixed(2) + 's both">' + emo(r2.gage) + '</div></div>';
       }
     }
@@ -1046,12 +1059,12 @@
       var rk = rank[c.k], d = D[rk], names = Object.keys(r).filter(function (id) { return r[id].clan === c.k; }).map(function (id) { return r[id].name; }).sort(function (a, b) { return a.localeCompare(b, 'fr'); });
       return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1vw;text-align:center">' +
         '<div style="display:flex;flex-direction:column;align-items:center;gap:.6vw;animation:rise .7s ' + (d + 0.5).toFixed(1) + 's ease-out both">' +
-        (rk === 1 ? '<div data-crown style="width:9vw;animation:crown 1s 3.3s cubic-bezier(.3,1.4,.5,1) both">' + CROWN + '</div>' : '') + ico(c, rk === 1 ? '70' : '52') +
-        '<div class="ser" style="font-size:' + (rk === 1 ? '3.4vw' : '2.6vw') + ';color:' + c.ink + '">Clan du ' + esc(c.n) + '</div><div style="font-weight:700;font-size:1.3vw;line-height:1.35;max-width:24vw;color:#3A3350">' + names.map(esc).join(' · ') + '</div></div>' +
+        (rk === 1 ? '<div data-crown style="width:9vw;animation:crown 1s 3.3s cubic-bezier(.3,1.4,.5,1) both">' + CROWN + '</div>' : '') + banner(c, rk === 1 ? 26 : 22, 'vw', { noJoker: true, score: sc[c.k] }) +
+        '<div style="font-weight:700;font-size:1.3vw;line-height:1.35;max-width:24vw;color:#3A3350">' + names.map(esc).join(' · ') + '</div></div>' +
         '<div style="width:100%;height:' + H[rk] + 'vw;background:' + c.bg + ';border:.3vw solid #fff;border-bottom:0;border-radius:1.6vw 1.6vw 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4vw;transform-origin:bottom;animation:grow .9s ' + d.toFixed(1) + 's cubic-bezier(.3,1.3,.5,1) both;box-shadow:0 1vw 2vw rgba(58,51,80,.15)">' +
-        '<span class="ser" style="font-size:' + (rk === 1 ? '7vw' : '5vw') + ';line-height:1;color:' + c.ink + '">' + rk + '</span><span class="ser" style="font-size:2.4vw">' + sc[c.k] + ' pts</span></div></div>';
+        '<span class="ser" style="font-size:' + (rk === 1 ? '7vw' : '5vw') + ';line-height:1;color:' + c.ink + '">' + rk + '</span></div></div>';
     }).join('');
-    var title = winners.length > 1 ? 'Égalité au sommet : ' + winners.map(function (c) { return c.n; }).join(' et ') + ' !' : 'Victoire du clan du ' + winners[0].n + ' !';
+    var title = winners.length > 1 ? 'Égalité au sommet : ' + winners.map(function (c) { return c.n; }).join(' et ') + ' !' : 'Victoire du clan ' + CLB[winners[0].k].pre + ' ' + winners[0].n + ' !';
     return { cls: 'peach proj', html: '<div class="pw" style="gap:1.6vw;position:relative"><div style="display:flex;flex-direction:column;gap:.6vw"><div class="pk">Le podium des clans</div><h1 class="pt" style="font-size:4.6vw;animation:rise .8s 3.9s ease-out both">' + esc(title) + '</h1></div>' +
       '<div style="flex:1;display:flex;align-items:flex-end;gap:2vw;padding:0 4vw;border-bottom:.4vw solid #3A3350">' + cols + '</div></div>' };
   }
