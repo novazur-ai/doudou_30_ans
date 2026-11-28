@@ -115,7 +115,7 @@ function fresh() {
     ouv: { view: 'intro', drawAt: 0, order: [], spot: null, spotAt: 0 },
     // Choix des clans : fermé → Alessia choisit seule → ouvert à tous → verrouillé. n = nombre de joueurs attendus (calcule les places).
     sel: { phase: 'closed', at: 0, lockAt: 0, n: 0, mode: 'pick' },
-    savoir: { list: [], idx: 0 },
+    savoir: { list: CHUNIN.map((x) => ({ ...x })), idx: 0 },
     ombre: { used: [], turn: 0, cur: null, idx: { feu: 0, foudre: 0, vent: 0 }, count: { feu: 0, foudre: 0, vent: 0 }, startAt: 0 },
     destin: { c: 0, stage: 'story', voteEnd: 0, mjVotes: {}, results: null, order: [], shown: 0, shownAt: 0, hist: {} },
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: SONG, foudre: SONG, vent: SONG }, songEnd: SONG_END, music: null },
@@ -131,6 +131,7 @@ async function load(db) {
   if (!row) return g;
   try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, sel: { ...g.sel, ...(v.sel || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) }, echo: { ...g.echo, ...(v.echo || {}) } };
     if (!out.hokage.speech) out.hokage.speech = SPEECH;
+    if (!out.savoir || !out.savoir.list || !out.savoir.list.length) out.savoir = { list: CHUNIN.map((x) => ({ ...x })), idx: 0 };
     if (!CLANS.some((c) => out.rythme.songs && out.rythme.songs[c])) out.rythme.songs = { feu: SONG, foudre: SONG, vent: SONG };
     return out; } catch (_) { return g; }
 }
@@ -407,6 +408,18 @@ function goStep(g, i, now) {
   if (g.step === 6 && g.hokage.view === 'ceremony') g.hokage.viewAt = now;
 }
 
+const CHUNIN = [
+  { q: "Quel est son plat préféré ?", a: "Le poulet aux marrons de maman" },
+  { q: "Combien de fois a-t-elle regardé Naruto au total ?", a: "4" },
+  { q: "Quelle est sa boisson healthy préférée ?", a: "Le matcha" },
+  { q: "Sur une échelle de 1 à 10, à quel point est-elle mauvaise perdante ?", a: "À elle de décider sur le moment" },
+  { q: "Quel est son personnage préféré dans Naruto ?", a: "Kakashi Sensei" },
+  { q: "Quelle est sa plus grande peur animale ?", a: "Les araignées" },
+  { q: "Quel groupe l’a fait entrer dans l’univers de la K-pop ?", a: "BTS" },
+  { q: "Depuis combien de temps Alessia et Théo sont-ils ensemble ?", a: "Eux-mêmes ne savent pas 🤣" },
+  { q: "Quel aliment lui donne envie de vomir rien qu’à l’odeur ?", a: "La truffe (andouille et andouillette acceptées aussi)" },
+  { q: "Quelles applis peu communes Alessia a-t-elle dans la barre du bas de son écran d’accueil ?", a: "Twitch et Pinterest" },
+];
 const SPEECH = 'Mon amour, 30 ans déjà. Merci d’être toi, chaque jour différente mais toujours pétillante de bonheur. Voici quelques petites photos qui devraient te le rappeler…';
 
 // ---- Actions du MJ ----
