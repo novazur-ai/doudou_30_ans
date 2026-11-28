@@ -121,7 +121,7 @@ function fresh() {
     rythme: { lockAt: 0, cur: null, stage: null, results: {}, songs: { feu: SONG, foudre: SONG, vent: SONG }, songEnd: SONG_END, music: null },
     boss: { hp: BOSS_HP, p1: null, p2: null, dead: false, deadAt: 0, intro: 0 },
     echo: { card: 0, start: 0, end: 0, res: [] },
-    hokage: { view: 'ceremony', viewAt: 0, speech: '', music: '', dur: 5, idx: 0, idxAt: 0, paused: false },
+    hokage: { view: 'ceremony', viewAt: 0, speech: SPEECH, music: '', dur: 5, idx: 0, idxAt: 0, paused: false },
   };
 }
 
@@ -130,6 +130,7 @@ async function load(db) {
   const g = fresh();
   if (!row) return g;
   try { const v = JSON.parse(row.v); const out = { ...g, ...v, ouv: { ...g.ouv, ...(v.ouv || {}) }, sel: { ...g.sel, ...(v.sel || {}) }, rythme: { ...g.rythme, ...(v.rythme || {}) }, ombre: { ...g.ombre, ...(v.ombre || {}) }, destin: { ...g.destin, ...(v.destin || {}) }, joker: { ...g.joker, ...(v.joker || {}) }, hokage: { ...g.hokage, ...(v.hokage || {}) }, echo: { ...g.echo, ...(v.echo || {}) } };
+    if (!out.hokage.speech) out.hokage.speech = SPEECH;
     if (!CLANS.some((c) => out.rythme.songs && out.rythme.songs[c])) out.rythme.songs = { feu: SONG, foudre: SONG, vent: SONG };
     return out; } catch (_) { return g; }
 }
@@ -244,6 +245,7 @@ export async function playerView(db, name, now) {
     if (ry.cur && id) { const v = await db.prepare('SELECT v FROM gplay WHERE k=?').bind('rv:' + ry.cur + ':' + id).first(); myRate = v ? +v.v : 0; }
     out.rythme = { locked: rLocked(g, now), lockAt: ry.lockAt, cur: ry.cur, stage: ry.stage, results: ry.results, myRate };
   }
+  if (g.step === 6) out.hokage = { view: g.hokage.view, viewAt: g.hokage.viewAt };
   if (g.step === 2) { const q = g.savoir.list[g.savoir.idx]; out.savoir = { idx: g.savoir.idx, total: g.savoir.list.length, q: q ? q.q : '' }; }
   if (g.step === 3) {
     const c = g.ombre.cur;
@@ -297,6 +299,7 @@ export async function fullView(db, now) {
   out.selInfo = selInfo(g, r);
   if (g.step === 4) { out.destinVotes = await votes(db, g); out.destinCtx = {}; for (const c of CLANS) out.destinCtx[c] = destinCtx(g.destin, c); }
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) { out.tapsLive = await tapsTotal(db); out.tapsClan = await tapsByClan(db, r); }
+  if (g.step === 6) { out.fw = []; for (const row of await playRows(db, 'fw:')) { try { const v = JSON.parse(row.v); if (now - v.t < 4000) out.fw.push(v); } catch (_) {} } if (db.demo && Math.random() < 0.3) { const f = FAKE[Math.floor(Math.random() * FAKE.length)]; out.fw.push({ n: f, t: now, c: CLANS[Math.floor(Math.random() * 3)] }); } }
   if (g.step === 5 && g.boss.fin) {
     out.fin = await finRows(db, now);
     if (db.demo && !out.fin.launch) { const fake = FAKE.filter((n) => n !== 'Alessia'); if (Math.random() < 0.45) out.fin.ch.push({ n: fake[Math.floor(Math.random() * fake.length)], t: now }); }
@@ -339,6 +342,13 @@ export async function playerAct(db, path, b, now) {
     const v = { prog: n(b.prog, 1), combo: n(b.combo, 999) | 0, score: n(b.score, 9999999) | 0, seals: n(b.seals, 3) | 0, spin: n(b.spin, 1), phase: ['qte', 'spin', 'launch'].includes(b.phase) ? b.phase : 'qte', maxCombo: n(b.maxCombo, 999) | 0, t: now };
     if (path === 'fin') { await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('fin:live', JSON.stringify(v)).run(); return { ok: true }; }
     await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO NOTHING').bind('fin:launch', JSON.stringify({ at: now + 1500, res: v })).run();
+    return { ok: true };
+  }
+  if (path === 'fw') { // un invité lance un feu d'artifice pendant la cérémonie (2 s minimum entre deux)
+    if (g.step !== 6) return { error: 'closed' };
+    const row = await db.prepare('SELECT v FROM gplay WHERE k=?').bind('fw:' + id).first();
+    if (row) { try { if (now - JSON.parse(row.v).t < 1800) return { ok: true }; } catch (_) {} }
+    await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('fw:' + id, JSON.stringify({ n: name, t: now, c: clan || '' })).run();
     return { ok: true };
   }
   if (path === 'chakra') { // un ami garde le doigt sur la sphère : son prénom part vers Alessia sur la projection
@@ -396,6 +406,8 @@ function goStep(g, i, now) {
   g.step = Math.max(0, Math.min(STEPS - 1, i | 0)); g.timer = null; g.brief = null;
   if (g.step === 6 && g.hokage.view === 'ceremony') g.hokage.viewAt = now;
 }
+
+const SPEECH = 'Mon amour, 30 ans déjà. Merci d’être toi, chaque jour différente mais toujours pétillante de bonheur. Voici quelques petites photos qui devraient te le rappeler…';
 
 // ---- Actions du MJ ----
 export async function mjAct(db, b, now) {
