@@ -105,16 +105,15 @@
     '#g .cs-col img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;transition:transform .6s cubic-bezier(.2,.9,.25,1.15)}',
     '#g .cs-cols.has .cs-col{flex:.62;filter:grayscale(.75) brightness(.5)}#g .cs-cols.has .cs-col.on{flex:2.9;filter:none}#g .cs-col.on img{transform:translateY(-9%)}',
     '#g .cs-col:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 0 var(--c);transition:box-shadow .4s}#g .cs-col.on:after{box-shadow:inset 0 0 0 4px var(--c),inset 0 0 40px rgba(0,0,0,.25)}',
-    '#g .cs-seal{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%) rotate(-5deg);width:52px;height:52px;border-radius:6px;background:var(--c);color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 28px Mincho30,serif;box-shadow:0 4px 14px rgba(0,0,0,.5);transition:transform .45s cubic-bezier(.2,.9,.25,1.4)}#g .cs-col.on .cs-seal{transform:translateX(-50%) rotate(-5deg) scale(1.25)}',
+    '#g .cs-seal{position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%) rotate(-5deg);width:52px;height:52px;border-radius:6px;background:var(--c);color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 28px Mincho30,serif;box-shadow:0 4px 14px rgba(0,0,0,.5);transition:transform .45s cubic-bezier(.2,.9,.25,1.4),opacity .3s}#g .cs-col.on .cs-seal{transform:translateX(-50%) rotate(-5deg) scale(1.25)}',
     '#g .cs-cnt{position:absolute;top:calc(112px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(15,12,10,.72);border-radius:999px;padding:3px 10px;font-weight:900;font-size:13px;white-space:nowrap}',
     '#g .cs-full{position:absolute;top:30%;left:-10%;right:-10%;transform:rotate(-12deg);background:rgba(15,12,10,.85);color:#F7E6A8;text-align:center;font-weight:900;letter-spacing:.2em;font-size:13px;padding:6px 0}',
     '#g .cs-fl{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:2}#g .cs-col.fx .cs-fl{animation:csfl .5s ease-out}@keyframes csfl{0%{opacity:.7}100%{opacity:0}}',
     '#g .cs-top{position:absolute;left:0;right:0;top:0;z-index:3;padding:calc(46px + env(safe-area-inset-top)) 18px 26px;background:linear-gradient(rgba(15,12,10,.9),transparent);text-align:center;pointer-events:none}#g .cs-t{font:800 24px Mincho30,Georgia,serif}',
-    '#g .cs-sheet{position:absolute;left:0;right:0;bottom:0;z-index:4;max-width:460px;margin:0 auto;background:#F4ECDD;color:#1E1A17;border-radius:14px 14px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .5s cubic-bezier(.2,.9,.25,1.1);box-shadow:0 -10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column}',
-    '#g .cs-sheet.up{transform:none}#g .cs-sheet .kk{color:#C8372D}#g .cs-sheet h2{margin:0 0 6px;font:800 30px/1.05 Mincho30,Georgia,serif}#g .cs-sheet h2:after{content:"";display:block;width:120px;height:6px;margin-top:6px;border-radius:3px;background:var(--c)}',
-    '#g .cs-p{font:700 14px/1.45 Mincho30,Georgia,serif;margin:6px 0 10px;transition:font-size .45s}#g .cs-sheet.up .cs-p{font-size:19px}',
-    '#g .cs-m{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}#g .cs-m span{border:1.5px solid #cbbba3;border-radius:4px;padding:2px 9px;font-weight:700;font-size:14px}',
-    '#g .cs-x{position:absolute;right:12px;top:10px;width:44px;height:44px;border:0;background:none;font-size:22px;color:#7a6a58}',
+    '#g .cs-info{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:70px 14px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(15,12,10,.82) 32%,rgba(15,12,10,.95));text-align:left;opacity:0;transform:translateY(24px);pointer-events:none;transition:opacity .25s,transform .25s;cursor:default}',
+    '#g .cs-col.on .cs-info{opacity:1;transform:none;pointer-events:auto;transition:opacity .4s .3s,transform .5s .3s cubic-bezier(.2,.9,.25,1.1)}#g .cs-col.on .cs-seal{opacity:0}',
+    '#g .cs-info h2{margin:3px 0 4px;font:800 25px/1.05 Mincho30,Georgia,serif;color:#F4ECDD}#g .cs-info h2:after{content:"";display:block;width:56px;height:4px;margin-top:6px;border-radius:2px;background:var(--c)}',
+    '#g .cs-info p{margin:8px 0 6px;font:700 14.5px/1.45 Mincho30,Georgia,serif;color:#F4ECDD}#g .cs-ml{font-size:12.5px;color:#bdae95;font-weight:700;margin-bottom:10px}#g .cs-info .btn{height:46px;font-size:16px}',
     '#g .cs-splash,#g .cs-done{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px calc(28px + env(safe-area-inset-bottom));background-size:cover;background-position:center 30%;transition:opacity .5s,transform .5s}',
     '#g .cs-splash>*,#g .cs-done>*{position:relative;max-width:420px;width:100%;margin-left:auto;margin-right:auto}#g .cs-splash:before,#g .cs-done:before{content:"";position:absolute;inset:0;max-width:none;background:linear-gradient(transparent 42%,rgba(15,12,10,.96) 80%)}',
     '#g .cs-splash{background-size:contain;background-position:50% 0;background-repeat:no-repeat;background-color:#0f0c0a}#g .cs-splash:before{background:linear-gradient(transparent 36%,rgba(15,12,10,.97) 66%)}#g .cs-splash.off{opacity:0;transform:scale(1.08);pointer-events:none}#g .cs-splash h1{margin:8px auto 6px;font-size:40px;line-height:1.05;color:#F4ECDD}#g .cs-splash p,#g .cs-done p{margin:0 auto 14px;color:#e6d9c2;font-weight:700}',
@@ -417,21 +416,22 @@
     else { t = 'Le maître du jeu va ouvrir le choix des clans.'; sub = 'Garde cette page ouverte, elle se mettra à jour toute seule.'; }
     return csScreen('<div class="cs-splash" style="background-image:url(/clans/chefs.webp?v=1)"><div class="kk">始まり · La Quête des 30 ans</div><h1 class="ser">Trois chefs.<br>Un seul clan.</h1><p style="font-size:18px;color:#F4ECDD">' + (a ? '' : '<span class="cs-dot"></span>') + esc(t) + '</p><p>' + esc(sub) + '</p></div>');
   }
-  function csSheet(k, S) {
+  // Texte du chef posé sur son illustration (variante B), visible quand sa colonne est sélectionnée.
+  function csInfo(k, S) {
     var n = S.count[k] || 0, mine = st.clan === k, full = n >= S.cap && !mine, m = (st.members && st.members[k]) || [], nm = clanName(k);
-    return '<button class="cs-x" data-g="cssel" data-k="' + k + '" aria-label="Fermer">✕</button><div class="kk">' + CHEF[k].s + ' · ' + n + ' / ' + S.cap + ' ninjas</div><h2>' + esc(nm) + '</h2><p class="cs-p">' + esc(CHEF[k].p) + '</p>' +
-      '<div class="cs-m">' + (m.length ? m.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') : '<span>Personne pour l’instant</span>') + '</div>' +
-      '<button class="btn" data-g="cspick" data-k="' + k + '"' + (full || pl.csBusy ? ' disabled' : '') + '>' + (mine ? 'Rester dans le ' + esc(nm) : full ? 'Clan complet' : 'Rejoindre le ' + esc(nm)) + '</button>';
+    return '<div class="cs-info" data-g="csnop"><div class="kk">' + CHEF[k].s + ' · ' + n + ' / ' + S.cap + ' ninjas</div><h2>' + esc(nm) + '</h2><p>' + esc(CHEF[k].p) + '</p>' +
+      '<div class="cs-ml">' + (m.length ? m.map(esc).join(' · ') : 'Personne pour l’instant') + '</div>' +
+      '<button class="btn" style="width:100%" data-g="cspick" data-k="' + k + '"' + (full || pl.csBusy ? ' disabled' : '') + '>' + (mine ? 'Rester dans ce clan' : full ? 'Clan complet' : 'Rejoindre ce clan') + '</button></div>';
   }
   function csPick(S, isA) {
     var k = pl.csK;
     var cols = CS_ORDER.map(function (x) {
       var n = S.count[x] || 0, full = n >= S.cap && st.clan !== x;
-      return '<button class="cs-col' + (k === x ? ' on' : '') + '" data-g="cssel" data-k="' + x + '" style="--c:' + CHEF[x].c + '" aria-label="' + esc(clanName(x)) + '"><img src="/clans/chef-' + x + '.webp?v=1" alt=""><span class="cs-fl"></span><span class="cs-cnt">' + n + ' / ' + S.cap + '</span>' + (full ? '<span class="cs-full">COMPLET</span>' : '') + '<span class="cs-seal">' + CHEF[x].s + '</span></button>';
+      return '<div class="cs-col' + (k === x ? ' on' : '') + '" role="button" tabindex="0" data-g="cssel" data-k="' + x + '" style="--c:' + CHEF[x].c + '" aria-label="' + esc(clanName(x)) + '"><img src="/clans/chef-' + x + '.webp?v=1" alt=""><span class="cs-fl"></span><span class="cs-cnt">' + n + ' / ' + S.cap + '</span>' + (full ? '<span class="cs-full">COMPLET</span>' : '') + '<span class="cs-seal">' + CHEF[x].s + '</span>' + csInfo(x, S) + '</div>';
     }).join('');
     var splash = pl.csGo || st.clan ? '' : '<div class="cs-splash" style="background-image:url(/clans/chefs.webp?v=1)"><div class="kk">始まり · La Quête des 30 ans</div><h1 class="ser">Trois chefs.<br>Un seul clan.</h1><p>' + (isA ? 'Tu choisis en premier, future Hokage. Lequel suivras-tu ?' : 'Chaque chef cherche ses ninjas. Lequel suivras-tu ?') + '</p><button class="btn" data-g="csgo">Choisir mon clan</button></div>';
     return csScreen('<div class="cs-cols' + (k ? ' has' : '') + '">' + cols + '</div><div class="cs-top"><div class="kk">選択 · Le choix du clan</div><div class="cs-t">' + (st.clan ? 'Changer de clan' : 'Choisis ton clan') + '</div></div>' +
-      '<div class="cs-sheet' + (k ? ' up' : '') + '"' + (k ? ' style="--c:' + CHEF[k].c + '"' : '') + '>' + (k ? csSheet(k, S) : '') + '</div>' + splash);
+      splash);
   }
   function csDone(k, S, me) {
     var m = ((st.members && st.members[k]) || []).filter(function (x) { return x.toLowerCase() !== me; });
@@ -441,18 +441,13 @@
   }
   function csSelect(k) {
     pl.csK = pl.csK === k ? null : k;
-    var cols = root.querySelector('.cs-cols'), sh = root.querySelector('.cs-sheet');
-    if (!cols || !sh) { lastHtml = ''; draw(); return; }
+    var cols = root.querySelector('.cs-cols');
+    if (!cols) { lastHtml = ''; draw(); return; }
     cols.classList.toggle('has', !!pl.csK);
     cols.querySelectorAll('.cs-col').forEach(function (b) {
       var on = b.getAttribute('data-k') === pl.csK; b.classList.toggle('on', on);
       if (on) { b.classList.remove('fx'); void b.offsetWidth; b.classList.add('fx'); }
     });
-    sh.classList.remove('up');
-    if (pl.csK) {
-      sh.style.setProperty('--c', CHEF[pl.csK].c); sh.innerHTML = csSheet(pl.csK, st.sel); void sh.offsetWidth;
-      requestAnimationFrame(function () { sh.classList.add('up'); });
-    } else sh.removeAttribute('style');
     syncHtml();
   }
   function pClan(c) {
@@ -1266,6 +1261,7 @@
       return;
     }
     if (g === 'csgo') { var sp = root.querySelector('.cs-splash'); pl.csGo = true; if (sp) sp.classList.add('off'); syncHtml(); return; }
+    if (g === 'csnop') return;
     if (g === 'cssel') { csSelect(d('k')); return; }
     if (g === 'cschange') { pl.csChange = true; pl.csGo = true; pl.csK = st.clan; lastHtml = ''; draw(); return; }
     if (g === 'cspick') {
