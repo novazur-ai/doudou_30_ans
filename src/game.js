@@ -177,7 +177,14 @@ async function rateVotes(db, clan) {
 function rLocked(g, now) { return !!(g.rythme.cur || (g.rythme.lockAt && now > g.rythme.lockAt)); }
 async function cris(db) {
   const out = {};
-  for (const row of await playRows(db, 'cri:')) out[row.k.slice(4)] = row.v;
+  for (const row of await playRows(db, 'cri:')) out[row.k.slice(4)] = criParse(row.v).t;
+  return out;
+}
+// Cri stocké en JSON { t: texte, by: auteur } (ancien format : texte seul).
+function criParse(v) { try { const o = JSON.parse(v); if (o && typeof o.t === 'string') return o; } catch (_) {} return { t: String(v || ''), by: '' }; }
+async function crisBy(db) {
+  const out = {};
+  for (const row of await playRows(db, 'cri:')) out[row.k.slice(4)] = criParse(row.v).by;
   return out;
 }
 // Ordre de révélation : clans en alternance, Alessia en dernier.
@@ -215,7 +222,7 @@ export async function playerView(db, name, now) {
   const out = {
     on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, joker: g.joker, timer: g.timer,
   };
-  if (g.step === 0) { out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '' }; out.sel = selInfo(g, r); out.inRoster = !!(id && r[id]); }
+  if (g.step === 0) { out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '', criBy: clan ? (await crisBy(db))[clan] || '' : '' }; out.sel = selInfo(g, r); out.inRoster = !!(id && r[id]); }
   if (g.step === 1) {
     out.seq = clan ? (await seqs(db))[clan] || [] : [];
     const ry = g.rythme;
@@ -269,6 +276,7 @@ export async function fullView(db, now) {
   if (g.step === 1 && g.rythme.cur) { const v = await rateVotes(db, g.rythme.cur); out.rateCount = v.length; }
   out.rLocked = rLocked(g, now);
   out.cris = await cris(db);
+  out.crisBy = await crisBy(db);
   out.selInfo = selInfo(g, r);
   if (g.step === 4) { out.destinVotes = await votes(db, g); out.destinCtx = {}; for (const c of CLANS) out.destinCtx[c] = destinCtx(g.destin, c); }
   if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
@@ -315,7 +323,7 @@ export async function playerAct(db, path, b, now) {
   if (path === 'cri') {
     if (g.step !== 0) return { error: 'closed' };
     const txt = String(b.text || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 60);
-    if (txt) await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('cri:' + clan, txt).run();
+    if (txt) await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('cri:' + clan, JSON.stringify({ t: txt, by: name })).run();
     else await db.prepare('DELETE FROM gplay WHERE k=?').bind('cri:' + clan).run();
     return { ok: true };
   }

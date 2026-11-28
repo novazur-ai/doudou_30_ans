@@ -18,6 +18,11 @@
     feu: { s: '火', c: '#C8372D', p: 'Déterminé, charismatique et protecteur. Il place toujours le bien de son Clan et de ses habitants au premier plan.' },
     vent: { s: '風', c: '#4E7A3A', p: 'Serein, bienveillant et visionnaire. Il privilégie l’harmonie et la paix, et croit en un avenir meilleur pour son Clan.' },
   };
+  var CRI_IDEAS = {
+    foudre: ['Plus rapides que l’éclair !', 'Un éclair, zéro pitié !', 'La Foudre frappe toujours en premier !', 'Raiton : on électrise le brunch !'],
+    feu: ['La flamme de la jeunesse ne s’éteint jamais !', 'Allumez le feu !', 'Katon : on met le feu au brunch !', 'Brûlants comme 30 bougies !'],
+    vent: ['Le vent tourne… en notre faveur !', 'Fûton : on décoiffe tout !', 'Plus libres que le vent !', 'Rien ne résiste au Vent !'],
+  };
   function clanName(k) { return 'Clan ' + CLB[k].pre + ' ' + CK[k].n; }
   var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (K-pop no Jutsu, Hit-Jutsu, Examen Chûnin, Théâtre des ombres ou Voie du ninja). Annoncez-le au maître du jeu avant le début de l’épreuve.';
   function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === st.step ? 'on' : 'used'; }
@@ -123,6 +128,23 @@
     '#g .cs-stamp.anim{animation:csst .6s .15s cubic-bezier(.3,1.5,.5,1) both}@keyframes csst{0%{transform:scale(2.6) rotate(-25deg);opacity:0}100%{transform:scale(1) rotate(-8deg);opacity:1}}',
     '#g .cs-done .btn2{background:rgba(15,12,10,.55);color:#F4ECDD;border-color:#bdae95}',
     '#g .cs .btn{width:100%}#g .cs-col:focus-visible,#g .cs .btn:focus-visible{outline:3px solid #F7E6A8;outline-offset:-3px}',
+    /* carte de ninja, moment « clans formés », joker compact, idées de cris */
+    '#g .nj{position:relative;border:1.5px solid #2a2420;border-radius:6px;overflow:hidden;background:#fffdf8;box-shadow:0 6px 16px rgba(30,26,23,.12)}',
+    '#g .nj-img{height:260px;background-size:cover;background-position:50% 58%;position:relative}#g .nj-img:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(15,12,10,.85))}',
+    '#g .nj-sl{position:absolute;z-index:1;right:12px;top:12px;width:44px;height:44px;border-radius:6px;background:var(--c);color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 24px Mincho30,serif;transform:rotate(-5deg);box-shadow:0 3px 10px rgba(0,0,0,.35)}',
+    '#g .nj-t{position:absolute;z-index:1;left:14px;right:14px;bottom:10px;color:#F4ECDD}#g .nj-t .lab{color:#e6d9c2}#g .nj-t .ser{font-size:28px;line-height:1.05}',
+    '#g .nj-m{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-top:5px solid var(--c)}#g .nj-m span{border:1.5px solid #cbbba3;border-radius:4px;padding:2px 9px;font-weight:700;font-size:14px}#g .nj-m span.me{background:#1E1A17;color:#F4ECDD;border-color:#1E1A17}',
+    '#g .lk{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:24px 24px calc(56px + env(safe-area-inset-bottom));background-color:#0f0c0a;background-size:cover;background-position:50% 100%;color:#F4ECDD}#g .lk:before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 38%,rgba(15,12,10,.94) 72%)}#g .lk>*{position:relative}',
+    '#g .lk-st{width:130px;height:130px;border:6px solid var(--c);color:var(--c);background:rgba(244,236,221,.94);border-radius:12px;display:flex;align-items:center;justify-content:center;font:800 78px Mincho30,serif;transform:rotate(-8deg);margin-bottom:22px;animation:csst .6s .2s cubic-bezier(.3,1.5,.5,1) both}',
+    '#g .lk h1{color:#F4ECDD;font-size:36px;animation:rise .6s .7s ease-out both}#g .lk p{margin:10px 0 0;font-weight:700;font-size:18px;color:#e6d9c2;animation:rise .6s 1s ease-out both}',
+    '#g .jk{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid #2a2420;border-radius:6px;background:rgba(255,253,248,.85);padding:10px 12px}#g .jk b.x{flex-shrink:0;width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 19px Mincho30,serif}',
+    '#g .idea{display:flex;flex-wrap:wrap;gap:6px}#g .idea button{border:1.5px dashed #b9a88f;background:rgba(255,253,248,.7);border-radius:999px;padding:5px 11px;font-weight:700;font-size:13px;color:#1E1A17;text-align:left}',
+    /* projection des cris de guerre */
+    '#g .crp-veil{position:absolute;top:0;bottom:0;width:33.4%;background:rgba(15,12,10,.72);opacity:0;transition:opacity .5s}#g .crp-veil.on{opacity:1}',
+    '#g .crp{position:absolute;bottom:3em;width:28%;transform:translateX(-50%);background:rgba(244,236,221,.95);color:#1E1A17;border-radius:.4em;padding:1.2em 1.5em 1.1em;border-top:.4em solid var(--c);transition:width .5s cubic-bezier(.2,.9,.25,1.1),opacity .5s,transform .5s;text-align:center}',
+    '#g .crp .ck{font:800 1.3em Gothic30,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#6b5e52}#g .crp .ct{font:800 2.6em/1.15 Mincho30,Georgia,serif;margin:.35em 0 .3em}#g .crp .cb{font-weight:700;font-size:1.25em;color:#8a7b68}',
+    '#g .crp.dim{opacity:.35;transform:translateX(-50%) scale(.92)}#g .crp.spot{width:46%;z-index:2;box-shadow:0 0 0 .35em #F7E6A8,0 1.5em 4em rgba(0,0,0,.6)}',
+    '#g .crp .ct span{opacity:0;animation:crl .05s forwards}@keyframes crl{to{opacity:1}}',
     /* projection du choix des clans */
     '#g .csp{position:fixed;inset:0;background:#0f0c0a;display:flex;align-items:center;justify-content:center;color:#F4ECDD}',
     '#g .csp-st{position:relative;width:min(100vw,177.8vh);aspect-ratio:16/9;background:url(/clans/chefs-wide.webp?v=1) center/cover;overflow:hidden;font-size:min(1vw,1.78vh)}',
@@ -168,7 +190,7 @@
 
   /* ---------- helpers ---------- */
   var st = null, mode = null, root = null, pollT = null, tickT = null, off = 0, busy = false, lastHtml = '';
-  var pl = { csK: null, csGo: false, csChange: false, csAt: 0, csBusy: false, rate: 0, rateAt: 0, seq: null, seqAt: 0, vote: null, voteAt: 0, taps: 0, tapSent: 0, p2: null, joined: '' };
+  var pl = { jkOpen: false, csK: null, csGo: false, csChange: false, csAt: 0, csBusy: false, rate: 0, rateAt: 0, seq: null, seqAt: 0, vote: null, voteAt: 0, taps: 0, tapSent: 0, p2: null, joined: '' };
   var mj = { sel: null, resetArm: false, upl: 0 };
   var photoUrls = {};
 
@@ -374,6 +396,7 @@
       var b = st.boss, p2 = b.p2;
       ph += 'b' + (b.p1 && b.p1.at && t - b.p1.at < 1600 ? 1 : 0) + (p2 ? (t < p2.start ? 'w' : t < p2.end ? 'r' : 'e') : '') + (b.dead && b.deadAt && t - b.deadAt < 2600 ? 'x' : '');
     }
+    if (st.step === 0) ph += 'L' + (lockMoment() ? 1 : 0) + (st.ouv && st.ouv.spotAt && t - st.ouv.spotAt < 6000 ? 's' : '');
     if (st.timer) ph += 't' + (t > st.timer.end ? 1 : 0);
     if (st.step === 6 && st.hokage && st.hokage.view === 'slides') ph += 'h' + hokCur();
     if (ph !== lastPhase) { lastPhase = ph; return true; }
@@ -389,6 +412,7 @@
     if (!st.on) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><div class="ser" style="font-size:20px">Le jeu n’a pas encore commencé</div><div class="muted">Garde cette page ouverte, elle se mettra à jour toute seule.</div></section><button class="btn2" data-g="home">Retour à l’accueil</button>');
     if (st.step === 0 && st.sel && st.sel.mode === 'pick' && st.sel.phase !== 'locked') return pSel();
     var c = myClan();
+    if (c && lockMoment()) return pLock(c);
     if (!c) return wrap('<h1>Salut ' + esc(myName()) + ' !</h1><section class="card" style="align-items:center;text-align:center;padding:26px 16px"><div class="ser" style="font-size:22px">Le maître du jeu forme les clans</div><div class="muted">Ton clan apparaîtra ici dans un instant.</div></section>');
     var s = st.step;
     if (s === 3) return pOmbre(c);
@@ -450,23 +474,31 @@
     });
     syncHtml();
   }
+  // Carte de ninja : portrait du chef, nom du clan, coéquipiers (le joueur en noir).
   function pClan(c) {
-    return '<section style="background:' + c.bg + ';border-radius:24px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid #fff;box-shadow:0 8px 20px rgba(58,51,80,.12)">' +
-      '<div class="lab" style="color:' + c.ink + '">Tu es dans le</div><div class="ser" style="font-size:32px">Clan ' + CLB[c.k].pre + ' ' + esc(c.n) + '</div>' +
-      '<div style="font-weight:700;color:' + c.ink + '">' + st.members[c.k].map(esc).join(' · ') + '</div></section>' +
+    var me = myName().trim().toLowerCase();
+    return '<section class="nj" style="--c:' + CHEF[c.k].c + '"><div class="nj-img" style="background-image:url(/clans/chef-' + c.k + '.webp?v=1)"><span class="nj-sl">' + CHEF[c.k].s + '</span><div class="nj-t"><div class="lab">Tu es dans le</div><div class="ser">' + esc(clanName(c.k)) + '</div></div></div>' +
+      '<div class="nj-m">' + st.members[c.k].map(function (x) { return '<span' + (x.toLowerCase() === me ? ' class="me"' : '') + '>' + esc(x) + '</span>'; }).join('') + '</div></section>' +
       jokerCard(c) + pCri(c);
+  }
+  // 3 s plein écran quand le MJ verrouille les clans.
+  function lockMoment() { var S = st.sel; return !!(st.step === 0 && S && S.mode === 'pick' && S.phase === 'locked' && S.lockAt && now() - S.lockAt < 3500); }
+  function pLock(c) {
+    return { html: '<div class="lk" style="--c:' + CHEF[c.k].c + ';background-image:url(/clans/chef-' + c.k + '.webp?v=1)"><div class="lk-st">結</div><h1>Les clans sont formés !</h1><p>Tu es dans le ' + esc(clanName(c.k)) + '</p></div>', cls: 'dark' };
   }
   function jokerCard(c) {
     var s = jk(c.k), j = st.joker[c.k];
+    if (st.step === 0 && s === 'free') return '<button class="jk" data-g="jkinfo" aria-expanded="' + (pl.jkOpen ? 'true' : 'false') + '"><b class="x" style="background:' + c.bg + ';color:' + c.ink + '">x2</b><span style="display:flex;flex-direction:column;gap:2px"><span class="ser" style="font-size:16px">Votre joker x2 <span style="font:700 12px Gothic30,sans-serif;color:#8a7b68">' + (pl.jkOpen ? '▴' : 'ⓘ') + '</span></span><span style="font-size:13px;font-weight:700;color:#6b5e52">' + (pl.jkOpen ? esc(JOKER_TXT) : 'Une fois dans la partie : points ×2 sur l’épreuve de votre choix.') + '</span></span></button>';
     return '<section class="card" style="flex-direction:row;align-items:center;gap:14px;' + (s === 'on' ? 'background:#1E1A17;color:#fff;border-color:#1E1A17' : s === 'used' ? 'opacity:.55' : '') + '">' +
       '<div class="ser" style="width:56px;height:56px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;' + (s === 'on' ? 'background:#F7E6A8;color:#1E1A17;animation:breathe 1.2s ease-in-out infinite' : 'background:' + c.bg + ';color:' + c.ink) + '">x2</div>' +
       '<div style="display:flex;flex-direction:column;gap:3px"><div class="ser" style="font-size:18px">' + (s === 'on' ? 'Joker x2 activé !' : s === 'used' ? 'Joker utilisé · ' + esc(STEPS_S[j.step]) : 'Votre joker x2') + '</div>' +
       '<div style="font-size:13px;font-weight:700;' + (s === 'on' ? 'color:#e6d9c2' : 'color:#6b5e52') + '">' + (s === 'on' ? 'Vos points comptent double sur cette épreuve' : s === 'used' ? 'Il a déjà servi' : JOKER_TXT) + '</div></div></section>';
   }
   function pCri(c) {
-    var cur = st.ouv ? st.ouv.cri : '';
-    return '<section class="card"><label class="lab" for="g-cri">Cri de guerre du clan</label>' + (cur ? '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:30px;line-height:1.1;color:' + c.ink + '">« ' + esc(cur) + ' »</div>' : '<div class="muted">Inventez votre cri, un seul par clan : il s’affichera en grand sur l’écran.</div>') +
-      '<div class="row"><input id="g-cri" maxlength="60" placeholder="' + (cur ? 'Modifier le cri' : 'Votre cri') + '" aria-label="Cri de guerre"><button class="chip on" style="height:44px" data-g="cri">Valider</button></div></section>';
+    var cur = st.ouv ? st.ouv.cri : '', by = st.ouv ? st.ouv.criBy : '';
+    return '<section class="card"><label class="lab" for="g-cri">Cri de guerre du clan</label>' + (cur ? '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:30px;line-height:1.1;color:' + c.ink + '">« ' + esc(cur) + ' »</div>' + (by ? '<div class="muted" style="font-size:13px;margin-top:-4px">écrit par ' + esc(by) + '</div>' : '') : '<div class="muted">Inventez votre cri, un seul par clan : il s’affichera en grand sur l’écran.</div>') +
+      '<div class="row"><input id="g-cri" maxlength="60" placeholder="' + (cur ? 'Modifier le cri' : 'Votre cri') + '" aria-label="Cri de guerre"><button class="chip on" style="height:44px" data-g="cri">Valider</button></div>' +
+      (cur ? '' : '<div class="lab" style="margin-top:2px">Besoin d’idées ? Touchez pour remplir</div><div class="idea">' + CRI_IDEAS[c.k].map(function (t, i) { return '<button data-g="criidea" data-i="' + i + '">' + esc(t) + '</button>'; }).join('') + '</div>') + '</section>';
   }
   function curSeq() { return pl.seq && Date.now() - pl.seqAt < 5000 ? pl.seq : (st.seq || []); }
   function pRythme(c) {
@@ -942,7 +974,8 @@
     } else root.removeAttribute('data-reveal');
     if (o.view === 'cris' && o.spot && o.spotAt && fired.spotAt !== o.spotAt && now() - o.spotAt < 3000) {
       fired.spotAt = o.spotAt;
-      setTimeout(function () { var el = root && root.querySelector('[data-spot="' + o.spot + '"]'); fx(el, 'burst', { r: 140 }); fx(el, 'don', { size: 190, dy: 120 }); }, 350);
+      var wait = S && S.mode === 'pick' ? Math.max(0, 700 + Array.from((st.cris || {})[o.spot] || '').length * 45 - (now() - o.spotAt)) : 350;
+      setTimeout(function () { var el = root && root.querySelector('[data-spot="' + o.spot + '"]'); fx(el, 'burst', { r: 140 }); fx(el, 'don', { size: 190, dy: 120 }); }, wait);
     }
   }
   function projOuverture() {
@@ -951,6 +984,7 @@
       return '<div class="pw" style="justify-content:center;gap:2vw;padding:4vw 8vw"><div class="pk" style="animation:rise .8s ease-out both">La Quête des 30 ans</div>' +
         INTRO.map(function (s, i) { var last = i === INTRO.length - 1; return '<div class="ser" style="font-size:' + (last ? '4.4vw' : '2.5vw') + ';line-height:1.3;font-weight:' + (last ? 700 : 600) + ';' + (last ? 'font-family:Mincho30,Georgia,serif;' : '') + 'animation:rise 1s ' + (0.6 + i * 2.2) + 's ease-out both">' + esc(s) + '</div>'; }).join('') + '</div>';
     }
+    if (o.view === 'cris' && st.selInfo && st.selInfo.mode === 'pick') return projCris(o);
     if (o.view === 'cris') {
       return '<div class="pw">' + pHeader('Cris de guerre', 'L’Appel des clans', timerRight()) + '<div class="grid3" style="gap:2vw;flex:1">' + CL.map(function (c) {
         var cri = (st.cris || {})[c.k], spot = o.spot === c.k, dim = o.spot && !spot;
@@ -973,6 +1007,18 @@
     }).join('') + '</div></div>';
   }
 
+  // Cris de guerre sur l'image de groupe : une plaque par chef ; le cri mis en avant grandit et s'écrit lettre par lettre.
+  function projCris(o) {
+    var POS = { foudre: 17, feu: 50, vent: 83 }, spot = o.spot, fresh = spot && o.spotAt && now() - o.spotAt < 6000;
+    var veils = CS_ORDER.map(function (k, i) { return '<div class="crp-veil' + (spot && spot !== k ? ' on' : '') + '" style="left:' + (i * 33.3) + '%"></div>'; }).join('');
+    var pls = CS_ORDER.map(function (k) {
+      var t = (st.cris || {})[k] || '', by = (st.crisBy || {})[k] || '', on = spot === k, len = t.length;
+      var fs = on ? (len > 40 ? 3.2 : len > 24 ? 3.8 : 4.6) : (len > 40 ? 2 : len > 24 ? 2.3 : 2.6);
+      var txt = !t ? '…' : on && fresh ? '« ' + Array.from(t).map(function (ch, i) { return '<span style="animation-delay:' + (0.5 + i * 0.045).toFixed(3) + 's">' + esc(ch) + '</span>'; }).join('') + ' »' : '« ' + esc(t) + ' »';
+      return '<div class="crp' + (on ? ' spot' : spot ? ' dim' : '') + '" data-spot="' + k + '" style="left:' + POS[k] + '%;--c:' + CHEF[k].c + '"><div class="ck">' + CHEF[k].s + ' · ' + esc(clanName(k)) + '</div><div class="ct" style="font-size:' + fs + 'em">' + txt + '</div><div class="cb">' + (by ? 'écrit par ' + esc(by) : t ? '' : 'en attente du cri') + '</div></div>';
+    }).join('');
+    return '<div class="csp"><div class="csp-st">' + veils + '<div class="csp-top"><div class="csp-sl">吼</div><div><div class="csp-kk">L’Appel des clans · La Quête des 30 ans</div><h1>Cris de guerre</h1></div></div>' + pls + '</div></div>';
+  }
   // Choix des clans sur grand écran : les 3 chefs, les prénoms arrivent en direct sous chacun.
   var cspSeen = null;
   function projSel() {
@@ -1262,6 +1308,8 @@
     }
     if (g === 'csgo') { var sp = root.querySelector('.cs-splash'); pl.csGo = true; if (sp) sp.classList.add('off'); syncHtml(); return; }
     if (g === 'csnop') return;
+    if (g === 'jkinfo') { pl.jkOpen = !pl.jkOpen; lastHtml = ''; draw(); return; }
+    if (g === 'criidea') { var cin = document.getElementById('g-cri'), cc = myClan(); if (cin && cc) { cin.value = CRI_IDEAS[cc.k][+d('i')]; cin.focus(); } return; }
     if (g === 'cssel') { csSelect(d('k')); return; }
     if (g === 'cschange') { pl.csChange = true; pl.csGo = true; pl.csK = st.clan; lastHtml = ''; draw(); return; }
     if (g === 'cspick') {
