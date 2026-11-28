@@ -343,6 +343,26 @@
       '<ellipse cx="190" cy="235" rx="110" ry="88" fill="#251F36" stroke="#C8372D" stroke-width="5"/><path d="M118 178 L 98 128 L 150 160 Z M262 178 L 282 128 L 230 160 Z" fill="#251F36" stroke="#C8372D" stroke-width="5" stroke-linejoin="round"/>' +
       '<path d="M145 225 q 18 -16 36 0" stroke="#F7E6A8" stroke-width="7" stroke-linecap="round"/><path d="M199 225 q 18 -16 36 0" stroke="#F7E6A8" stroke-width="7" stroke-linecap="round"/><path d="M160 270 q 30 18 60 0" stroke="#F4C6D3" stroke-width="5" stroke-linecap="round"/></svg>';
   }
+  // Dé 3D laqué (public/dice.js) : un canvas carré, animé d'après l'heure du serveur « at » (0 = déjà posé).
+  function d3(v, size, at, key) { return '<canvas class="d3" data-v="' + v + '" data-at="' + (at || 0) + '" data-k="' + esc(key || '') + '" style="width:' + size + ';height:' + size + ';display:block;flex-shrink:0" role="img" aria-label="Dé : ' + v + '"></canvas>'; }
+  var D3MS = 1500;
+  function d3Frame() {
+    if (window.Dice3D) document.querySelectorAll('canvas.d3').forEach(function (el) {
+      if (el._still) return;
+      var r = el.getBoundingClientRect(); if (!r.width) return;
+      if (!el._roll) {
+        var d = Math.min(window.devicePixelRatio || 1, 2.5), v = +el.getAttribute('data-v'), at = +el.getAttribute('data-at'), k = el.getAttribute('data-k');
+        el.width = Math.round(r.width * d); el.height = Math.round(r.height * d); el._d = d; el._w = r.width;
+        var R = Dice3D.seeded(v + ':' + at + ':' + k), s = r.width * 0.3;
+        el._roll = new Dice3D.Roll({ val: v, t0: at ? at + 100 : -1e9, dur: D3MS, from: [r.width * (0.3 + R() * 0.4), -s * 1.4], to: [r.width / 2, r.height * 0.56], size: s, h: s * 1.7, rand: R });
+      }
+      var T = now(), c = el.getContext('2d'); c.setTransform(el._d, 0, 0, el._d, 0, 0); c.clearRect(0, 0, el._w, el._w);
+      var st = Dice3D.render(c, el._roll, T, { rays: 1.9 });
+      if (st.done && st.land > 900 && el._roll.val !== 20) el._still = true;
+    });
+    requestAnimationFrame(d3Frame);
+  }
+  requestAnimationFrame(d3Frame);
   function d20s(x, size, rolling) { // petit d20 lisible pour les listes de dés (Boss)
     return '<svg viewBox="0 0 100 100" style="width:' + size + ';height:' + size + ';' + (rolling ? 'animation:roll .4s linear 4;' : '') + 'filter:drop-shadow(0 2px 3px rgba(43,29,18,.25))"><polygon points="50,3 94,27 94,73 50,97 6,73 6,27" fill="#f8efdc" stroke="#2b1d12" stroke-width="5"/><path d="M50 3 50 16 M94 27 82 33 M94 73 82 67 M50 97 50 84 M6 73 18 67 M6 27 18 33" stroke="#2b1d12" stroke-width="3" opacity=".45"/><text x="50" y="66" text-anchor="middle" font-family="Georgia,serif" font-size="' + (String(x).length > 1 ? 44 : 50) + '" font-weight="700" fill="#2b1d12">' + (rolling ? '?' : x) + '</text></svg>';
   }
@@ -660,7 +680,7 @@
       var h = head + '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center">' +
         '<div class="sk">' + esc(['Prudent', 'Audacieux', 'Fou'][' ABC'.indexOf(r.opt) - 1]) + (r.roll === null ? ' · assuré' : ' · difficulté ' + r.dd) + '</div>' +
         (r.roll === null ? '<div class="stamp" style="width:84px;height:84px;font-size:44px;animation:stampin .5s ease-out both">成</div>' :
-          d20svg(r.roll, 128, rs) + '<div class="stamp" style="width:76px;height:76px;font-size:40px;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div>') +
+          d3(r.roll, '190px', d.mineAt || 0, 'm') + '<div class="stamp" style="width:76px;height:76px;font-size:40px;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div>') +
         (calcTxt(r) ? '<div style="font:800 14px Gothic30,Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
         '<div style="font-size:28px;font-weight:700;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.ok ? 'Réussite !' : 'Échec…') + '</div>' +
         '<div style="font-style:italic;font-size:16px;line-height:1.5;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
@@ -684,7 +704,7 @@
     var txt = b.dead ? 'Alessia a terrassé Sanjûbi !' : b.p2 && b.p2.done ? 'Le coup final revient à Alessia…' : b.p1 ? 'Préparez-vous pour le Rasengan collectif' : 'Les clans attaquent Sanjûbi';
     var p1 = b.p1, mine = '', FN = window.Finale, ord = p1 && p1.sums && FN ? FN.clanOrder(p1.sums) : [], wi = ord.indexOf(c.k);
     var tw = p1 ? now() - (p1.at + Math.max(0, wi) * (FN ? FN.CLMS : 6000)) : -1, rolling = !!p1 && tw < 1700;
-    if (p1 && !b.dead && wi >= 0 && tw >= 0 && tw < 4300) return pAttack(c, p1, tw);
+    if (p1 && !b.dead && wi >= 0 && tw >= 0 && tw < 4300) return pAttack(c, p1, tw, p1.at + wi * (FN ? FN.CLMS : 6000));
     var ai = p1 && FN ? Math.floor((now() - p1.at) / FN.CLMS) : -1;
     if (p1 && ai >= 0 && ai <= 2 && ord[ai] !== c.k && !(b.p2)) txt = 'Le ' + clanName(ord[ai]) + ' attaque…';
     if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#1E1A17;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
@@ -705,10 +725,10 @@
     return b.dead ? 0 : Math.max(Math.min(hp, 2026), b.hp);
   }
   // Pendant l'attaque de son clan, le téléphone s'allume à la couleur du clan (dés, jutsu, dégâts).
-  function pAttack(c, p1, tw) {
+  function pAttack(c, p1, tw, ws) {
     var K = window.Finale.CLAN[c.k], roll = tw < 1700;
     return { cls: 'dark', html: '<div class="atk" style="--c:' + K.c + ';--g:' + K.g + '"><div class="kk" style="color:#fff">' + K.s + ' · Votre clan attaque !</div><div class="ser atk-j">' + esc(K.j) + '</div>' +
-      '<div class="row" style="gap:6px;flex-wrap:wrap;justify-content:center;max-width:360px">' + p1.dice.map(function (x) { return d20s(x, '50px', roll); }).join('') + '</div>' +
+      '<div class="row" style="gap:6px;flex-wrap:wrap;justify-content:center;max-width:360px">' + p1.dice.map(function (x, i) { return d3(x, p1.dice.length > 6 ? '58px' : '72px', ws + 100 + i * 40, c.k + i); }).join('') + '</div>' +
       '<div class="ser" style="font-size:44px;color:#fff">' + (roll ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div><div style="font-weight:800;color:rgba(255,255,255,.85)">Regardez l’écran !</div></div>' };
   }
   // Coup final : Alessia joue (QTE façon osu!), les autres donnent leur chakra ; flash blanc et victoire à l'impact.
@@ -1261,7 +1281,7 @@
         if (latest && r.gage && tnow - d.shownAt < 7200) wheelOn = true;
         return '<div data-dr="' + k.k + '" style="background:rgba(255,255,255,.45);border:.2vw solid ' + k.ink + ';border-radius:1.6vw;padding:1.4vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9vw;text-align:center">' +
           '<div class="ser" style="font-size:2.2vw;color:' + k.ink + '">' + esc(k.n) + ' · ' + ['一', '二', '三'][' ABC'.indexOf(r.opt) - 1] + '</div><div style="font-size:1.3vw;line-height:1.3">' + esc(sc.opts[' ABC'.indexOf(r.opt) - 1].t) + '</div>' +
-          (r.roll === null ? '<div class="stamp" style="width:7vw;height:7vw;font-size:3.6vw;animation:stampin .5s ease-out both">成</div>' : '<div style="display:flex;align-items:center;gap:1.2vw">' + d20svg(r.roll, '8vw', rs).replace('width="8vw" height="8vw"', 'style="width:8vw;height:8vw"') + '<div class="stamp" style="width:5.6vw;height:5.6vw;font-size:3vw;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div></div>') +
+          (r.roll === null ? '<div class="stamp" style="width:7vw;height:7vw;font-size:3.6vw;animation:stampin .5s ease-out both">成</div>' : '<div style="display:flex;align-items:center;gap:1.2vw">' + d3(r.roll, '14vw', latest ? d.shownAt : 0, k.k) + '<div class="stamp" style="width:5.6vw;height:5.6vw;font-size:3vw;' + (r.ok ? '' : 'border-color:#2b1d12;color:#2b1d12;') + 'animation:stampin .5s ' + del.toFixed(2) + 's ease-out both">' + (r.ok ? '成' : '敗') + '</div></div>') +
           (calcTxt(r) ? '<div style="font:800 1.3vw Gothic30,Nunito,Arial,sans-serif;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(calcTxt(r)) + '</div>' : '') +
           '<div style="font-style:italic;font-size:1.35vw;line-height:1.4;animation:fadeup .5s ' + del.toFixed(2) + 's both">' + esc(r.text) + '</div>' +
           '<div style="font:800 1.8vw Gothic30,Nunito,Arial,sans-serif;color:' + (r.pts > 0 ? '#2f6b45' : r.pts < 0 ? '#b5302a' : '#8a5a2b') + ';animation:fadeup .5s ' + del.toFixed(2) + 's both">' + (r.pts > 0 ? '+' : '') + r.pts + (r.double ? ' (×2)' : '') + '</div>' +

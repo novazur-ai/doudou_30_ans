@@ -608,18 +608,21 @@
     c.fillStyle = '#fff'; c.font = '800 34px Mincho30, serif'; c.textBaseline = 'middle'; c.fillText(cl.s + '  ' + cl.n + ' attaque !', 70, 278);
     c.font = '800 54px Mincho30, serif'; c.fillStyle = '#FFF6E0'; c.fillText(cl.j, 70, 338);
     c.restore();
-    // dés
-    var n = dice.length, s = n > 8 ? 30 : n > 5 ? 38 : 44, gap = s * 2.2, x0 = 520 - (n - 1) * gap / 2, rolling = t < 1700;
-    for (var d = 0; d < n; d++) {
-      var v = dice[d], reveal = t >= 1700 + d * 40, pop = reveal ? clamp((t - 1700 - d * 40) / 220, 0, 1) : 0, sc = reveal ? 1.5 - 0.5 * eout(pop) : 1;
-      var dx = x0 + d * gap, dy = 520 + (rolling ? Math.sin(now / 90 + d) * 10 : 0);
-      if (t < 200) continue;
-      c.save(); c.translate(dx, dy); c.scale(sc, sc); if (!reveal) c.rotate(now / 120 + d);
-      d20Poly(c, 0, 0, s, reveal ? v : 1 + Math.floor((now / 80 + d * 7) % 20), v === 20 && reveal ? '#FFE48A' : v === 1 && reveal ? '#F0A39A' : '#f8efdc', v === 20 && reveal ? '#FFD34D' : null);
-      c.restore();
-      if (reveal && (v === 20 || v === 1)) { c.save(); c.globalAlpha = clamp((t - 1750) / 300, 0, 1); c.textAlign = 'center'; c.font = '900 ' + (s * 0.6) + 'px Gothic30, sans-serif'; c.fillStyle = v === 20 ? '#FFD34D' : '#FF7A6E'; c.fillText(v === 20 ? 'CRITIQUE !' : 'Raté !', dx, dy - s * 1.45); c.restore(); }
+    // dés en 3D (public/dice.js), lancés depuis la gauche et posés sous le bandeau
+    var n = dice.length, s = n > 8 ? 34 : n > 5 ? 44 : 54, gap = s * 2.4, x0 = 520 - (n - 1) * gap / 2, ws = p1.at + i * CLMS, key = p1.at + ':' + k;
+    this.p1Rolls = this.p1Rolls || {};
+    if (!this.p1Rolls[key] && window.Dice3D) this.p1Rolls[key] = dice.map(function (v, d) { var R = Dice3D.seeded(key + ':' + d); return new Dice3D.Roll({ val: v, t0: ws + 200 + d * 40, dur: 1500, from: [-80 + R() * 160, 200 + R() * 120], to: [x0 + d * gap, 610], size: s, h: s * 2.4, rand: R }); });
+    var rl = this.p1Rolls[key] || [];
+    for (var d = 0; d < rl.length; d++) {
+      if (T < rl[d].t0) continue;
+      var stD = Dice3D.render(c, rl[d], T, { rays: 2.4 }), v = dice[d];
+      if (stD.done) {
+        var pop = clamp(stD.land / 260, 0, 1), sc = 1.8 - 0.8 * eout(pop);
+        c.save(); c.translate(stD.x, stD.y - s * 1.75); c.scale(sc, sc); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '800 ' + (s * 0.95) + 'px Mincho30, serif'; c.lineWidth = s * 0.14; c.strokeStyle = '#1E1A17'; c.strokeText(v, 0, 0); c.fillStyle = v === 20 ? '#FFD34D' : v === 1 ? '#FF7A6E' : '#F3CF6A'; c.fillText(v, 0, 0); c.restore();
+        if (v === 20 || v === 1) { c.save(); c.globalAlpha = clamp((stD.land - 120) / 300, 0, 1); c.textAlign = 'center'; c.font = '900 ' + (s * 0.55) + 'px Gothic30, sans-serif'; c.fillStyle = v === 20 ? '#FFD34D' : '#FF7A6E'; c.lineWidth = 6; c.strokeStyle = '#1E1A17'; c.strokeText(v === 20 ? 'CRITIQUE !' : 'Raté !', stD.x, stD.y - s * 2.75); c.fillText(v === 20 ? 'CRITIQUE !' : 'Raté !', stD.x, stD.y - s * 2.75); c.restore(); }
+      }
     }
-    if (t >= 1950) { c.save(); c.globalAlpha = clamp((t - 1950) / 300, 0, 1); c.textAlign = 'center'; c.font = '900 ' + (n > 8 ? 26 : 32) + 'px Gothic30, sans-serif'; c.fillStyle = '#F4ECDD'; c.shadowColor = '#000'; c.shadowBlur = 12; c.fillText('(' + dice.join(' + ') + ') × chakra ' + p1.mult + ' = ' + fmtNum(p1.sums[k]), 520, 640); c.restore(); }
+    if (t >= 1950) { c.save(); c.globalAlpha = clamp((t - 1950) / 300, 0, 1); c.textAlign = 'center'; c.font = '900 ' + (n > 8 ? 26 : 32) + 'px Gothic30, sans-serif'; c.fillStyle = '#F4ECDD'; c.shadowColor = '#000'; c.shadowBlur = 12; c.fillText('(' + dice.join(' + ') + ') × chakra ' + p1.mult + ' = ' + fmtNum(p1.sums[k]), 520, 730); c.restore(); }
     // jutsu
     if (t >= 1700 && t < 2700) this.drawJutsu(c, k, (t - 1700) / 900, now);
   };
