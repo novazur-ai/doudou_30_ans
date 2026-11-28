@@ -160,7 +160,7 @@
     '#g .bp h1{font-size:7.4vw;line-height:1.05;animation:rise .7s .5s ease-out both}#g .bp .pk{animation:rise .7s .35s ease-out both}',
     '#g .bp-li{font-weight:800;font-size:1.9vw;color:#6b5e52;animation:rise .7s .9s ease-out both}#g .bp-sc{margin-top:2vw;animation:rise .7s 1.2s ease-out both}',
     /* bataille des 30 queues : arène (projection), attaque du clan, coup final (téléphones) */
-    '#g .arena{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}#g .arena canvas{display:block;width:min(100vw,177.78vh);height:min(56.25vw,100vh)}',
+    '#g .arena{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}#g .arena-in{position:relative;width:min(100vw,177.78vh);height:min(56.25vw,100vh)}#g .arena-in canvas{position:absolute;inset:0;display:block;width:100%;height:100%}#g #arena-fx{pointer-events:none}',
     '#g .atk{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;background:radial-gradient(circle at 50% 40%,var(--g),var(--c) 55%,#140c0c);animation:atkp 1s ease-in-out infinite alternate}',
     '#g .atk-j{font-size:30px;color:#fff;line-height:1.15;text-shadow:0 3px 12px rgba(0,0,0,.35)}@keyframes atkp{from{filter:brightness(.92)}to{filter:brightness(1.12)}}',
     '#g .fv{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(circle at 50% 40%,#3a2414,#09070b 75%);color:#F4ECDD}',
@@ -1335,7 +1335,15 @@
     });
   }
   // Bataille des 30 queues : toute la projection est dessinée par l'arène (public/finale.js) sur un canvas qui ne change pas.
-  function projBoss() { return { html: '<div class="arena"><canvas id="arena-cv" aria-label="La Bataille des 30 queues"></canvas></div>', cls: 'dark proj' }; }
+  function projBoss() { return { html: '<div class="arena"><div class="arena-in"><canvas id="arena-cv" aria-label="La Bataille des 30 queues"></canvas><canvas id="arena-fx" aria-hidden="true"></canvas></div></div>', cls: 'dark proj' }; }
+  // Sorts des clans : PixiJS (MIT) et les planches d'effets ne sont chargés que sur l'écran de projection.
+  var spellsP = null;
+  function loadSpells() {
+    if (spellsP) return spellsP;
+    var add = function (src) { return new Promise(function (ok, ko) { var sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); };
+    spellsP = (window.PIXI ? Promise.resolve() : add('/vendor/pixi.min.js?v=742')).then(function () { return window.Sorts ? null : add('/sorts.js?v=2'); });
+    return spellsP;
+  }
   var arena = null;
   function syncArena() {
     var on = mode === 'ecran' && st && st.step === 5 && bri() === null && !introOn() && window.Finale;
@@ -1344,6 +1352,7 @@
     if (!arena || arena.cv !== el) {
       if (arena) arena.destroy();
       arena = new Finale.Arena(el, { now: now, sanj: SANJ, bg: '/sanjubi/village-bg.webp', portrait: '/clans/alessia-portrait.webp', onEnd: function () { if (st && st.step === 5 && mode === 'ecran') act('step', { i: 6 }); } });
+      var ar = arena; loadSpells().then(function () { var fxc = document.getElementById('arena-fx'); if (ar === arena && fxc) ar.attachSpells(fxc); }).catch(function () {});
     }
     arena.update(st);
   }

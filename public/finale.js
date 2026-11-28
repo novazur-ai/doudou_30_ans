@@ -335,9 +335,10 @@
   var CLAN = {
     feu: { n: 'Clan du Feu', c: '#E0532C', g: '#FFB347', j: 'Katon : Boule de feu suprême', s: '火' },
     foudre: { n: 'Clan de la Foudre', c: '#3C7BEA', g: '#BFE0FF', j: 'Raiton : Chidori', s: '雷' },
-    vent: { n: 'Clan du Vent', c: '#5E9B47', g: '#D8F5C8', j: 'Fûton : Lames de vide', s: '風' },
+    vent: { n: 'Clan du Vent', c: '#5E9B47', g: '#D8F5C8', j: 'Fûton : Grande percée', s: '風' },
   };
   var IMPACT = 900, SHATTER = 3300, FORM = 6400, TXT = 9800;
+  var SPELL = { feu: [1150, 3100], foudre: [1950, 2600], vent: [1520, 2900] }; // départ du sort dans la fenêtre du clan, durée
   function fmtNum(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
   function clanOrder(sums) { // le clan qui fait le moins de dégâts attaque en premier, pour finir en apothéose
     return ['foudre', 'feu', 'vent'].slice().sort(function (a, b) { return (sums[a] || 0) - (sums[b] || 0); });
@@ -372,7 +373,13 @@
     this._resize = function () { self.resize(); }; window.addEventListener('resize', this._resize); this.resize();
     var loop = function () { if (self.gone) return; if (self.cv.isConnected) self.frame(); self.raf = requestAnimationFrame(loop); }; loop();
   }
-  Arena.prototype.destroy = function () { this.gone = true; cancelAnimationFrame(this.raf); window.removeEventListener('resize', this._resize); };
+  // Branche le calque des sorts (PixiJS chargé à la demande sur la projection uniquement).
+  Arena.prototype.attachSpells = function (fxCanvas) {
+    try { this.spells = new window.Sorts.Stage(fxCanvas, { overlay: true, noCallout: true, sanj: this.opt.sanj, fx: '/fx/' }); this.spellsDone = {}; }
+    catch (e) { this.spells = null; }
+  };
+  Arena.prototype.destroy = function () {
+    if (this.spells) { try { this.spells.app.destroy(false, { children: true }); } catch (_) {} this.spells = null; } this.gone = true; cancelAnimationFrame(this.raf); window.removeEventListener('resize', this._resize); };
   Arena.prototype.resize = function () {
     var r = this.cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
     if (!r.width) return;
@@ -455,7 +462,7 @@
     this.drawEmbers(c, now, L > SHATTER ? '#ffd9a0' : '#ff8a3d');
     // Sanjûbi (ou ses étincelles après l'éclatement)
     var ripoAmp = this.riposte(T);
-    if (L < SHATTER) this.drawSanj(c, now, L, recoil, ripoAmp);
+    if (L < SHATTER && !(this.spells && this.spells.active)) this.drawSanj(c, now, L, recoil, ripoAmp);
     if (L >= SHATTER && this.parts) this.drawParts(c, L - SHATTER, FORM - SHATTER);
     if (L < SHATTER) this.drawHp(c, now, T);
     // phases
@@ -624,7 +631,10 @@
     }
     if (t >= 1950) { c.save(); c.globalAlpha = clamp((t - 1950) / 300, 0, 1); c.textAlign = 'center'; c.font = '900 ' + (n > 8 ? 26 : 32) + 'px Gothic30, sans-serif'; c.fillStyle = '#F4ECDD'; c.shadowColor = '#000'; c.shadowBlur = 12; c.fillText('(' + dice.join(' + ') + ') × chakra ' + p1.mult + ' = ' + fmtNum(p1.sums[k]), 520, 730); c.restore(); }
     // jutsu
-    if (t >= 1700 && t < 2700) this.drawJutsu(c, k, (t - 1700) / 900, now);
+    // sort du clan : calque WebGL (public/sorts.js) calé pour que l'impact tombe à 2,6 s, sinon l'ancien effet en secours
+    var sp = SPELL[k], skey = p1.at + ':' + k;
+    if (this.spells) { if (t >= sp[0] && t < sp[0] + 400 && !this.spellsDone[skey]) { this.spellsDone[skey] = 1; this.spells.play(k, Math.min(sp[1], 4250 - sp[0])); } }
+    else if (t >= 1700 && t < 2700) this.drawJutsu(c, k, (t - 1700) / 900, now);
   };
   Arena.prototype.drawJutsu = function (c, k, p, now) {
     var tx = SX - 120, ty = SY - 20;

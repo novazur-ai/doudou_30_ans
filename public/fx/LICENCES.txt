@@ -1,0 +1,4 @@
+Effets visuels utilisés (domaine public, CC0) :
+- explosion25.png, toon31.png, effect36.png, effect51.png, fire01.png : « Lots of game effects », OpenGameArt.org (CC0) — https://opengameart.org/content/lots-of-game-effects
+- bolt.png (fx1_blue_topEffect), crackle.png (fx8_lighteningBall) : « 2D Spell Effects » par Martin Jelinek (www.nyrthos.com), OpenGameArt.org (CC0) — https://opengameart.org/content/2d-spell-effects
+Moteur : PixiJS v7 (licence MIT), voir vendor/PIXI-LICENSE.txt
