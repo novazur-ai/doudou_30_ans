@@ -25,7 +25,18 @@
   };
   function clanName(k) { return 'Clan ' + CLB[k].pre + ' ' + CK[k].n; }
   var JOKER_TXT = 'Une seule fois dans la partie, vos points comptent double sur l’épreuve de votre choix (K-pop no Jutsu, Hit-Jutsu, Examen Chûnin, Théâtre des ombres ou Voie du ninja). Annoncez-le au maître du jeu avant le début de l’épreuve.';
-  function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === st.step ? 'on' : 'used'; }
+  function bri() { return st && st.brief !== null && st.brief !== undefined ? st.brief : null; } // épreuve annoncée (avant son lancement)
+  function jkStep() { var b = bri(); return b !== null ? b : st.step; }
+  function jk(c) { var j = st.joker && st.joker[c]; return !j || j.step === null ? 'free' : j.step === jkStep() ? 'on' : 'used'; }
+  // Textes lus par le MJ pendant l'annonce de chaque épreuve.
+  var BRIEF = {
+    1: 'Première épreuve : le K-pop no Jutsu ! Sur vos téléphones, chaque clan choisit 4 mouvements parmi 10 et les met dans l’ordre : c’est votre chorégraphie. Vous avez 1 minute 30 pour vous mettre d’accord et répéter. Ensuite, chaque clan passe à son tour sur « Do It Like That » de TXT et des Jonas Brothers. Les deux autres clans notent la prestation de 1 à 5 étoiles sur leurs téléphones : la moyenne devient vos points. Pas besoin d’être des pros : on note surtout l’énergie et la bonne humeur !',
+    7: 'Deuxième épreuve : le Hit-Jutsu ! On joue avec les cartes Hitster. À tour de rôle, un clan pioche une carte et la musique se lance. Le clan qui a pioché a 45 secondes pour trouver l’année de sortie de la chanson, comme dans le vrai Hitster : 2 points. Si vous séchez, les deux autres clans peuvent tenter leur chance : 1 point pour le clan qui trouve. Sur vos téléphones : vert, vous pouvez répondre ; rouge, vous attendez. Deux tours, six cartes en tout.',
+    2: 'Troisième épreuve : l’Examen Chûnin ! Alessia quitte son clan le temps de l’épreuve : elle devient votre Sensei. Je vais poser 10 questions sur elle. Pour répondre, levez la main comme à l’école : je donne la parole au premier qui la lève, et c’est Alessia qui valide : 1 point par bonne réponse. Prouvez que vous la connaissez vraiment !',
+    3: 'Quatrième épreuve : le Théâtre des ombres ! À tour de rôle, chaque clan envoie un mimeur, désigné automatiquement pour que tout le monde passe. Le mimeur reçoit 3 propositions sur son téléphone, en choisit une et a 45 secondes pour la faire deviner, sans un mot. Chaque clan désigne un négociateur : c’est le seul qui peut répondre, en levant la main. Trouvé par son propre clan : 2 points. Trouvé par un autre clan : 1 point pour le clan du mimeur et 1 point pour celui qui a trouvé. Un clan qui se trompe passe au rouge jusqu’à ce que les autres aient tenté. L’épreuve dure 10 minutes.',
+    4: 'Cinquième épreuve : la Voie du ninja ! Vous partez sur les traces de Sanjûbi, et trois carrefours vous attendent. À chacun, je vous lis l’histoire, puis chaque clan a 45 secondes pour voter en secret. Prudent : 1 point assuré. Audacieux : il faut 10 ou plus au dé à 20 faces pour gagner 3 points. Fou : il faut 15 ou plus pour gagner 6 points… mais si c’est raté, vous perdez 1 point et vous avez un gage ! Vos choix ont des conséquences sur la suite, et au dernier carrefour, tous les points comptent double.',
+    5: 'Épreuve finale : la Bataille des 30 queues ! Tous les points gagnés depuis le début deviennent votre force d’attaque : chaque tranche de 5 points vous donne une attaque, un dé à 20 faces multiplié par votre chakra. Ensuite, les trois clans s’unissent pour le Rasengan : 10 secondes pour taper le plus vite possible sur vos téléphones. Et pour finir… c’est notre future Hokage qui portera le coup final. Préparez-vous : Sanjûbi se réveille !',
+  };
   var STEPN = ['L’Appel des clans', 'K-pop no Jutsu', 'L’Examen Chûnin', 'Le Théâtre des ombres', 'La Voie du ninja', 'La Bataille des 30 queues', 'La Nuit de la Hokage', 'Hit-Jutsu'];
   var STEPS_S = ['Appel des clans', 'K-pop no Jutsu', 'Examen Chûnin', 'Théâtre des ombres', 'Voie du ninja', 'Bataille', 'Nuit de la Hokage', 'Hit-Jutsu']; // versions courtes (onglets, joker)
   var ORDER = [0, 1, 7, 2, 3, 4, 5, 6]; // ordre de jeu (Hit-Jutsu, ajoutée après coup, se joue après K-pop no Jutsu)
@@ -139,6 +150,15 @@
     '#g .lk h1{color:#F4ECDD;font-size:36px;animation:rise .6s .7s ease-out both}#g .lk p{margin:10px 0 0;font-weight:700;font-size:18px;color:#e6d9c2;animation:rise .6s 1s ease-out both}',
     '#g .jk{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1.5px solid #2a2420;border-radius:6px;background:rgba(255,253,248,.85);padding:10px 12px}#g .jk b.x{flex-shrink:0;width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font:800 19px Mincho30,serif}',
     '#g .idea{display:flex;flex-wrap:wrap;gap:6px}#g .idea button{border:1.5px dashed #b9a88f;background:rgba(255,253,248,.7);border-radius:999px;padding:5px 11px;font-weight:700;font-size:13px;color:#1E1A17;text-align:left}',
+    /* annonce d'épreuve */
+    '#g .br{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:10px 0}',
+    '#g .br-sl{width:96px;height:96px;border-radius:10px;background:#C8372D;color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 56px Mincho30,serif;transform:rotate(-5deg);box-shadow:0 6px 0 #8f241d;animation:csst .6s .1s cubic-bezier(.3,1.5,.5,1) both}',
+    '#g .br h1{font-size:40px;animation:rise .6s .4s ease-out both}#g .br .kk{animation:rise .6s .3s ease-out both}',
+    '#g .br-li{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;animation:rise .6s .8s ease-out both}',
+    '#g .bp{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;text-align:center;padding:4vw}',
+    '#g .bp-sl{width:11vw;height:11vw;border-radius:1vw;background:#C8372D;color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 6.4vw Mincho30,serif;transform:rotate(-5deg);box-shadow:0 .6vw 0 #8f241d;animation:csst .7s .1s cubic-bezier(.3,1.5,.5,1) both}',
+    '#g .bp h1{font-size:7.4vw;line-height:1.05;animation:rise .7s .5s ease-out both}#g .bp .pk{animation:rise .7s .35s ease-out both}',
+    '#g .bp-li{font-weight:800;font-size:1.9vw;color:#6b5e52;animation:rise .7s .9s ease-out both}#g .bp-sc{margin-top:2vw;animation:rise .7s 1.2s ease-out both}',
     /* projection des cris de guerre */
     '#g .crp-veil{position:absolute;top:0;bottom:0;width:33.4%;background:rgba(15,12,10,.72);opacity:0;transition:opacity .5s}#g .crp-veil.on{opacity:1}',
     '#g .crp{position:absolute;bottom:3em;width:28%;transform:translateX(-50%);background:rgba(244,236,221,.95);color:#1E1A17;border-radius:.4em;padding:1.2em 1.5em 1.1em;border-top:.4em solid var(--c);transition:width .5s cubic-bezier(.2,.9,.25,1.1),opacity .5s,transform .5s;text-align:center}',
@@ -410,6 +430,7 @@
     if (!myName()) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><label class="lab" for="g-name">Ton prénom</label><input id="g-name" maxlength="40" autocomplete="given-name"><button class="btn" data-g="pname">Entrer</button></section>');
     if (!st) return wrap('<h1>…</h1>');
     if (!st.on) return wrap('<h1>La Quête des 30 ans</h1><section class="card"><div class="ser" style="font-size:20px">Le jeu n’a pas encore commencé</div><div class="muted">Garde cette page ouverte, elle se mettra à jour toute seule.</div></section><button class="btn2" data-g="home">Retour à l’accueil</button>');
+    if (bri() !== null) return pBrief(myClan());
     if (st.step === 0 && st.sel && st.sel.mode === 'pick' && st.sel.phase !== 'locked') return pSel();
     var c = myClan();
     if (c && lockMoment()) return pLock(c);
@@ -425,6 +446,12 @@
     if (st.timer && now() < st.timer.end + 1000) head += '<div class="row" style="gap:10px">' + cdBar(st.timer.end, st.timer.dur * 1000) + cd(st.timer.end, 'ser', 'font-size:20px;min-width:52px;text-align:right') + '</div>';
     var body = s === 0 ? pClan(c) : s === 1 ? pRythme(c) : s === 2 ? pSavoir() : s === 4 ? pDestin(c) : pHokage();
     return wrap(head + body);
+  }
+  // Annonce de l'épreuve suivante : son nom, et le joueur écoute le MJ expliquer les règles.
+  function pBrief(c) {
+    var i = bri(), j = c ? jk(c.k) : '';
+    var jkl = c && jokerOk(i) ? (j === 'on' ? '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-color:#1E1A17;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#1E1A17;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé sur cette épreuve</span></div>' : j === 'free' ? '<div class="muted" style="font-size:13px;text-align:center">Joker x2 encore disponible : c’est le moment de l’annoncer au maître du jeu.</div>' : '') : '';
+    return wrap((c ? banner(c, 91, 'vw', { max: 396, style: 'margin:0 auto' }) : '') + '<div class="br"><div class="kk">' + esc(KK[i] || '') + '</div><div class="br-sl">' + (SEAL[i] || '') + '</div><h1>' + esc(STEPN[i]) + '</h1><div class="br-li"><span class="cs-dot"></span>Écoutez le maître du jeu…</div></div>' + jkl);
   }
   /* ---------- choix des clans (téléphone) ---------- */
   function pSel() {
@@ -679,11 +706,11 @@
     // chrono
     h += '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chrono</span>' + (st.timer && now() < st.timer.end ? cd(st.timer.end, 'ser', 'font-size:22px') : '<span class="muted">—</span>') + '</div><div class="row" style="flex-wrap:wrap">' +
       [[30, '0:30'], [45, '0:45'], [90, '1:30'], [600, '10 min']].map(function (x) { return '<button class="chip" data-g="timer" data-s="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '<button class="chip" data-g="timerStop">Stop</button></div></section>';
-    h += [mOuverture, mRythme, mSavoir, mOmbre, mDestin, mBoss, mHokage, mEcho][s]();
+    h += bri() !== null ? mBrief() : [mOuverture, mRythme, mSavoir, mOmbre, mDestin, mBoss, mHokage, mEcho][s]();
     return wrap(h);
   }
   function jokerBtn(c) {
-    var s = jk(c.k), j = st.joker[c.k], ok = jokerOk(st.step);
+    var s = jk(c.k), j = st.joker[c.k], ok = jokerOk(jkStep());
     if (s === 'used') return '<span style="font-size:11px;font-weight:800;color:' + c.ink + ';text-align:center">Joker : ' + esc(STEPS_S[j.step]) + '</span>';
     return '<button class="chip' + (s === 'on' ? ' on' : '') + '" data-g="joker" data-c="' + c.k + '"' + (ok ? '' : ' disabled') + ' style="height:30px;padding:0 10px;' + (s === 'on' ? '' : 'border-color:' + c.ink + ';color:' + c.ink) + (ok ? '' : ';opacity:.45') + '">' + (s === 'on' ? 'x2 actif' : 'Joker x2') + '</button>';
   }
@@ -717,7 +744,16 @@
     h += '<section class="card"><div class="lab">Partie</div><div class="grid2">' + (st.demo ? '' : '<button class="btn2" data-g="on" data-v="' + (st.on ? 0 : 1) + '">' + (st.on ? 'Masquer le jeu' : 'Ouvrir le jeu') + '</button>') + '<button class="btn2" data-g="reset" style="color:#A63A55">' + (mj.resetArm ? 'Confirmer ?' : 'Réinitialiser') + '</button></div><div class="muted" style="font-size:12px">Réinitialiser efface clans, scores et votes (les questions et les photos restent).</div></section>';
     return h + nextBtn();
   }
-  function nextBtn() { var k = ORDER.indexOf(st.step), nx = ORDER[k + 1]; return nx !== undefined ? '<button class="btn" data-g="step" data-i="' + nx + '">Épreuve suivante : ' + esc(STEPN[nx]) + '</button>' : ''; }
+  // « Épreuve suivante » ouvre d'abord l'annonce (sauf pour la Nuit de la Hokage, qui démarre directement).
+  function nextBtn() { var k = ORDER.indexOf(st.step), nx = ORDER[k + 1]; return nx !== undefined ? '<button class="btn" data-g="' + (BRIEF[nx] ? 'brief' : 'step') + '" data-i="' + nx + '">' + (BRIEF[nx] ? 'Annoncer : ' : 'Épreuve suivante : ') + esc(STEPN[nx]) + '</button>' : ''; }
+  function mBrief() {
+    var i = bri(), jkTxt = jokerOk(i) ? CL.filter(function (c) { return jk(c.k) === 'free'; }).map(function (c) { return esc(c.n); }) : [];
+    return '<section class="card"><div class="lab">Annonce · ' + esc(KK[i] || '') + '</div><div class="ser" style="font-size:26px">' + esc(STEPN[i]) + '</div>' +
+      '<div class="muted" style="font-size:12px">Les téléphones et l’écran affichent le nom de l’épreuve. Lis le texte, puis lance l’épreuve.</div>' +
+      '<div style="background:#FBF7F2;border:1.5px solid #e6dccb;border-radius:6px;padding:14px;font-weight:600;font-size:17px;line-height:1.55">' + esc(BRIEF[i] || '') + '</div>' +
+      (jkTxt.length ? '<div style="font-weight:800;font-size:14px">Rappel joker x2 (encore dispo : ' + jkTxt.join(', ') + ') : c’est le moment de l’annoncer. Active-le dans les scores en haut.</div>' : '') +
+      '<button class="btn" data-g="briefGo">Commencer l’épreuve</button><button class="btn2" data-g="briefX">Annuler l’annonce</button></section>';
+  }
   function mRythme() {
     var ry = st.rythme || {}, res = ry.results || {}, songs = ry.songs || {};
     var h = '<section class="card"><div class="row" style="justify-content:space-between"><span class="lab">Chorégraphies</span>' + (st.rLocked ? '<button class="chip" data-g="runlock">Déverrouiller</button>' : '<span class="muted" style="font-size:12px">' + (ry.lockAt ? 'Verrouillage à la fin du chrono' : 'Lance 1:30 : verrouillage à la fin') + '</span>') + '</div>';
@@ -1007,6 +1043,10 @@
     }).join('') + '</div></div>';
   }
 
+  function projBrief() {
+    var i = bri();
+    return { html: '<div class="bp"><div class="pk">' + esc(KK[i] || '') + '</div><div class="bp-sl">' + (SEAL[i] || '') + '</div><h1>' + esc(STEPN[i]) + '</h1><div class="bp-li">Le maître du jeu vous explique les règles</div><div class="bp-sc">' + pScores(false) + '</div></div>', cls: 'peach proj' };
+  }
   // Cris de guerre sur l'image de groupe : une plaque par chef ; le cri mis en avant grandit et s'écrit lettre par lettre.
   function projCris(o) {
     var POS = { foudre: 17, feu: 50, vent: 83 }, spot = o.spot, fresh = spot && o.spotAt && now() - o.spotAt < 6000;
@@ -1070,6 +1110,7 @@
     if (!st) return { html: '', cls: 'peach proj' };
     var s = st.step, h = '', cls = 'peach proj';
     if ((s === 4 || s === 5) && !sanjPre) { sanjPre = new Image(); sanjPre.src = SANJ; ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'village', 'village-bg'].forEach(function (k) { new Image().src = '/sanjubi/' + k + '.webp'; }); } // préchargement avant la bataille
+    if (bri() !== null) return projBrief();
     if (s === 5 && introOn()) return projIntro();
     if (s === 6) return projHokage();
     if (s === 7) return projEcho();
@@ -1308,6 +1349,9 @@
     }
     if (g === 'csgo') { var sp = root.querySelector('.cs-splash'); pl.csGo = true; if (sp) sp.classList.add('off'); syncHtml(); return; }
     if (g === 'csnop') return;
+    if (g === 'brief') { act('brief', { i: +d('i') }); return; }
+    if (g === 'briefGo') { act('briefGo'); return; }
+    if (g === 'briefX') { act('briefCancel'); return; }
     if (g === 'jkinfo') { pl.jkOpen = !pl.jkOpen; lastHtml = ''; draw(); return; }
     if (g === 'criidea') { var cin = document.getElementById('g-cri'), cc = myClan(); if (cin && cc) { cin.value = CRI_IDEAS[cc.k][+d('i')]; cin.focus(); } return; }
     if (g === 'cssel') { csSelect(d('k')); return; }

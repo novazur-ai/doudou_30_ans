@@ -107,6 +107,7 @@ function fresh() {
   const per = (v) => ({ feu: v(), foudre: v(), vent: v() });
   return {
     on: false, step: 0, rev: 0,
+    brief: null, briefAt: 0, // annonce de l'épreuve suivante (le MJ lit les règles avant de la lancer)
     roster: {}, // id -> { name, clan }
     scores: per(() => 0),
     joker: per(() => ({ step: null, at: 0 })), // joker x2 : une épreuve par clan (Rythme à Destin)
@@ -220,7 +221,7 @@ export async function playerView(db, name, now) {
   const r = await roster(db, g);
   const clan = id && r[id] ? r[id].clan : null;
   const out = {
-    on: true, now, step: g.step, rev: g.rev, clan, members: members(r), scores: g.scores, joker: g.joker, timer: g.timer,
+    on: true, now, step: g.step, brief: g.brief, briefAt: g.briefAt, rev: g.rev, clan, members: members(r), scores: g.scores, joker: g.joker, timer: g.timer,
   };
   if (g.step === 0) { out.ouv = { view: g.ouv.view, cri: clan ? (await cris(db))[clan] || '' : '', criBy: clan ? (await crisBy(db))[clan] || '' : '' }; out.sel = selInfo(g, r); out.inRoster = !!(id && r[id]); }
   if (g.step === 1) {
@@ -358,6 +359,11 @@ export async function playerAct(db, path, b, now) {
   return { error: 'not_found' };
 }
 
+function goStep(g, i, now) {
+  g.step = Math.max(0, Math.min(STEPS - 1, i | 0)); g.timer = null; g.brief = null;
+  if (g.step === 6 && g.hokage.view === 'ceremony') g.hokage.viewAt = now;
+}
+
 // ---- Actions du MJ ----
 export async function mjAct(db, b, now) {
   let g = await load(db);
@@ -379,13 +385,17 @@ export async function mjAct(db, b, now) {
       await db.prepare('DELETE FROM gplay').run();
       break;
     }
-    case 'step': g.step = Math.max(0, Math.min(STEPS - 1, b.i | 0)); g.timer = null; if (g.step === 6 && g.hokage.view === 'ceremony') g.hokage.viewAt = now; break;
+    case 'step': goStep(g, b.i, now); break;
+    case 'brief': g.brief = Math.max(0, Math.min(STEPS - 1, b.i | 0)); g.briefAt = now; g.timer = null; break;
+    case 'briefGo': if (g.brief !== null && g.brief !== undefined) goStep(g, g.brief, now); break;
+    case 'briefCancel': g.brief = null; break;
     case 'pts': if (okClan(b.clan)) addPts(g, b.clan, Math.max(-20, Math.min(20, b.d | 0))); break;
     case 'joker': {
-      if (!okClan(b.clan) || !JOKER_STEPS.includes(g.step)) break;
+      const js = g.brief !== null && g.brief !== undefined ? g.brief : g.step; // pendant l'annonce, le joker vise l'épreuve annoncée
+      if (!okClan(b.clan) || !JOKER_STEPS.includes(js)) break;
       const j = g.joker[b.clan];
-      if (j.step === null) { j.step = g.step; j.at = now; }
-      else if (j.step === g.step) { j.step = null; j.at = 0; }
+      if (j.step === null) { j.step = js; j.at = now; }
+      else if (j.step === js) { j.step = null; j.at = 0; }
       break;
     }
     case 'timer': {
