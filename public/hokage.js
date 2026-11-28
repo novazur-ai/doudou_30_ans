@@ -40,6 +40,9 @@
     this.world = new PIXI.Container(); S.addChild(this.world);
     this.bg = PIXI.Sprite.from(opt.monument); this.bg.anchor.set(0.5); this.bg.x = 960; this.bg.y = 540; this.world.addChild(this.bg);
     var fitBg = function () { if (self.dead || !self.bg.texture) return; if (self.bg.texture.width > 1) { var k = Math.max(1920 / self.bg.texture.width, 1080 / self.bg.texture.height); self.bg.scale.set(k); } else setTimeout(fitBg, 60); }; fitBg();
+    // Monument final : la même image avec le visage d'Alessia sculpté (fondu après la gravure)
+    if (opt.monument2) { this.bg2 = PIXI.Sprite.from(opt.monument2); this.bg2.anchor.set(0.5); this.bg2.x = 960; this.bg2.y = 540; this.bg2.alpha = 0; this.world.addChild(this.bg2);
+      var fitBg2 = function () { if (self.dead || !self.bg2.texture) return; if (self.bg2.texture.width > 1) { var k = Math.max(1920 / self.bg2.texture.width, 1080 / self.bg2.texture.height); self.bg2.scale.set(k); } else setTimeout(fitBg2, 60); }; fitBg2(); }
     this.grade = new PIXI.Graphics(); this.world.addChild(this.grade); // voile chaud/sombre
     if (opt.placeholder) { // en attendant l'image du mont : un pan de roche lisse
       var ph = new PIXI.Graphics(); ph.beginFill(0x8a7462, 0.9).drawRoundedRect(SPOT.x - 240, SPOT.y - 250, 480, 500, 40).endFill(); ph.beginFill(0x6e5a4b, 0.6).drawRoundedRect(SPOT.x - 220, SPOT.y - 230, 440, 460, 34).endFill(); this.world.addChild(ph);
@@ -109,6 +112,10 @@
     var ring = new PIXI.Sprite(soft); ring.anchor.set(0.5); ring.x = SPOT.x; ring.y = SPOT.y; ring.width = r * 1.95; ring.height = r * 2.25; f.addChild(ring); this.alive.mask = ring; this.alive.tint = 0xfff0dc;
     var ring2 = new PIXI.Sprite(soft); ring2.anchor.set(0.5); ring2.x = SPOT.x; ring2.y = SPOT.y; ring2.width = r * 2.2; ring2.height = r * 2.5; f.addChild(ring2); this.stoneC.mask = ring2;
     f.alpha = 0;
+    // Balayage de lumière dorée sur la sculpture finale (masque doux autour du visage)
+    this.shine = new PIXI.Container(); this.world.addChildAt(this.shine, this.world.getChildIndex(this.face) + 1);
+    this.shineRay = new PIXI.Sprite(this.TX.ray); this.shineRay.anchor.set(0.5); this.shineRay.rotation = 0.42; this.shineRay.width = 170; this.shineRay.height = 760; this.shineRay.blendMode = PIXI.BLEND_MODES.ADD; this.shineRay.alpha = 0; this.shine.addChild(this.shineRay);
+    var ring3 = new PIXI.Sprite(soft); ring3.anchor.set(0.5); ring3.x = SPOT.x; ring3.y = SPOT.y + 10; ring3.width = r * 2.4; ring3.height = r * 2.9; this.shine.addChild(ring3); this.shineRay.mask = ring3;
     // traits de ciseau : bandes irrégulières qui se révèlent une à une
     this.chisel = []; for (var i = 0; i < 56; i++) this.chisel.push({ y: SPOT.y - r * 1.15 + i * (r * 2.3 / 56), w: rnd(0.9, 1.02), o: rnd(-0.03, 0.03) });
   };
@@ -163,7 +170,7 @@
     if (t >= K.fly) { p.x = lerp(640, SPOT.x, eio(fl)); p.y = lerp(560, SPOT.y + 40, eio(fl)) - Math.sin(fl * Math.PI) * 160; p.scale.set(lerp(1.2, 0.32, eio(fl))); p.rotation = lerp(-0.05, 0.4, fl); p.alpha = 1 - seg(t, K.carve - 250, K.carve); }
     // 5. gravure dans la roche : bandes de ciseau, poussière et éclats
     var cv = seg(t, K.carve, K.carveEnd);
-    this.face.alpha = t >= K.carve - 150 ? 1 : 0;
+    if (!this.bg2) this.face.alpha = t >= K.carve - 150 ? 1 : 0;
     var cm = this.carveMask; cm.clear();
     if (cv > 0) {
       cm.beginFill(0xffffff); var n = this.chisel.length, r = SPOT.r;
@@ -174,9 +181,18 @@
         this.add({ x: SPOT.x + rnd(-r, r), y: row.y, vx: rnd(-160, 160), vy: rnd(-260, -60), g: 1300, life: rnd(800, 1300), sc0: rnd(0.25, 0.45), sc1: 0.2, c: 0x5a4636, add: false });
         if (Math.random() < 0.3) this.shake = Math.max(this.shake || 0, 4); }
     }
-    // 6. la pierre prend vie
-    var al = seg(t, K.alive, K.alive + 1300); this.alive.alpha = 0.92 * eout(al);
-    if (t >= K.alive && !this.done.alive) { this.done.alive = 1; for (var q = 0; q < 70; q++) { var aq = rnd(0, TAU); this.add({ x: SPOT.x + Math.cos(aq) * SPOT.r, y: SPOT.y + Math.sin(aq) * SPOT.r * 1.1, vx: Math.cos(aq) * rnd(60, 260), vy: Math.sin(aq) * rnd(60, 260) - 80, life: rnd(900, 1600), sc0: rnd(0.6, 1.1), c: 0xFFE7A0 }); } }
+    // 6. la poussière retombe : la gravure devient la vraie sculpture (fondu vers le monument final), puis lumière dorée
+    if (this.bg2) {
+      var xf = seg(t, K.alive, K.alive + 1500); this.bg2.alpha = eio(xf); this.face.alpha = t >= K.carve - 150 ? 1 - eio(xf) : 0;
+      if (t >= K.alive && !this.done.alive) { this.done.alive = 1; this.shake = 10;
+        for (var q = 0; q < 46; q++) { var aq = rnd(0, TAU), rq = rnd(0.2, 1.1) * SPOT.r; this.add({ tex: TX.smoke, x: SPOT.x + Math.cos(aq) * rq, y: SPOT.y + Math.sin(aq) * rq * 1.15, vx: Math.cos(aq) * rnd(20, 90), vy: Math.sin(aq) * rnd(10, 60) + 30, g: 25, life: rnd(1500, 2300), sc0: rnd(0.8, 1.3), sc1: rnd(1.8, 2.6), c: 0xd9c4a8, add: false, a: 0.55 }); }
+        for (var q2 = 0; q2 < 40; q2++) this.add({ x: SPOT.x + rnd(-SPOT.r, SPOT.r), y: SPOT.y + rnd(-SPOT.r, SPOT.r), vx: rnd(-200, 200), vy: rnd(-300, -60), g: 1300, life: rnd(800, 1300), sc0: rnd(0.25, 0.5), sc1: 0.2, c: 0x5a4636, add: false }); }
+      var sw = seg(t, K.alive + 1400, K.alive + 2500); this.shineRay.alpha = sw > 0 && sw < 1 ? Math.sin(sw * Math.PI) : 0; this.shineRay.x = lerp(SPOT.x - SPOT.r * 1.6, SPOT.x + SPOT.r * 1.6, eio(sw)); this.shineRay.y = SPOT.y;
+      if (t >= K.alive + 1400 && !this.done.gold) { this.done.gold = 1; for (var g2 = 0; g2 < 60; g2++) { var ag = rnd(0, TAU); this.add({ x: SPOT.x + Math.cos(ag) * SPOT.r * 1.05, y: SPOT.y + Math.sin(ag) * SPOT.r * 1.25, vx: Math.cos(ag) * rnd(40, 200), vy: Math.sin(ag) * rnd(40, 200) - 60, life: rnd(1000, 1700), sc0: rnd(0.5, 1), c: 0xFFE7A0 }); } }
+    } else {
+      var al = seg(t, K.alive, K.alive + 1300); this.alive.alpha = 0.92 * eout(al);
+      if (t >= K.alive && !this.done.alive) { this.done.alive = 1; for (var q = 0; q < 70; q++) { var aq = rnd(0, TAU); this.add({ x: SPOT.x + Math.cos(aq) * SPOT.r, y: SPOT.y + Math.sin(aq) * SPOT.r * 1.1, vx: Math.cos(aq) * rnd(60, 260), vy: Math.sin(aq) * rnd(60, 260) - 80, life: rnd(900, 1600), sc0: rnd(0.6, 1.1), c: 0xFFE7A0 }); } }
+    }
     // 7. le manteau se déploie et flotte au vent
     var ck = seg(t, K.cloak, K.cloak + 1500), pl = this.cloak;
     pl.y = lerp(1120, 170, eback(ck)); pl.x = 150;

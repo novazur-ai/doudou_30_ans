@@ -1423,7 +1423,7 @@
   function loadHokage() {
     if (hokP) return hokP;
     var add = function (src) { return new Promise(function (ok, ko) { var sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); };
-    hokP = (window.PIXI ? Promise.resolve() : add('/vendor/pixi.min.js?v=742')).then(function () { return window.Hokage ? null : add('/hokage.js?v=2'); });
+    hokP = (window.PIXI ? Promise.resolve() : add('/vendor/pixi.min.js?v=742')).then(function () { return window.Hokage ? null : add('/hokage.js?v=3'); });
     return hokP;
   }
   var FWC = { feu: 0xE0532C, foudre: 0x3C7BEA, vent: 0x5E9B47 };
@@ -1434,7 +1434,7 @@
     if (!window.Hokage || !window.PIXI) { loadHokage().then(function () { syncCeremony(); }).catch(function () {}); return; }
     if (!ceremony || ceremony.view !== el) {
       if (ceremony) { ceremony.destroy(); }
-      try { ceremony = new Hokage.Ceremony(el, { monument: '/hokage/monument.webp', photo: '/photo.jpg', kunoichi: '/hokage/kunoichi.webp' }); ceremony.view = el; ceremony.seen = {}; ceremony.at = null; } catch (e) { ceremony = null; return; }
+      try { ceremony = new Hokage.Ceremony(el, { monument: '/hokage/monument.webp', monument2: '/hokage/monument-alessia.webp?v=1', photo: '/photo.jpg', kunoichi: '/hokage/kunoichi.webp' }); ceremony.view = el; ceremony.seen = {}; ceremony.at = null; } catch (e) { ceremony = null; return; }
     }
     var at = (st.hokage && st.hokage.viewAt) || now();
     if (ceremony.at !== at) { ceremony.at = at; ceremony.play(Math.max(0, now() - at)); }
