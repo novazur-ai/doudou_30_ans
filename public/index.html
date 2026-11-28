@@ -341,6 +341,7 @@ function vAdmin(){
    '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Jeu de groupe</h2>'+
    '<button class="btn primary" data-a="gmode" data-r="mj">Console du maître du jeu</button><button class="btn" data-a="gmode" data-r="ecran">Écran de projection</button>'+
    '<button class="btn" data-a="gmode" data-r="mj" data-d="1">Mode démo</button><div class="info">Le mode démo est une partie fictive, séparée de la vraie : personne d’autre ne la voit.</div>'+
+   '<button class="btn" data-a="gmode" data-r="final" data-d="1">Test final (comme Alessia)</button><div class="info">Dans la démo, saute directement au coup final : ton téléphone joue le rôle d’Alessia. Pour voir la cinématique, ouvre l’écran de projection en mode démo sur l’ordinateur.</div>'+
    '<div class="info">'+(db.gameOn?'Le jeu est visible par les invités':'Le jeu est invisible pour les invités')+'</div></section>'+
    '<section class="card" style="padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:22px">Parchemin scellé</h2>'+
    '<div class="info">Remet à zéro le compteur de codes ratés, l’historique affiché sur tous les téléphones et le blocage des essais.</div>'+
@@ -629,6 +630,7 @@ render(false);
 refresh().then(function(ok){if(!ok){ready=true;toast('Connexion impossible, réessaie')}render(false)});
 })();
 </script>
-<script src="/jeu.js?v=28"></script>
+<script src="/finale.js?v=1"></script>
+<script src="/jeu.js?v=29"></script>
 </body>
 </html>

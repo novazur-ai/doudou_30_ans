@@ -203,6 +203,19 @@ async function votes(db, g) {
   for (const row of await playRows(db, 'vote:' + g.destin.c + ':')) out[row.k.split(':')[2]] = row.v;
   return { ...out, ...g.destin.mjVotes };
 }
+// Tapes du Rasengan par clan (pour les 3 flux de chakra sur la projection).
+async function tapsByClan(db, r) {
+  const out = { feu: 0, foudre: 0, vent: 0 };
+  for (const row of await playRows(db, 'tap:')) { const p = r[row.k.slice(4)]; if (p && p.clan) out[p.clan] += +row.v || 0; }
+  return out;
+}
+// Coup final : progression en direct du jeu d'Alessia, lancement, et amis qui donnent leur chakra (écrits par les téléphones).
+async function finRows(db, now) {
+  const out = { live: null, launch: null, ch: [] };
+  for (const row of await playRows(db, 'fin:')) { try { const v = JSON.parse(row.v); if (row.k === 'fin:live') out.live = v; else if (row.k === 'fin:launch') out.launch = v; } catch (_) {} }
+  for (const row of await playRows(db, 'ch:')) { const v = JSON.parse(row.v); if (now - v.t < 2600) out.ch.push(v); }
+  return out;
+}
 async function tapsTotal(db) {
   const r = await db.prepare("SELECT COALESCE(SUM(CAST(v AS INTEGER)),0) AS n FROM gplay WHERE k LIKE 'tap:%'").first();
   return r ? r.n : 0;
@@ -263,7 +276,10 @@ export async function playerView(db, name, now) {
     let mine = 0;
     if (id) { const t = await db.prepare('SELECT v FROM gplay WHERE k=?').bind('tap:' + id).first(); mine = t ? +t.v : 0; }
     const p1 = b.p1 ? { at: b.p1.at, mult: b.p1.mult || 1, dmg: b.p1.dmg, dice: clan && b.p1.dice[clan] ? b.p1.dice[clan] : [], sum: clan && b.p1.sums ? b.p1.sums[clan] : 0 } : null;
-    out.boss = { hp: b.hp, dead: b.dead, deadAt: b.deadAt, intro: b.intro || 0, p1, p2: b.p2 ? { start: b.p2.start, end: b.p2.end, done: !!b.p2.done, per: b.p2.per || 1, dmg: b.p2.dmg } : null, mine };
+    const f = b.fin ? await finRows(db, now) : { launch: null };
+    const L = f.launch, dead = b.dead || !!(L && now >= L.at + 900);
+    out.boss = { hp: dead ? 0 : b.hp, dead, deadAt: L ? L.at + 900 : b.deadAt, intro: b.intro || 0, p1: p1 ? { ...p1, sums: b.p1.sums } : null, p2: b.p2 ? { start: b.p2.start, end: b.p2.end, done: !!b.p2.done, per: b.p2.per || 1, dmg: b.p2.dmg, at: b.p2.at || 0 } : null, mine,
+      fin: b.fin ? { at: b.fin.at, launchAt: L ? L.at : 0 } : null };
   }
   return out;
 }
@@ -280,7 +296,11 @@ export async function fullView(db, now) {
   out.crisBy = await crisBy(db);
   out.selInfo = selInfo(g, r);
   if (g.step === 4) { out.destinVotes = await votes(db, g); out.destinCtx = {}; for (const c of CLANS) out.destinCtx[c] = destinCtx(g.destin, c); }
-  if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) out.tapsLive = await tapsTotal(db);
+  if (g.step === 5 && g.boss.p2 && !g.boss.p2.done) { out.tapsLive = await tapsTotal(db); out.tapsClan = await tapsByClan(db, r); }
+  if (g.step === 5 && g.boss.fin) {
+    out.fin = await finRows(db, now);
+    if (db.demo && !out.fin.launch) { const fake = FAKE.filter((n) => n !== 'Alessia'); if (Math.random() < 0.45) out.fin.ch.push({ n: fake[Math.floor(Math.random() * fake.length)], t: now }); }
+  }
   const ph = await db.prepare('SELECT id FROM photos ORDER BY id').all();
   out.photos = ph.results.map((x) => x.id);
   out.demo = !!db.demo;
@@ -311,6 +331,19 @@ export async function playerAct(db, path, b, now) {
       if (n >= selCap(g, r)) return { error: 'full' };
     }
     await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('pick:' + id, b.clan).run();
+    return { ok: true };
+  }
+  if (path === 'fin' || path === 'finGo') { // coup final : seul le téléphone d'Alessia écrit ici
+    if (g.step !== 5 || !g.boss.fin || id !== 'alessia') return { error: 'closed' };
+    const n = (x, m) => Math.max(0, Math.min(m, Number(x) || 0));
+    const v = { prog: n(b.prog, 1), combo: n(b.combo, 999) | 0, score: n(b.score, 9999999) | 0, seals: n(b.seals, 3) | 0, spin: n(b.spin, 1), phase: ['qte', 'spin', 'launch'].includes(b.phase) ? b.phase : 'qte', maxCombo: n(b.maxCombo, 999) | 0, t: now };
+    if (path === 'fin') { await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('fin:live', JSON.stringify(v)).run(); return { ok: true }; }
+    await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO NOTHING').bind('fin:launch', JSON.stringify({ at: now + 1500, res: v })).run();
+    return { ok: true };
+  }
+  if (path === 'chakra') { // un ami garde le doigt sur la sphère : son prénom part vers Alessia sur la projection
+    if (g.step !== 5 || !g.boss.fin) return { error: 'closed' };
+    await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('ch:' + id, JSON.stringify({ n: name, t: now })).run();
     return { ok: true };
   }
   if (path === 'tap') {
@@ -588,6 +621,31 @@ export async function mjAct(db, b, now) {
       break;
     }
     case 'bossFinal': if (!g.boss.dead) { g.boss.hp = 0; g.boss.dead = true; g.boss.deadAt = now; } break;
+    // Coup final sur le téléphone d'Alessia (QTE), avec secours et rejeu pour le MJ.
+    case 'finStart': g.boss.fin = { at: now }; await db.prepare("DELETE FROM gplay WHERE k LIKE 'fin:%' OR k LIKE 'ch:%'").run(); break;
+    case 'finReset': g.boss.fin = null; g.boss.dead = false; await db.prepare("DELETE FROM gplay WHERE k LIKE 'fin:%' OR k LIKE 'ch:%'").run(); break;
+    case 'finForce': {
+      if (!g.boss.fin) g.boss.fin = { at: now };
+      const f = await finRows(db, now);
+      const res = f.live || { score: 0, maxCombo: 0, prog: 1, seals: 3, spin: 1 };
+      await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('fin:launch', JSON.stringify({ at: now + 1500, res, forced: true })).run();
+      break;
+    }
+    case 'finReplay': {
+      const f = await finRows(db, now);
+      if (f.launch) await db.prepare('INSERT INTO gplay (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v').bind('fin:launch', JSON.stringify({ ...f.launch, at: now + 1500, replay: true })).run();
+      break;
+    }
+    case 'finTest': { // démo uniquement : place la partie juste avant le coup final
+      if (!db.demo) break;
+      await fold();
+      if (!g.roster.alessia) g.roster.alessia = { name: 'Alessia', clan: 'vent' };
+      for (const n of FAKE) if (!g.roster[n.toLowerCase()]) g.roster[n.toLowerCase()] = { name: n, clan: CLANS[Object.keys(g.roster).length % 3] };
+      g.step = 5; g.brief = null; g.timer = null;
+      g.boss = { hp: FINAL_HP, intro: 0, dead: false, deadAt: 0, p1: { dice: { feu: [12], foudre: [9], vent: [15] }, sums: { feu: 600, foudre: 450, vent: 750 }, mult: 50, dmg: 1496, at: now - 60000 }, p2: { start: now - 50000, end: now - 40000, done: true, dmg: 500, cap: 500, per: 2, taps: 250, at: now - 39000 }, fin: { at: now } };
+      await db.prepare("DELETE FROM gplay WHERE k LIKE 'fin:%' OR k LIKE 'ch:%'").run();
+      break;
+    }
     // Écho (Hitster) : le clan qui a pioché a 45 s ; trouvé = 2 pts, sinon un autre clan peut voler la réponse = 1 pt.
     case 'echoStart': if (g.echo.card < ECHO_CARDS) { g.echo.start = now; g.echo.end = now + ECHO_SECS * 1000; } break;
     case 'echoScore': {

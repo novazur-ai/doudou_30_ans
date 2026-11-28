@@ -159,6 +159,22 @@
     '#g .bp-sl{width:11vw;height:11vw;border-radius:1vw;background:#C8372D;color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 6.4vw Mincho30,serif;transform:rotate(-5deg);box-shadow:0 .6vw 0 #8f241d;animation:csst .7s .1s cubic-bezier(.3,1.5,.5,1) both}',
     '#g .bp h1{font-size:7.4vw;line-height:1.05;animation:rise .7s .5s ease-out both}#g .bp .pk{animation:rise .7s .35s ease-out both}',
     '#g .bp-li{font-weight:800;font-size:1.9vw;color:#6b5e52;animation:rise .7s .9s ease-out both}#g .bp-sc{margin-top:2vw;animation:rise .7s 1.2s ease-out both}',
+    /* bataille des 30 queues : arène (projection), attaque du clan, coup final (téléphones) */
+    '#g .arena{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}#g .arena canvas{display:block;width:min(100vw,177.78vh);height:min(56.25vw,100vh)}',
+    '#g .atk{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;background:radial-gradient(circle at 50% 40%,var(--g),var(--c) 55%,#140c0c);animation:atkp 1s ease-in-out infinite alternate}',
+    '#g .atk-j{font-size:30px;color:#fff;line-height:1.15;text-shadow:0 3px 12px rgba(0,0,0,.35)}@keyframes atkp{from{filter:brightness(.92)}to{filter:brightness(1.12)}}',
+    '#g .fv{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(circle at 50% 40%,#3a2414,#09070b 75%);color:#F4ECDD}',
+    '#g .fv h1{color:#F4ECDD;font-size:40px;margin:14px 0 6px}#g .fv p{margin:0;color:#e6d9c2;font-weight:700}',
+    '#g .fv-k{font:800 110px/1 Mincho30,serif;color:#F7C948;text-shadow:0 0 40px rgba(247,201,72,.6);animation:csst .7s .1s cubic-bezier(.3,1.5,.5,1) both}',
+    '#g .fv-fl{position:fixed;inset:0;background:#fff;z-index:5;pointer-events:none;animation:fvfl 1.3s ease-out forwards}@keyframes fvfl{0%{opacity:1}100%{opacity:0}}',
+    '#g .fq{position:fixed;inset:0;z-index:70;background:#09070b}#g .fq canvas{display:block;width:100%;height:100%;touch-action:none}',
+    '#g .fq-ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px calc(28px + env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 30%,#2a1c2e,#09070b 75%);color:#F4ECDD}',
+    '#g .fq-ov h1{color:#F4ECDD;font-size:36px;margin:8px 0 10px}#g .fq-ov ul{margin:0 0 20px;padding-left:18px;color:#e6d9c2;font-weight:700;font-size:15px}#g .fq-ov li{margin-bottom:6px}',
+    '#g .fq-sl{width:84px;height:84px;border-radius:10px;background:#C8372D;color:#FBF3E6;display:flex;align-items:center;justify-content:center;font:800 46px Mincho30,serif;transform:rotate(-5deg);box-shadow:0 5px 0 #8f241d;margin-bottom:18px}',
+    '#g .fh{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:10px;background:radial-gradient(circle at 50% 35%,#1d2740,#09070b 75%);color:#F4ECDD}',
+    '#g.dark h1,#g.dark h2{color:#F4ECDD}#g .fh h2{margin:0;font:800 28px/1.1 Mincho30,serif;color:#F4ECDD}#g .fh p{margin:0;color:#bdae95;font-weight:700}',
+    '#g .fh-b{position:relative;width:220px;height:220px;margin:18px 0;border-radius:50%;border:0;background:radial-gradient(circle at 40% 35%,#fff,#9fd3ff 30%,#2f6fe0 70%,#14204a);box-shadow:0 0 40px rgba(127,212,255,.45);color:#fff;font:800 22px Mincho30,serif;touch-action:none;transition:transform .15s,box-shadow .15s;-webkit-user-select:none;user-select:none}',
+    '#g .fh-b.on{transform:scale(1.08);box-shadow:0 0 90px rgba(127,212,255,.9)}#g .fh-b svg{position:absolute;inset:-14px;width:248px;height:248px;transform:rotate(-90deg);pointer-events:none}#g .fh-b span{pointer-events:none}',
     /* projection des cris de guerre */
     '#g .crp-veil{position:absolute;top:0;bottom:0;width:33.4%;background:rgba(15,12,10,.72);opacity:0;transition:opacity .5s}#g .crp-veil.on{opacity:1}',
     '#g .crp{position:absolute;bottom:3em;width:28%;transform:translateX(-50%);background:rgba(244,236,221,.95);color:#1E1A17;border-radius:.4em;padding:1.2em 1.5em 1.1em;border-top:.4em solid var(--c);transition:width .5s cubic-bezier(.2,.9,.25,1.1),opacity .5s,transform .5s;text-align:center}',
@@ -216,7 +232,8 @@
 
   function now() { return Date.now() + off; }
   function demo() { return A.sess.get(A.KX) === '1'; }
-  function myName() { return A.me() || (demo() ? 'Théo' : ''); }
+  function myName() { return pl.forceName || A.me() || (demo() ? 'Théo' : ''); }
+  function isPlayer() { return mode === 'jeu' || mode === 'final'; }
   function ico(c, size, stroke) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + (stroke || c.ink) + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + c.p + '"/></svg>'; }
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   function cdu(end, cls, style) { return '<span data-cd="' + end + '" data-urg="1" class="' + (cls || '') + (end - now() <= 10000 && end > now() ? ' urg' : '') + '" style="' + (style || '') + '">' + mmss(end - now()) + '</span>'; }
@@ -343,18 +360,20 @@
       root.addEventListener('click', onClick); root.addEventListener('pointerdown', onDown);
       root.addEventListener('change', onChange);
     }
-    loadFx(); lastHtml = ''; draw(); poll();
+    pl.forceName = r === 'final' ? 'Alessia' : '';
+    loadFx(); lastHtml = ''; draw();
+    if (r === 'final') req('/api/game/act', { method: 'POST', body: { type: 'finTest' }, auth: true }).then(poll).catch(function (er) { A.toast(A.errMsg(er)); }); else poll();
     clearInterval(pollT); pollT = setInterval(function () { if (!document.hidden) poll(); }, r === 'ecran' ? 1000 : 1500);
     clearInterval(tickT); tickT = setInterval(tick, 250);
   }
   function hide() {
-    mode = null; clearInterval(pollT); clearInterval(tickT); musicKey = ''; var mb = document.getElementById('gmusic'); if (mb) mb.remove();
+    mode = null; pl.forceName = ''; if (pl.qte) { pl.qte.destroy(); pl.qte = null; } if (arena) { arena.destroy(); arena = null; } clearInterval(pollT); clearInterval(tickT); musicKey = ''; var mb = document.getElementById('gmusic'); if (mb) mb.remove();
     if (root) { root.remove(); root = null; }
   }
   function poll() {
     if (busy || !mode) return;
     busy = true;
-    var p = mode === 'jeu' ? req('/api/game?me=' + encodeURIComponent(myName())) : req('/api/game/full', { auth: true });
+    var p = isPlayer() ? req('/api/game?me=' + encodeURIComponent(myName())) : req('/api/game/full', { auth: true });
     p.then(function (s) { busy = false; setState(s); })
       .catch(function (er) { busy = false; if (er && er.status === 401) { A.go('orga-acces'); } });
   }
@@ -362,11 +381,15 @@
     if (!s || !mode) return;
     if (s.now) off = s.now - Date.now();
     st = s;
-    if (mode === 'jeu' && s.on && myName() && pl.joined !== myName()) {
+    if (isPlayer() && s.on && myName() && pl.joined !== myName()) {
       pl.joined = myName();
       req('/api/game/join', { method: 'POST', body: { name: myName() } }).then(poll).catch(function () { pl.joined = ''; });
     }
+    // flash blanc synchronisé sur tous les téléphones à l'impact du coup final
+    var fb = isPlayer() && s.step === 5 && s.boss && s.boss.fin;
+    if (fb && fb.launchAt && pl.flashKey !== fb.launchAt) { pl.flashKey = fb.launchAt; var wait = fb.launchAt + 900 - now(); if (wait > 0) setTimeout(function () { lastHtml = ''; draw(); }, wait + 15); }
     draw();
+    syncArena();
   }
   function draw() {
     if (!root || !mode) return;
@@ -384,12 +407,12 @@
     Object.keys(keep).forEach(function (id) { var e = document.getElementById(id); if (e && e.type !== 'file') e.value = keep[id]; });
     if (active) { var e = document.getElementById(active); if (e) e.focus(); }
     root.scrollTop = y;
-    if (mode === 'ecran') fxHook();
+    if (mode === 'ecran') { fxHook(); syncArena(); }
   }
   // Après une animation faite directement dans le DOM : mémorise le rendu équivalent pour ne pas tout redessiner.
   function syncHtml() { lastHtml = build().html; }
   function build() {
-    var r = mode === 'jeu' ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
+    var r = isPlayer() ? vPlayer() : mode === 'mj' ? vMJ() : vProj();
     if (demo()) r.html += '<div class="gdemo" style="position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 12px Gothic30,Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap">' +
       '<span style="color:#F7E6A8;letter-spacing:.08em">DÉMO</span>' + [['mj', 'Console'], ['jeu', 'Joueur'], ['ecran', 'Écran']].map(function (x) { return '<a href="#' + x[0] + '" style="color:' + (mode === x[0] ? '#F7E6A8' : '#fff') + ';text-decoration:none">' + x[1] + '</a>'; }).join('') +
       '<button data-g="demoquit" style="border:0;background:#fff;color:#1E1A17;border-radius:999px;height:26px;padding:0 10px;font:800 12px Gothic30,Nunito,sans-serif">Quitter</button></div>';
@@ -403,7 +426,7 @@
     root.querySelectorAll('[data-cdbar]').forEach(function (e) { e.style.width = Math.max(0, Math.min(100, (+e.getAttribute('data-cdbar') - t) / +e.getAttribute('data-dur') * 100)) + '%'; });
     // ré-affichages liés au temps (dés, fin de chrono, rasengan, diaporama)
     if (st && (needsTimeRedraw(t))) { lastHtml = ''; draw(); }
-    if (mode === 'jeu') flushTaps();
+    if (isPlayer()) { flushTaps(); finTick(); }
   }
   var lastPhase = '';
   function needsTimeRedraw(t) {
@@ -412,11 +435,16 @@
     if (st.step === 5 && st.boss && st.boss.intro) ph += 'i' + (introOn() ? 1 : 0);
     if (st.step === 7 && st.echo) ph += 'e' + (st.echo.start ? (t > st.echo.end ? 2 : 1) : 0);
     if (st.step === 4 && st.destin) ph += 'd' + (st.destin.shownAt && t - st.destin.shownAt < 7200 ? 1 : 0) + (st.destin.voteEnd && t > st.destin.voteEnd ? 'v' : '');
-    if (st.step === 5 && st.boss) {
+    if (st.step === 5 && st.boss && mode !== 'ecran') {
       var b = st.boss, p2 = b.p2;
       ph += 'b' + (b.p1 && b.p1.at && t - b.p1.at < 1600 ? 1 : 0) + (p2 ? (t < p2.start ? 'w' : t < p2.end ? 'r' : 'e') : '') + (b.dead && b.deadAt && t - b.deadAt < 2600 ? 'x' : '');
     }
     if (st.step === 0) ph += 'L' + (lockMoment() ? 1 : 0) + (st.ouv && st.ouv.spotAt && t - st.ouv.spotAt < 6000 ? 's' : '');
+    if (st.step === 5 && st.boss && mode !== 'ecran') {
+      var bp = st.boss.p1, bf = st.boss.fin;
+      if (bp && bp.sums && window.Finale) { var t1 = t - bp.at, wi = Math.floor(t1 / Finale.CLMS), wt = t1 - wi * Finale.CLMS; ph += 'w' + (t1 < 0 || wi > 2 ? 'x' : wi + (wt < 1700 ? 'a' : wt < 2600 ? 'b' : wt < 4300 ? 'c' : 'd')); }
+      if (bf) ph += 'F' + (bf.launchAt ? (t >= bf.launchAt + 900 ? 2 : 1) : 0);
+    }
     if (st.timer) ph += 't' + (t > st.timer.end ? 1 : 0);
     if (st.step === 6 && st.hokage && st.hokage.view === 'slides') ph += 'h' + hokCur();
     if (ph !== lastPhase) { lastPhase = ph; return true; }
@@ -439,6 +467,7 @@
     if (s === 3) return pOmbre(c);
     if (s === 7) return pEcho(c);
     if (s === 4) return pDestin(c);
+    if (s === 5 && st.boss && st.boss.fin) return pFinal(c);
     if (s === 5) { var p2 = st.boss && st.boss.p2; if (p2 && !p2.done && now() < p2.end + 800) return pRasengan(c, p2); return pBoss(c); }
     var head = '<div class="hd"><div><div class="kk">' + esc(KK[s] || '') + '</div><h1>' + esc(STEPN[s]) + '</h1></div><div class="vk">' + (VK[s] || '') + '</div></div>' + banner(c, 91, 'vw', { max: 396, style: 'margin:-2px auto 2px' });
     if (jk(c.k) === 'on' && jokerOk(s)) head += '<div class="card" style="flex-direction:row;align-items:center;gap:10px;background:#1E1A17;color:#fff;border-color:#1E1A17;padding:10px 14px"><span class="ser" style="background:#F7E6A8;color:#1E1A17;border-radius:10px;padding:4px 10px">x2</span><span style="font-weight:800">Joker activé : vos points comptent double</span></div>';
@@ -653,14 +682,69 @@
     var b = st.boss || {};
     var dying = b.dead && b.deadAt && now() - b.deadAt < 2600;
     var txt = b.dead ? 'Alessia a terrassé Sanjûbi !' : b.p2 && b.p2.done ? 'Le coup final revient à Alessia…' : b.p1 ? 'Préparez-vous pour le Rasengan collectif' : 'Les clans attaquent Sanjûbi';
-    var p1 = b.p1, rolling = p1 && p1.at && now() - p1.at < 1600, mine = '';
+    var p1 = b.p1, mine = '', FN = window.Finale, ord = p1 && p1.sums && FN ? FN.clanOrder(p1.sums) : [], wi = ord.indexOf(c.k);
+    var tw = p1 ? now() - (p1.at + Math.max(0, wi) * (FN ? FN.CLMS : 6000)) : -1, rolling = !!p1 && tw < 1700;
+    if (p1 && !b.dead && wi >= 0 && tw >= 0 && tw < 4300) return pAttack(c, p1, tw);
+    var ai = p1 && FN ? Math.floor((now() - p1.at) / FN.CLMS) : -1;
+    if (p1 && ai >= 0 && ai <= 2 && ord[ai] !== c.k && !(b.p2)) txt = 'Le ' + clanName(ord[ai]) + ' attaque…';
     if (p1 && !b.dead) mine = '<div style="width:100%;background:' + c.bg + ';color:#1E1A17;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center"><div class="lab" style="color:' + c.ink + '">Attaques du clan · chakra ×' + p1.mult + '</div><div class="row" style="gap:4px;flex-wrap:wrap;justify-content:center">' + p1.dice.map(function (x) { return d20s(x, '42px', rolling); }).join('') + '</div><div class="ser" style="font-size:26px">' + (rolling ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div></div>';
     if (b.intro && now() - b.intro < 25500 && !b.p1) return { cls: 'dark', html: '<div class="full" style="background:#1d1626;gap:16px"><img src="/sanjubi/face.webp" alt="" style="width:150px;height:150px;border-radius:50%;object-fit:cover;filter:brightness(.7);animation:pop .6s ease-out both"><div class="ser" style="font-size:28px">Regardez l’écran…</div></div>' };
     if (b.dead && !dying) return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center;justify-content:center;gap:18px">' + faceImg(200, true) + '<div style="font-family:Mincho30,Georgia,serif;font-size:72px;font-weight:700;color:#F7E6A8;line-height:1;animation:pop .6s ease-out both">Vaincu !</div><div class="ser" style="font-size:22px;line-height:1.35">Alessia a terrassé Sanjûbi</div><div style="font-size:17px;font-weight:700;color:#e6d9c2;line-height:1.45;animation:fadeup .6s .8s both">Regardez l’écran : la cérémonie du Hokage va commencer…</div></div>' };
     return { cls: 'dark', html: '<div class="w" style="align-items:center;text-align:center"><div class="hd" style="width:100%"><h1>Sanjûbi</h1></div>' + banner(c, 91, 'vw', { max: 396 }) +
       faceImg(p1 ? 170 : 240, false, 'boss' + (dying ? ' boom' : '')) + mine +
-      '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#e6d9c2"><span>POINTS DE VIE</span><span>' + fmt(b.hp) + ' / 2 026</span></div>' + hpBar(b.hp) + '</div>' +
+      '<div style="width:100%;display:flex;flex-direction:column;gap:8px"><div class="row" style="justify-content:space-between;font-weight:800;color:#e6d9c2"><span>POINTS DE VIE</span><span>' + fmt(hpNow(b)) + ' / 2 026</span></div>' + hpBar(hpNow(b)) + '</div>' +
       '<div class="ser" style="font-size:22px;line-height:1.3">' + txt + '</div></div>' };
+  }
+  // PV affichés sur les téléphones, au rythme des impacts de la projection.
+  function hpNow(b) {
+    var FN = window.Finale; if (!FN || !b.p1 || !b.p1.sums) return b.hp;
+    var ord = FN.clanOrder(b.p1.sums), tot = 0, hp = 2026, T = now();
+    ord.forEach(function (k) { tot += b.p1.sums[k] || 0; });
+    ord.forEach(function (k, i) { if (T >= b.p1.at + i * FN.CLMS + 2600) hp -= Math.round(b.p1.dmg * (b.p1.sums[k] || 0) / (tot || 1)); });
+    if (b.p2 && b.p2.done && T >= (b.p2.at || 0) + 1100) hp -= b.p2.dmg;
+    return b.dead ? 0 : Math.max(Math.min(hp, 2026), b.hp);
+  }
+  // Pendant l'attaque de son clan, le téléphone s'allume à la couleur du clan (dés, jutsu, dégâts).
+  function pAttack(c, p1, tw) {
+    var K = window.Finale.CLAN[c.k], roll = tw < 1700;
+    return { cls: 'dark', html: '<div class="atk" style="--c:' + K.c + ';--g:' + K.g + '"><div class="kk" style="color:#fff">' + K.s + ' · Votre clan attaque !</div><div class="ser atk-j">' + esc(K.j) + '</div>' +
+      '<div class="row" style="gap:6px;flex-wrap:wrap;justify-content:center;max-width:360px">' + p1.dice.map(function (x) { return d20s(x, '50px', roll); }).join('') + '</div>' +
+      '<div class="ser" style="font-size:44px;color:#fff">' + (roll ? '…' : '−' + fmt(p1.sum) + ' PV') + '</div><div style="font-weight:800;color:rgba(255,255,255,.85)">Regardez l’écran !</div></div>' };
+  }
+  // Coup final : Alessia joue (QTE façon osu!), les autres donnent leur chakra ; flash blanc et victoire à l'impact.
+  function pFinal(c) {
+    var f = st.boss.fin, T = now(), isA = myName().trim().toLowerCase() === 'alessia', imp = f.launchAt ? f.launchAt + 900 : 0;
+    if (imp && T >= imp) return { cls: 'dark', html: '<div class="fv">' + (T - imp < 1500 ? '<div class="fv-fl"></div>' : '') + '<div class="fv-k">勝</div><h1>Victoire !</h1><p>Sanjûbi est vaincu. Regardez l’écran…</p></div>' };
+    if (isA) {
+      if (f.launchAt) return { cls: 'dark', html: '<div class="fv"><div class="fv-k" style="color:#7FD4FF;text-shadow:0 0 40px rgba(127,212,255,.6)">見</div><h1>Rasen-shuriken lancé !</h1><p>Regarde l’écran…</p></div>' };
+      return { cls: 'dark', html: '<div class="fq"><canvas id="fq-cv" aria-label="Jeu de rythme du coup final"></canvas><div class="fq-ov" id="fq-ov"><div class="fq-sl">決</div><div class="kk" style="color:#f0a090">決戦 · Le coup final</div><h1>Alessia, le village compte sur toi.</h1>' +
+        '<ul><li>Touche les cercles quand l’anneau se referme dessus. Commence par les 3 sceaux d’incantation.</li><li>Tourne ton doigt autour du cercle pour charger le Rasen-shuriken.</li><li>Glisse vers le haut pour le lancer sur Sanjûbi.</li></ul><button class="btn" style="width:100%" data-g="fqgo">Je suis prête</button></div></div>' };
+    }
+    return { cls: 'dark', html: '<div class="fh"><div class="kk" style="color:#f0a090">決戦 · Le coup final</div><h2>Donnez votre chakra à Alessia</h2><p>Garde le doigt appuyé sur la sphère</p>' +
+      '<button class="fh-b" id="fh-b" aria-label="Maintenir pour donner son chakra"><svg viewBox="0 0 248 248" aria-hidden="true"><circle cx="124" cy="124" r="118" fill="none" stroke="rgba(244,236,221,.15)" stroke-width="8"/><circle id="fh-r" cx="124" cy="124" r="118" fill="none" stroke="#F7E6A8" stroke-width="8" stroke-linecap="round" stroke-dasharray="741.4" stroke-dashoffset="741.4"/></svg><span>Chakra</span></button>' +
+      '<p id="fh-n" style="color:#7FD4FF">Alessia prépare son attaque…</p></div>' };
+  }
+  function fqStart() {
+    var cv = document.getElementById('fq-cv'), ov = document.getElementById('fq-ov'); if (!cv || !window.Finale) return;
+    if (ov) ov.style.display = 'none';
+    if (pl.qte) pl.qte.destroy();
+    var phase = function (s) { return s === 'notes' ? 'qte' : s === 'spin' ? 'spin' : 'launch'; };
+    pl.finSent = 0;
+    pl.qte = new Finale.QTE(cv, { onEvent: function (type, r, state) {
+      var body = { name: myName(), prog: state === 'notes' ? r.done / r.total : 1, combo: r.combo, score: r.score, seals: r.seals, spin: r.spin, phase: phase(state), maxCombo: r.maxCombo };
+      if (type === 'launch') { req('/api/game/finGo', { method: 'POST', body: body }).then(poll).catch(function () { setTimeout(function () { req('/api/game/finGo', { method: 'POST', body: body }).then(poll); }, 800); }); return; }
+      if (Date.now() - pl.finSent > 450 || type === 'spinStart' || type === 'launchReady') { pl.finSent = Date.now(); req('/api/game/fin', { method: 'POST', body: body }).catch(function () {}); }
+    } });
+    pl.qte.start();
+  }
+  // Chaque 250 ms côté téléphone : chakra donné par les amis, ménage du QTE.
+  function finTick() {
+    if (pl.qte && !pl.qte.cv.isConnected) { pl.qte.destroy(); pl.qte = null; }
+    var ring = document.getElementById('fh-r'); if (!ring) { pl.holding = false; return; }
+    var t = Date.now(); pl.gave = Math.min(1, (pl.gave || 0) + (pl.holding ? (t - (pl.gaveT || t)) / 6000 : 0)); pl.gaveT = t;
+    ring.style.strokeDashoffset = (741.4 * (1 - pl.gave)).toFixed(1);
+    var nt = document.getElementById('fh-n'); if (nt) nt.textContent = pl.gave > 0 ? Math.round(pl.gave * 100) + ' % de ton chakra donné' : 'Alessia prépare son attaque…';
+    if (pl.holding && t - (pl.chSent || 0) > 1500) { pl.chSent = t; req('/api/game/chakra', { method: 'POST', body: { name: myName() } }).catch(function () {}); }
   }
   // Portrait de Sanjûbi sur les téléphones ; version grise et fissurée après la victoire.
   function faceImg(w, beaten, cls) {
@@ -840,8 +924,16 @@
       h += '</section>';
     }
     if (p2 && p2.done) {
-      h += b.dead ? '<section class="card" style="align-items:center;background:#1E1A17;color:#fff;border:0"><div style="font-family:Mincho30,Georgia,serif;font-size:48px;color:#F7E6A8">Vaincu !</div></section>' + nextBtn()
-        : '<section class="card" style="align-items:center;gap:14px;background:#1E1A17;color:#fff;border:0;padding:22px 16px"><div class="ser" style="font-size:20px">Tends le téléphone à Alessia</div><button data-g="bfinal" aria-label="Coup final" style="width:200px;height:200px;border-radius:50%;border:6px solid #F4C6D3;background:#C8372D;color:#fff;font-family:Mincho30,Georgia,serif;font-weight:700;font-size:24px;line-height:1.15;animation:pulse 1.6s ease-in-out infinite">Coup<br>final</button></section>';
+      var fn = b.fin, fr = st.fin || {}, lv = fr.live, la = fr.launch, dark = 'background:#1E1A17;color:#fff;border:0;';
+      if (!fn && b.dead) h += '<section class="card" style="align-items:center;' + dark + '"><div style="font-family:Mincho30,Georgia,serif;font-size:48px;color:#F7E6A8">Vaincu !</div></section>' + nextBtn();
+      else if (!fn) h += '<section class="card" style="' + dark + 'gap:12px"><div class="lab" style="color:#f0a090">Le coup final</div><div class="ser" style="font-size:22px">Au tour d’Alessia</div>' +
+        '<div style="font-size:14px;font-weight:600;color:#e6d9c2">Sur son téléphone : les 3 sceaux, le rythme façon osu!, le spinner, puis elle glisse vers le haut pour lancer le Rasen-shuriken. Les autres gardent le doigt sur la sphère pour lui donner leur chakra.</div>' +
+        '<button class="btn" data-g="finstart">Lancer le coup final</button></section>';
+      else if (!la) h += '<section class="card" style="' + dark + 'gap:10px"><div class="lab" style="color:#f0a090">Le coup final · en cours</div>' +
+        (lv ? '<div class="ser" style="font-size:22px">' + (lv.phase === 'qte' ? 'Rythme · ' + Math.round(lv.prog * 100) + ' %' : lv.phase === 'spin' ? 'Spinner · chakra ' + Math.round(lv.spin * 100) + ' %' : 'Prête à lancer !') + '</div><div style="font-weight:700;color:#7FD4FF">' + fmt(lv.score) + ' pts · combo ' + lv.combo + '</div>' : '<div style="font-weight:700;color:#e6d9c2">En attente : Alessia doit toucher « Je suis prête » sur son téléphone (prénom « Alessia »).</div>') +
+        '<button class="btn2" data-g="finforce">Secours : lancer l’attaque à sa place</button><button class="chip" style="align-self:flex-start;background:transparent;color:#bdae95;border-color:#5a4f45" data-g="finreset">' + (mj.finArm ? 'Confirmer ?' : 'Recommencer le coup final') + '</button></section>';
+      else h += '<section class="card" style="' + dark + 'gap:10px;align-items:center;text-align:center"><div class="ser" style="font-size:26px;color:#F7E6A8">Rasen-shuriken lancé !</div><div style="font-weight:700;color:#e6d9c2">' + (la.forced ? 'Lancé par le secours' : fmt(la.res.score) + ' pts · combo max ' + la.res.maxCombo) + ' · la Nuit de la Hokage démarre seule à la fin de la cinématique.</div>' +
+        '<button class="btn2" data-g="finreplay">Rejouer la cinématique</button><button class="chip" style="background:transparent;color:#bdae95;border-color:#5a4f45" data-g="finreset">' + (mj.finArm ? 'Confirmer ?' : 'Recommencer le coup final') + '</button></section>' + nextBtn();
     }
     return h;
   }
@@ -1222,36 +1314,18 @@
       setTimeout(function () { var w = root && root.querySelector('[data-introwrap]'); if (!w || !introOn()) return; fx(w, x[1], { size: 300 }); w.style.animation = 'none'; void w.offsetWidth; w.style.animation = 'ishake .5s ease-out'; }, x[0] - el);
     });
   }
-  function projBoss() {
-    var b = st.boss, t = now(), p2 = b.p2;
-    var dying = b.dead && b.deadAt && t - b.deadAt < 2600;
-    var rolling = b.p1 && b.p1.at && t - b.p1.at < 1600;
-    var hit = b.p1 && b.p1.at && t - b.p1.at >= 1600 && t - b.p1.at < 2200;
-    var right;
-    if (b.dead && !dying) right = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vw;flex:1;text-align:center;animation:pop .8s ease-out both"><div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:11vw;color:#F7E6A8;line-height:1">Vaincu !</div><div class="ser" style="font-size:3vw">Alessia a terrassé Sanjûbi</div></div>';
-    else {
-      var liveDmg = p2 && !p2.done ? Math.min(p2.cap || 0, (st.tapsLive || 0) * (p2.per || 1)) : 0, hpNow = b.hp - liveDmg;
-      right = '<div style="display:flex;flex-direction:column;gap:.8vw"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="pk" style="color:#e6d9c2">Points de vie</span><span class="ser" style="font-size:3.4vw">' + fmt(hpNow) + ' <span style="font-size:1.8vw;color:#e6d9c2">/ 2 026</span></span></div>' + hpBar(hpNow, 26) + '</div>';
-      if (p2 && !p2.done) {
-        var wait = t < p2.start, run = t < p2.end;
-        var frac = p2.cap ? Math.min(1, liveDmg / p2.cap) : 0;
-        right += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vw;text-align:center"><div class="row" style="gap:2vw;align-items:center"><div class="pk" style="color:#e6d9c2">Phase 2 · Rasengan collectif · 1 tape = ' + fmt(p2.per || 1) + ' dégâts</div>' + (run ? '<div class="pclock" style="background:#fff;color:#1E1A17;font-size:2.6vw;padding:.3vw 1.2vw">' + cd(wait ? p2.start : p2.end) + '</div>' : '') + '</div>' +
-          '<div style="height:24vw;display:flex;align-items:center;justify-content:center">' + orb((6 + 18 * frac).toFixed(1) + 'vw', run ? '.5s' : '3s') + '</div>' +
-          '<div class="ser" style="font-size:2.6vw">' + (wait ? 'Préparez vos doigts…' : run ? 'Tapez tous !' : 'Terminé !') + ' · ' + fmt(st.tapsLive || 0) + ' tapes · <span style="color:#F7E6A8">−' + fmt(liveDmg) + '</span></div></div>';
-      } else if (b.p1) {
-        var mult = b.p1.mult || 1;
-        right += '<div class="row" style="justify-content:space-between"><span class="pk" style="color:#e6d9c2">Phase 1 · toutes les attaques en même temps</span><span class="pill" style="background:#F7E6A8;color:#1E1A17;font-size:1.4vw;padding:.3vw 1vw">Chakra ×' + mult + '</span></div><div style="display:flex;flex-direction:column;gap:1vw">' + CL.map(function (c) {
-          var dice = b.p1.dice[c.k], sum = b.p1.sums ? b.p1.sums[c.k] : dice.reduce(function (a, x) { return a + x; }, 0);
-          return '<div class="row" style="gap:1.4vw;padding:.8vw 1.6vw;border-radius:1.6vw;background:' + c.bg + ';color:#1E1A17"><span class="ser" style="width:8vw;font-size:2.2vw">' + esc(c.n) + '</span><div class="row" style="gap:.4vw;flex:1;flex-wrap:wrap">' +
-            dice.map(function (x) { return d20s(x, '4vw', rolling); }).join('') +
-            '</div><span class="ser" style="font-size:2.4vw;white-space:nowrap">' + (rolling ? '' : '−' + fmt(sum)) + '</span></div>';
-        }).join('') + '</div>' + (p2 && p2.done && !b.dead ? '<div class="ser" style="font-size:2.2vw;color:#F7E6A8">Rasengan : ' + fmt(p2.taps || 0) + ' tapes × ' + fmt(p2.per || 1) + ' = −' + fmt(p2.dmg) + ' · Plus que ' + fmt(b.hp) + ' PV : le coup final revient à Alessia !</div>' : '');
-      } else right += '<div style="flex:1;display:flex;align-items:center"><div class="ser" style="font-size:3.4vw;line-height:1.3">Sanjûbi menace le village.<br>Les clans se préparent à l’attaque…</div></div>';
+  // Bataille des 30 queues : toute la projection est dessinée par l'arène (public/finale.js) sur un canvas qui ne change pas.
+  function projBoss() { return { html: '<div class="arena"><canvas id="arena-cv" aria-label="La Bataille des 30 queues"></canvas></div>', cls: 'dark proj' }; }
+  var arena = null;
+  function syncArena() {
+    var on = mode === 'ecran' && st && st.step === 5 && bri() === null && !introOn() && window.Finale;
+    var el = on && document.getElementById('arena-cv');
+    if (!el) { if (arena) { arena.destroy(); arena = null; } return; }
+    if (!arena || arena.cv !== el) {
+      if (arena) arena.destroy();
+      arena = new Finale.Arena(el, { now: now, sanj: SANJ, bg: '/sanjubi/village-bg.webp', portrait: '/clans/alessia-portrait.webp', onEnd: function () { if (st && st.step === 5 && mode === 'ecran') act('step', { i: 6 }); } });
     }
-    var flash = dying && t - st.boss.deadAt < 900 ? '<div style="position:absolute;inset:0;background:#fff;animation:flash .9s ease-out forwards;pointer-events:none"></div>' : '';
-    return { cls: 'dark proj', html: '<div aria-hidden="true" style="position:absolute;inset:0;background:#231c33 url(/sanjubi/village-bg.webp) center/cover"></div><div class="pw" style="flex-direction:row;gap:4vw;align-items:stretch;position:relative;z-index:1"><div style="' + (b.dead && !dying ? 'display:none;' : '') + 'width:40vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw">' +
-      (b.dead && !dying ? '' : bossImg('boss' + (dying ? ' boom' : hit ? ' hit' : '')) + '<div style="font-family:Mincho30,Georgia,serif;font-weight:700;font-size:5vw;line-height:1">Sanjûbi</div><div class="pk" style="color:#e6d9c2">Le démon à 30 queues</div>') + '</div>' +
-      '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2vw">' + right + '</div></div>' + flash };
+    arena.update(st);
   }
   function hokCur() {
     var h = st.hokage || {}, n = (st.photos || []).length, d = (h.dur || 5) * 1000;
@@ -1316,6 +1390,8 @@
 
   /* ---------- interactions ---------- */
   function onDown(e) {
+    var fh = e.target.closest('#fh-b');
+    if (fh) { e.preventDefault(); pl.holding = true; pl.gaveT = Date.now(); fh.classList.add('on'); var stop = function () { pl.holding = false; fh.classList.remove('on'); window.removeEventListener('pointerup', stop); window.removeEventListener('pointercancel', stop); }; window.addEventListener('pointerup', stop); window.addEventListener('pointercancel', stop); return; }
     var hb = e.target.closest('[data-g="ohold"]');
     if (hb) { e.preventDefault(); var hv = document.getElementById('g-hold'); if (hv) { hv.style.display = 'flex'; var up = function () { hv.style.display = 'none'; window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); }; window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up); } return; }
     var b = e.target.closest('[data-g="tap"]');
@@ -1349,6 +1425,11 @@
     }
     if (g === 'csgo') { var sp = root.querySelector('.cs-splash'); pl.csGo = true; if (sp) sp.classList.add('off'); syncHtml(); return; }
     if (g === 'csnop') return;
+    if (g === 'fqgo') { fqStart(); return; }
+    if (g === 'finstart') { act('finStart'); return; }
+    if (g === 'finforce') { act('finForce'); return; }
+    if (g === 'finreplay') { act('finReplay'); return; }
+    if (g === 'finreset') { if (mj.finArm) { mj.finArm = false; act('finReset'); } else { mj.finArm = true; lastHtml = ''; draw(); setTimeout(function () { mj.finArm = false; lastHtml = ''; draw(); }, 3000); } return; }
     if (g === 'brief') { act('brief', { i: +d('i') }); return; }
     if (g === 'briefGo') { act('briefGo'); return; }
     if (g === 'briefX') { act('briefCancel'); return; }
@@ -1446,5 +1527,5 @@
     if (g === 'pdel') { fetch('/api/game/photo?id=' + d('id'), { method: 'DELETE', headers: { 'x-code': code() } }).then(poll); return; }
   }
 
-  window.A30G = { routes: { jeu: 1, mj: 1, ecran: 1 }, show: show, hide: hide, fig: fig, moves: MOVES };
+  window.A30G = { routes: { jeu: 1, mj: 1, ecran: 1, final: 1 }, show: show, hide: hide, fig: fig, moves: MOVES };
 })();
